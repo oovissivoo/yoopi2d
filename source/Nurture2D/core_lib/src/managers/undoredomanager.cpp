@@ -65,6 +65,7 @@ UndoRedoManager::UndoRedoManager(Editor* editor) : BaseManager(editor, "UndoRedo
 
 UndoRedoManager::~UndoRedoManager()
 {
+    disconnect(&mGlobalStack, nullptr, this, nullptr);
     qDebug() << "UndoRedoManager: destroyed";
 }
 
@@ -74,6 +75,7 @@ bool UndoRedoManager::init()
     const int limit = editor()->preference()->getInt(SETTING::UNDO_REDO_MAX_STEPS);
     mGlobalStack.setUndoLimit(limit);
     CellBank::setGlobalUndoLimit(limit);
+    connect(&mGlobalStack, &QUndoStack::indexChanged, this, &UndoRedoManager::onStackIndexChanged);
 
     // Install an event filter on the application so we can respond to
     // QEvent::LanguageChange and re-evaluate tr("Undo") / tr("Redo") with
@@ -167,16 +169,39 @@ bool UndoRedoManager::hasUnsavedChanges() const
 QUndoStack* UndoRedoManager::activeStack()
 {
     // Return active cell stack if set, otherwise return global
-    return mActiveCellStack ? mActiveCellStack : &mGlobalStack;
+    return mActiveCellStack ? mActiveCellStack.data() : &mGlobalStack;
 }
 
 void UndoRedoManager::setActiveCellStack(QUndoStack* stack)
 {
+    if (stack) {
+        connect(stack, &QUndoStack::indexChanged, this, &UndoRedoManager::onStackIndexChanged, Qt::UniqueConnection);
+        connect(stack, &QObject::destroyed, this, &UndoRedoManager::updateActions, Qt::UniqueConnection);
+    }
     if (mActiveCellStack != stack) {
         mActiveCellStack = stack;
         emit activeStackChanged();
         updateActions();
     }
+}
+
+QUndoStack* UndoRedoManager::undoTargetStack()
+{
+    QUndoStack* stack = activeStack();
+    return stack->canUndo() ? stack : &mGlobalStack;
+}
+
+QUndoStack* UndoRedoManager::redoTargetStack()
+{
+    if (mLastUndoneStack && mLastUndoneStack->canRedo()) return mLastUndoneStack.data();
+    QUndoStack* stack = activeStack();
+    return stack->canRedo() ? stack : &mGlobalStack;
+}
+
+void UndoRedoManager::onStackIndexChanged()
+{
+    if (!mExecutingHistory) mLastUndoneStack.clear();
+    updateActions();
 }
 
 void UndoRedoManager::pushCommand(QUndoCommand* command)
@@ -467,21 +492,24 @@ bool UndoRedoManager::isActiveLayerLocked() const
 
 void UndoRedoManager::undo()
 {
-    QUndoStack* stack = activeStack();
+    QUndoStack* stack = undoTargetStack();
     qInfo() << "[UndoRedoManager] Undo triggered; canUndo=" << stack->canUndo()
-            << "command=" << stack->undoText();
+            << "command=" << stack->undoText() << "timeline=" << (stack == &mGlobalStack);
     if (isActiveLayerLocked()) {
         qWarning() << "[UndoRedoManager] Undo blocked because the active layer is locked";
         emit editor()->getScribbleArea()->lockedLayerAttempted();
         return;
     }
+    mExecutingHistory = true;
     stack->undo();
+    mExecutingHistory = false;
+    mLastUndoneStack = stack;
     updateActions(); 
 }
 
 void UndoRedoManager::redo()
 {
-    QUndoStack* stack = activeStack();
+    QUndoStack* stack = redoTargetStack();
     qInfo() << "[UndoRedoManager] Redo triggered; canRedo=" << stack->canRedo()
             << "command=" << stack->redoText();
     if (isActiveLayerLocked()) {
@@ -489,21 +517,22 @@ void UndoRedoManager::redo()
         emit editor()->getScribbleArea()->lockedLayerAttempted();
         return;
     }
+    mExecutingHistory = true;
     stack->redo();
+    mExecutingHistory = false;
     updateActions();
 }
 
 void UndoRedoManager::updateActions()
 {
-    QUndoStack* stack = activeStack();
     if (mUndoAction) {
-        mUndoAction->setEnabled(stack->canUndo());
+        mUndoAction->setEnabled(undoTargetStack()->canUndo());
         // Always use a stable label in UI; we do not expose the per-command text
         // in the menu/toolbar to keep things consistent.
         mUndoAction->setText(tr("Undo"));
     }
     if (mRedoAction) {
-        mRedoAction->setEnabled(stack->canRedo());
+        mRedoAction->setEnabled(redoTargetStack()->canRedo());
         mRedoAction->setText(tr("Redo"));
     }
 }

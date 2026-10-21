@@ -1953,6 +1953,8 @@ void TimeLine::initUI()
     mLayerList->setPalette(layersPal);
 
     mTracks = new TimeLineCells(this, editor(), TIMELINE_CELL_TYPE::Tracks);
+    mTracks->setObjectName("timelineTracks");
+    mTracks->setProperty("timelineTracks", true);
     QPalette tracksPal = mTracks->palette();
     tracksPal.setColor(QPalette::Window, QColor(47, 47, 47)); // 2f2f2fff
     mTracks->setPalette(tracksPal);

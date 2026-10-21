@@ -17,6 +17,7 @@ GNU General Public License for more details.
 */
 
 #include "editor.h"
+#include <QApplication>
 
 #include <QTimer>
 #include <QDateTime>
@@ -349,7 +350,8 @@ void Editor::copy()
     Q_ASSERT(currentLayer != nullptr);
 
     if (!canCopy()) { return; }
-    if (currentLayer->hasAnySelectedFrames() && !select()->somethingSelected()) {
+    const bool timelineFocus = QApplication::focusWidget() && QApplication::focusWidget()->property("timelineTracks").toBool();
+    if (currentLayer->hasAnySelectedFrames() && (timelineFocus || !select()->somethingSelected())) {
         clipboards()->copySelectedFrames(currentLayer);
     } else if (currentLayer->type() == Layer::BITMAP) {
         auto selMan = select();
@@ -523,6 +525,26 @@ void Editor::pasteToFrames()
     auto clipboardFrames = clipboards()->getClipboardFrames();
     Q_ASSERT(!clipboardFrames.empty());
     Layer* currentLayer = layers()->currentLayer();
+
+    if (currentLayer->type() == Layer::BITMAP) {
+        std::map<int, std::shared_ptr<const CellLayerStack>> snapshots;
+        const int offset = mFrame - clipboardFrames.cbegin()->first;
+        bool valid = true;
+        for (const auto& item : clipboardFrames) {
+            const int position = item.first + offset;
+            auto snapshot = clipboards()->bitmapFrameSnapshot(item.first);
+            if (!snapshot || position < 1 || position > 9999 || currentLayer->keyExists(position)) valid = false;
+            else snapshots[position] = snapshot;
+            delete item.second;
+        }
+        if (!valid || snapshots.empty()) {
+            qWarning() << "[TimelineClipboard] Paste blocked: occupied/invalid destination or missing snapshot at" << mFrame;
+            return;
+        }
+        mUndoRedoManager->setActiveCellStack(nullptr);
+        mUndoRedoManager->undoStack()->push(new PasteBitmapFramesCommand(currentLayer->id(), snapshots, this));
+        return;
+    }
 
     currentLayer->deselectAll();
 
@@ -1325,6 +1347,7 @@ void Editor::removeKey()
 
     // Remove the selected keyframe
     layer->removeKeyFrame(keyFramePosition);
+    if (auto* bitmap = dynamic_cast<LayerBitmap*>(layer)) bitmap->renumberCellsByTimeline();
 
     // Push the undo command to the GLOBAL stack (not per-keyframe)
     if (mUndoRedoManager)
@@ -1607,6 +1630,10 @@ void Editor::setIgnoreFillEnabled(bool enabled)
 void Editor::updateUndoContext()
 {
     if (!mUndoRedoManager) return;
+    if (QApplication::focusWidget() && QApplication::focusWidget()->property("timelineTracks").toBool()) {
+        mUndoRedoManager->setActiveCellStack(nullptr);
+        return;
+    }
     
     Layer* currentLayer = layers()->currentLayer();
     if (!currentLayer) {

@@ -22,6 +22,8 @@ GNU General Public License for more details.
 #include "bitmapimage.h"
 #include "vectorimage.h"
 #include "layer.h"
+#include <memory>
+#include "celllayerstack.h"
 
 class Editor;
 class QClipboard;
@@ -71,6 +73,7 @@ public:
 
     Layer::LAYER_TYPE framesLayerType() const { return mFramesType; }
     bool framesIsEmpty() const { return mFrames.empty(); }
+    std::shared_ptr<const CellLayerStack> bitmapFrameSnapshot(int position) const;
 
     void setBitmapFromImageAt(const QImage& image, const QPoint& topLeft);
     void setBitmapFromImageAtWithHybrid(const QImage& image, const QPoint& topLeft,
@@ -84,6 +87,8 @@ private:
     BitmapImage mBitmapImage;
     VectorImage mVectorImage;
     std::map<int, KeyFrame*> mFrames;
+    std::map<int, std::shared_ptr<const CellLayerStack>> mBitmapFrames;
+    QByteArray mFrameClipboardToken;
     Layer::LAYER_TYPE mFramesType = Layer::LAYER_TYPE::UNDEFINED;
 };
 

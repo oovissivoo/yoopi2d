@@ -3,6 +3,27 @@
 
 #include "undoredocommand.h"
 #include "keyframe.h"
+#include "celllayerstack.h"
+#include <map>
+#include <memory>
+#include <QMap>
+#include <QList>
+
+class PasteBitmapFramesCommand : public UndoRedoCommand
+{
+public:
+    PasteBitmapFramesCommand(int layerId,
+        const std::map<int, std::shared_ptr<const CellLayerStack>>& frames, Editor* editor);
+    void undo() override;
+    void redo() override;
+private:
+    std::map<int, std::shared_ptr<const CellLayerStack>> mFrames;
+    QMap<int, int> mInsertedCells;
+    QMap<int, QString> mOriginalNames;
+    QList<int> mOriginalOrder;
+    bool mCaptured = false;
+    void notify();
+};
 
 // Command to Add a Keyframe
 class AddKeyFrameCommand : public UndoRedoCommand

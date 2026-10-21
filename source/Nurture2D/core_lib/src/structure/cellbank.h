@@ -46,6 +46,7 @@ public:
 
     // Core Management
     int addCell(BitmapImage* cell, const QString& name = QString());
+    int addCellStack(CellLayerStack* stack, const QString& name, int cellId = -1);
     int addCellWithId(int cellId, BitmapImage* cell, const QString& name = QString());
     // Permanent deletion
     void removeCell(int cellId); 

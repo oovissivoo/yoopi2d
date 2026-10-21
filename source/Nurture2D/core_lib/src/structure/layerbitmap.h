@@ -53,6 +53,7 @@ public:
     
     // Rebuild instance tracking from existing keyframes
     void rebuildInstanceTracking();
+    void renumberCellsByTimeline();
 
 protected:
     Status saveKeyFrameFile(KeyFrame*, QString strPath) override;

@@ -2666,6 +2666,7 @@ bool TimeLineCells::event(QEvent* event)
 void TimeLineCells::mousePressEvent(QMouseEvent* event)
 {
     setFocus(Qt::MouseFocusReason);
+    setProperty("timelineTracks", mType == TIMELINE_CELL_TYPE::Tracks);
 
     int frameNumber = getFrameNumber(event->pos().x());
     int layerNumber = getLayerNumber(event->pos().y());
@@ -2777,6 +2778,11 @@ void TimeLineCells::mousePressEvent(QMouseEvent* event)
 
                     Layer *currentLayer = mEditor->object()->getLayer(layerNumber);
 
+                    if (event->button() == Qt::LeftButton && frameNumber > 0) {
+                        if (mEditor->playback()->isPlaying()) mEditor->playback()->stop();
+                        mEditor->scrubTo(frameNumber);
+                    }
+
                     // --- NEW SELECTION LOGIC ---
 
                     // Initialize Deep Interaction Mode (Ctrl held?)
@@ -2841,7 +2847,7 @@ void TimeLineCells::mousePressEvent(QMouseEvent* event)
                              // Drag → move frames. Simple click (no drag) → deselect all.
                              mCanMoveFrame = true;
                              mTempSelectMode = false;
-                             mClickDeselectPending = true; // cleared if we actually drag
+                             mClickDeselectPending = false;
                         }
                         else if (currentLayer->keyExistsWhichCovers(frameNumber))
                         {
@@ -3206,11 +3212,15 @@ void TimeLineCells::mouseReleaseEvent(QMouseEvent* event)
         }
         else if (!mTimeLine->scrubbing && !mBoxSelecting && !mClickSelecting)
         {
-            // Unselected Keyframe Click (No Drag) -> Deselect All
+            // A simple click selects the numbered drawing for Copy; dragging
+            // still uses the existing deferred selection/move path.
             if (mTempSelectMode && !mMovingFrames)
             {
                 deepDeselectAll();
+                if (currentLayer->keyExists(mStartFrameNumber))
+                    currentLayer->setFrameSelected(mStartFrameNumber, true);
                 emit mEditor->selectedFramesChanged();
+                emit selectionChanged();
             }
             // Already-selected frame simple click (no drag) -> Deselect All
             else if (mClickDeselectPending)

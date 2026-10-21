@@ -27,6 +27,7 @@ GNU General Public License for more details.
 #include <QUndoStack>
 #include <QRectF>
 #include <QObject>
+#include <QPointer>
 
 class QAction;
 class QUndoCommand;
@@ -172,6 +173,9 @@ public slots:
     void updateActions();
 
 private:
+    QUndoStack* undoTargetStack();
+    QUndoStack* redoTargetStack();
+    void onStackIndexChanged();
     bool isActiveLayerLocked() const;
     void replaceKeyFrame(const UndoSaveState& undoState, const QString& description);
     void replaceBitmap(const UndoSaveState& undoState, const QString& description);
@@ -180,7 +184,9 @@ private:
     const UndoSaveState* savedKeyFrameState() const;
 
     QUndoStack mGlobalStack;           // Timeline/layer operations
-    QUndoStack* mActiveCellStack;      // Current cell being edited (or nullptr)
+    QPointer<QUndoStack> mActiveCellStack;
+    QPointer<QUndoStack> mLastUndoneStack;
+    bool mExecutingHistory = false;
     
     QAction* mUndoAction = nullptr;
     QAction* mRedoAction = nullptr;

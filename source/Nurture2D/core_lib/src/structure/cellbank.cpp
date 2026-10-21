@@ -52,6 +52,19 @@ int CellBank::addCell(BitmapImage* cell, const QString& name)
     return id;
 }
 
+int CellBank::addCellStack(CellLayerStack* stack, const QString& name, int cellId)
+{
+    if (!stack || (cellId > 0 && mCellStacks.contains(cellId))) return -1;
+    const int id = cellId > 0 ? cellId : mNextId;
+    mNextId = qMax(mNextId, id + 1);
+    mCellStacks.insert(id, stack);
+    mCellOrder.append(id);
+    mCellNames.insert(id, name);
+    emit cellAdded(id);
+    touchCell(id);
+    return id;
+}
+
 int CellBank::addCellWithId(int cellId, BitmapImage* cell, const QString& name)
 {
     if (!cell) return -1;

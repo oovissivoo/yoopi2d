@@ -20,6 +20,13 @@ GNU General Public License for more details.
 #include <QGuiApplication>
 
 #include <editor.h>
+#include "layerbitmap.h"
+#include "bitmapkeyframe.h"
+#include "cellbank.h"
+#include "innerlayer.h"
+#include <QDebug>
+#include <QMimeData>
+#include <QUuid>
 
 ClipboardManager::ClipboardManager(Editor* editor) : BaseManager(editor, "ClipboardManager")
 {
@@ -38,6 +45,12 @@ ClipboardManager::~ClipboardManager()
 void ClipboardManager::setFromSystemClipboard(const QPointF& pos, const Layer* layer)
 {
     const QClipboard *clipboard = QGuiApplication::clipboard();
+    if (!mFrames.empty()) {
+        const QMimeData* mime = clipboard->mimeData();
+        if (mime && mime->data("application/x-yoopi2d-timeline-frames") == mFrameClipboardToken) return;
+        resetStates();
+    }
+    if (!layer) return;
 
     // We intentially do not call resetStates here because we can only store image changes to the clipboard
     // otherwise we break pasting for vector.
@@ -87,6 +100,21 @@ void ClipboardManager::copySelectedFrames(const Layer* currentLayer)
         KeyFrame* keyframe = currentLayer->getKeyFrameAt(pos);
         Q_ASSERT(keyframe != nullptr);
 
+        if (currentLayer->type() == Layer::BITMAP) {
+            auto* layer = static_cast<const LayerBitmap*>(currentLayer);
+            auto* bitmap = dynamic_cast<BitmapKeyFrame*>(keyframe);
+            auto* stack = bitmap && layer->cellBank()
+                ? layer->cellBank()->getCellLayerStack(bitmap->cellId()) : nullptr;
+            if (!stack) {
+                qWarning() << "[TimelineClipboard] Missing drawing at frame" << pos;
+                continue;
+            }
+            for (int i = 0; i < stack->layerCount(); ++i) {
+                if (stack->layerAt(i)->image) stack->layerAt(i)->image->loadFile();
+            }
+            mBitmapFrames[pos] = std::shared_ptr<const CellLayerStack>(stack->deepCopy());
+        }
+
         KeyFrame* newKeyframe = keyframe->clone();
         // Unload unmodified keyframes now as they won't ever get unloaded
         // by activeframepool while in clipboard manager.
@@ -95,6 +123,20 @@ void ClipboardManager::copySelectedFrames(const Layer* currentLayer)
         mFrames.insert(std::make_pair(keyframe->pos(), newKeyframe));
     }
     mFramesType = currentLayer->type();
+    if (!mFrames.empty()) {
+        mFrameClipboardToken = QUuid::createUuid().toByteArray();
+        auto* mime = new QMimeData;
+        mime->setData("application/x-yoopi2d-timeline-frames", mFrameClipboardToken);
+        QGuiApplication::clipboard()->setMimeData(mime);
+    }
+    qInfo() << "[TimelineClipboard] Copied" << mFrames.size() << "drawing frames from layer" << currentLayer->id();
+    emit editor()->canPasteChanged(editor()->canPaste());
+}
+
+std::shared_ptr<const CellLayerStack> ClipboardManager::bitmapFrameSnapshot(int position) const
+{
+    auto it = mBitmapFrames.find(position);
+    return it == mBitmapFrames.end() ? nullptr : it->second;
 }
 
 std::map<int, KeyFrame*> ClipboardManager::getClipboardFrames()
@@ -115,6 +157,8 @@ void ClipboardManager::resetStates()
         delete frame;
     }
     mFrames.clear();
+    mBitmapFrames.clear();
+    mFrameClipboardToken.clear();
 
     mBitmapImage = BitmapImage();
     mVectorImage = VectorImage();

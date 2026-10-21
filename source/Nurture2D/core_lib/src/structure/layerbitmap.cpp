@@ -22,6 +22,7 @@ GNU General Public License for more details.
 #include <QFileInfo>
 #include <QDomDocument>
 #include <QColor>
+#include <QRegularExpression>
 #include "keyframe.h"
 #include "bitmapimage.h"
 #include "bitmapkeyframe.h"
@@ -326,6 +327,29 @@ bool LayerBitmap::removeKeyFrame(int position)
     
     // Call base implementation
     return Layer::removeKeyFrame(position);
+}
+
+void LayerBitmap::renumberCellsByTimeline()
+{
+    if (!mCellBank) return;
+    QMap<int, int> frames;
+    foreachKeyFrame([&](KeyFrame* key) {
+        auto* bitmap = dynamic_cast<BitmapKeyFrame*>(key);
+        if (bitmap && bitmap->cellId() > 0) frames[key->pos()] = bitmap->cellId();
+    });
+    QList<int> order;
+    for (int id : frames) if (!order.contains(id)) order.append(id);
+    // Retain unused bank drawings for undo/reuse, after all visible drawings.
+    for (int id : mCellBank->getAllCellIds()) if (!order.contains(id)) order.append(id);
+    mCellBank->setCellOrder(order);
+    const QRegularExpression numbered(QStringLiteral("^(.*?)(\\d+)$"));
+    for (int i = 0; i < order.size(); ++i) {
+        const int id = order.at(i);
+        const auto match = numbered.match(mCellBank->getCellName(id));
+        if (match.hasMatch()) mCellBank->setCellName(id, match.captured(1)
+            + QString::number(i + 1).rightJustified(match.captured(2).size(), '0'));
+    }
+    qInfo() << "[TimelineNumbering] Renumbered layer" << id() << "visible drawings:" << frames.size();
 }
 
 // Rebuild instance tracking from existing keyframes

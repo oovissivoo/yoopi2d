@@ -26,6 +26,8 @@ GNU General Public License for more details.
 #include "vectorimage.h"
 #include "keyframe.h"
 #include <memory>
+#include <QMap>
+#include <QList>
 
 class Editor;
 class UndoRedoManager;
@@ -172,6 +174,8 @@ private:
     int mLayerId = 0;
     int mFramePosition = 0;
     std::unique_ptr<KeyFrame> mRemovedKeyFrame;
+    QMap<int, QString> mOriginalCellNames;
+    QList<int> mOriginalCellOrder;
 };
 
 #endif // UNDOREDOCOMMAND_H

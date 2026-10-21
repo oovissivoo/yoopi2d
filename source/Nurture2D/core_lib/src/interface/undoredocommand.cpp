@@ -369,6 +369,11 @@ KeyFrameRemoveCommand::KeyFrameRemoveCommand(KeyFrame* removedKeyFrame,
     mLayerId = layerId;
     mFramePosition = removedKeyFrame->pos();
     mRemovedKeyFrame = std::unique_ptr<KeyFrame>(removedKeyFrame->clone());
+    auto* layer = dynamic_cast<LayerBitmap*>(editor->layers()->findLayerById(layerId));
+    if (layer && layer->cellBank()) {
+        mOriginalCellOrder = layer->cellBank()->getAllCellIds();
+        for (int id : mOriginalCellOrder) mOriginalCellNames[id] = layer->cellBank()->getCellName(id);
+    }
     setText(description);
 }
 
@@ -401,10 +406,17 @@ void KeyFrameRemoveCommand::undo()
     
     // Re-add the keyframe that was removed (only if its cell is still valid)
     layer->addKeyFrame(mFramePosition, mRemovedKeyFrame->clone());
+    if (auto* bitmap = dynamic_cast<LayerBitmap*>(layer)) {
+        bitmap->cellBank()->setCellOrder(mOriginalCellOrder);
+        for (auto it = mOriginalCellNames.cbegin(); it != mOriginalCellNames.cend(); ++it)
+            bitmap->cellBank()->setCellName(it.key(), it.value());
+        bitmap->renumberCellsByTimeline();
+    }
     
     editor()->layers()->notifyAnimationLengthChanged();
     editor()->layers()->notifyLayerChanged(layer);
     emit editor()->updateTimeLine();
+    emit editor()->framesModified();
 }
 
 void KeyFrameRemoveCommand::redo()
@@ -422,9 +434,11 @@ void KeyFrameRemoveCommand::redo()
     
     // Remove the keyframe again
     layer->removeKeyFrame(mFramePosition);
+    if (auto* bitmap = dynamic_cast<LayerBitmap*>(layer)) bitmap->renumberCellsByTimeline();
     
     editor()->layers()->notifyAnimationLengthChanged();
     editor()->layers()->notifyLayerChanged(layer);
     emit editor()->updateTimeLine();
     editor()->scrubTo(mFramePosition);
+    emit editor()->framesModified();
 }

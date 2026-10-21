@@ -8,6 +8,106 @@
 #include "cellbank.h"
 #include "object.h"
 #include <QDebug>
+#include <QRegularExpression>
+#include "innerlayer.h"
+
+PasteBitmapFramesCommand::PasteBitmapFramesCommand(int layerId,
+    const std::map<int, std::shared_ptr<const CellLayerStack>>& frames, Editor* editor)
+    : UndoRedoCommand(editor), mFrames(frames)
+{
+    mLayerId = layerId;
+    setText(QObject::tr("Paste drawings"));
+}
+
+void PasteBitmapFramesCommand::notify()
+{
+    editor()->layers()->notifyAnimationLengthChanged();
+    emit editor()->selectedFramesChanged();
+    emit editor()->framesModified();
+    editor()->updateFrame();
+    editor()->updateTimeLine();
+    editor()->updateUndoContext();
+}
+
+void PasteBitmapFramesCommand::redo()
+{
+    auto* layer = dynamic_cast<LayerBitmap*>(editor()->layers()->findLayerById(mLayerId));
+    if (!layer || !layer->cellBank()) { qWarning() << "[TimelineClipboard] Paste layer unavailable"; return; }
+    auto* bank = layer->cellBank();
+    if (!mCaptured) {
+        mOriginalOrder = bank->getAllCellIds();
+        for (int id : mOriginalOrder) mOriginalNames[id] = bank->getCellName(id);
+        mCaptured = true;
+    }
+    layer->deselectAll();
+    for (const auto& item : mFrames) {
+        const int frame = item.first;
+        if (layer->keyExists(frame)) {
+            qWarning() << "[TimelineClipboard] Paste destination occupied:" << frame;
+            continue;
+        }
+        int nextFrame = 10000;
+        int nextCell = -1;
+        layer->foreachKeyFrame([&](KeyFrame* key) {
+            auto* bitmap = dynamic_cast<BitmapKeyFrame*>(key);
+            if (bitmap && bitmap->cellId() > 0 && key->pos() > frame && key->pos() < nextFrame) {
+                nextFrame = key->pos(); nextCell = bitmap->cellId();
+            }
+        });
+        std::unique_ptr<CellLayerStack> copy(item.second->deepCopy());
+        for (int i = 0; i < copy->layerCount(); ++i) {
+            if (copy->layerAt(i)->image) copy->layerAt(i)->image->setModified(true);
+        }
+        const int id = bank->addCellStack(copy.get(), QString(), mInsertedCells.value(frame, -1));
+        if (id <= 0) { qWarning() << "[TimelineClipboard] Failed to create drawing at" << frame; continue; }
+        copy.release();
+        mInsertedCells[frame] = id;
+        QList<int> order = bank->getAllCellIds();
+        order.removeAll(id);
+        const int index = order.indexOf(nextCell);
+        order.insert(index < 0 ? order.size() : index, id);
+        bank->setCellOrder(order);
+        auto* key = new BitmapKeyFrame(id);
+        key->setCellBank(bank);
+        if (!layer->addKeyFrame(frame, key)) {
+            delete key; bank->removeCell(id);
+            qWarning() << "[TimelineClipboard] Failed to insert key at" << frame;
+            continue;
+        }
+        layer->setFrameSelected(frame, true);
+        qInfo() << "[TimelineClipboard] Pasted independent drawing at frame" << frame << "cell" << id;
+    }
+    // Keep stable cell identities; update only their visible numeric names.
+    const auto order = bank->getAllCellIds();
+    const QRegularExpression numbered(QStringLiteral("^(.*?)(\\d+)$"));
+    QString prefix = layer->name().trimmed().replace(' ', '_') + '_';
+    for (int i = 0; i < order.size(); ++i) {
+        const int id = order.at(i);
+        const QString name = bank->getCellName(id);
+        const auto match = numbered.match(name);
+        if (match.hasMatch() || mInsertedCells.values().contains(id)) {
+            bank->setCellName(id, (match.hasMatch() ? match.captured(1) : prefix)
+                + QString::number(i + 1).rightJustified(match.hasMatch() ? match.captured(2).size() : 3, '0'));
+        }
+    }
+    notify();
+}
+
+void PasteBitmapFramesCommand::undo()
+{
+    auto* layer = dynamic_cast<LayerBitmap*>(editor()->layers()->findLayerById(mLayerId));
+    if (!layer || !layer->cellBank()) { qWarning() << "[TimelineClipboard] Undo layer unavailable"; return; }
+    auto* bank = layer->cellBank();
+    for (auto it = mInsertedCells.cbegin(); it != mInsertedCells.cend(); ++it) {
+        layer->removeKeyFrame(it.key());
+        bank->removeCell(it.value());
+    }
+    bank->setCellOrder(mOriginalOrder);
+    for (auto it = mOriginalNames.cbegin(); it != mOriginalNames.cend(); ++it) bank->setCellName(it.key(), it.value());
+    layer->renumberCellsByTimeline();
+    qInfo() << "[TimelineClipboard] Undo paste:" << mInsertedCells.size() << "drawings";
+    notify();
+}
 
 // ===========================================
 // AddKeyFrameCommand

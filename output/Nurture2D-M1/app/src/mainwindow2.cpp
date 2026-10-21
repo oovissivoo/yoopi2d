@@ -80,6 +80,19 @@ constexpr quint32 kMacVirtualKeyZ = 6;
 constexpr quint32 kMacVirtualKeyComma = 43;
 constexpr quint32 kMacVirtualKeyPeriod = 47;
 
+bool isMacClipboardShortcut(const QKeyEvent* event, bool* paste)
+{
+    const auto modifiers = event->modifiers();
+    if (!modifiers.testFlag(Qt::ControlModifier) ||
+        (modifiers & (Qt::AltModifier | Qt::MetaModifier | Qt::ShiftModifier))) return false;
+    if (event->nativeVirtualKey() != 8 && event->nativeVirtualKey() != 9) return false;
+    *paste = event->nativeVirtualKey() == 9;
+    const QString configured = pencilSettings().value(QStringLiteral("shortcuts/")
+        + (*paste ? QStringLiteral("CmdPaste") : QStringLiteral("CmdCopy"))).toString()
+        .remove('"').trimmed();
+    return QKeySequence(configured) == QKeySequence(*paste ? "Ctrl+V" : "Ctrl+C");
+}
+
 bool isMacCommandZ(const QKeyEvent* event)
 {
     if (!event || event->nativeVirtualKey() != kMacVirtualKeyZ) return false;
@@ -4120,9 +4133,32 @@ bool MainWindow2::eventFilter(QObject* obj, QEvent* event)
         const bool editingText = qobject_cast<QLineEdit*>(focus) ||
                                  qobject_cast<QPlainTextEdit*>(focus) ||
                                  qobject_cast<QTextEdit*>(focus);
-        if (event->type() == QEvent::KeyPress && belongsToThisWindow && !editingText && isMacCommandZ(keyEvent)) {
+        bool pasteClipboard = false;
+        if (belongsToThisWindow && !editingText && ui && isMacClipboardShortcut(keyEvent, &pasteClipboard)) {
+            if (event->type() == QEvent::ShortcutOverride) {
+                keyEvent->accept(); return true;
+            }
+            QAction* action = pasteClipboard ? ui->actionPaste : ui->actionCopy;
+            if (ui->scribbleArea && ui->scribbleArea->isPointerInUse()) {
+                qWarning() << "[TimelineClipboard] Shortcut blocked during drawing";
+            } else if (action && action->isEnabled()) {
+                qInfo() << "[TimelineClipboard] Physical macOS shortcut" << (pasteClipboard ? "Paste" : "Copy")
+                        << "logical key" << keyEvent->key();
+                action->trigger();
+            } else {
+                qWarning() << "[TimelineClipboard] Shortcut unavailable:" << (pasteClipboard ? "Paste" : "Copy");
+            }
+            keyEvent->accept(); return true;
+        }
+        if (belongsToThisWindow && !editingText && isMacCommandZ(keyEvent)) {
             // Let the canvas retain its in-progress stroke/lasso cancellation behavior.
             if (ui && (!ui->scribbleArea || !ui->scribbleArea->isPointerInUse())) {
+                if (event->type() == QEvent::ShortcutOverride) {
+                    keyEvent->accept();
+                    return true;
+                }
+                mEditor->updateUndoContext();
+                mEditor->undoRedo()->updateActions();
                 const bool redo = keyEvent->modifiers().testFlag(Qt::ShiftModifier);
                 QAction* action = redo ? ui->actionRedo : ui->actionUndo;
                 if (action && action->isEnabled()) {
@@ -4567,6 +4603,10 @@ void MainWindow2::makeConnections(Editor* pEditor, TimeLine* pTimeline)
     connect(pTimeline, &TimeLine::selectionChanged, this, &MainWindow2::updateCopyCutPasteEnabled);
     connect(this, &MainWindow2::windowActivated, this, &MainWindow2::updateCopyCutPasteEnabled);
     connect(mEditor->select(), &SelectionManager::selectionChanged, this, &MainWindow2::updateCopyCutPasteEnabled);
+    connect(mEditor, &Editor::selectedFramesChanged, this, &MainWindow2::updateCopyCutPasteEnabled);
+    connect(qApp, &QApplication::focusChanged, this, [this](QWidget*, QWidget*) {
+        mEditor->updateUndoContext();
+    });
 
     connect(pEditor->layers(), &LayerManager::currentLayerChanged, pTimeline, &TimeLine::updateUI);
     connect(pEditor->layers(), &LayerManager::animationLengthChanged, pTimeline, &TimeLine::extendLength);
