@@ -3292,14 +3292,55 @@ void TimeLine::changeEvent(QEvent* event)
 
 void TimeLine::wheelEvent(QWheelEvent* event)
 {
-    if (event->modifiers() & Qt::ShiftModifier)
-    {
-        mHScrollbar->event(event);
+    if (!event) return;
+
+    const bool hasHorizontalDelta = event->pixelDelta().x() != 0 ||
+                                    event->angleDelta().x() != 0;
+    if (hasHorizontalDelta && scrollTimelineHorizontally(event)) return;
+    if (event->modifiers().testFlag(Qt::ShiftModifier) &&
+        scrollTimelineHorizontally(event, true)) return;
+
+    if (mVScrollbar) mVScrollbar->event(event);
+    else QWidget::wheelEvent(event);
+}
+
+bool TimeLine::scrollTimelineHorizontally(QWheelEvent* event, bool useVerticalDelta)
+{
+    if (!event || !mHScrollbar || !mTracks) return false;
+
+    const QPoint pixelDelta = event->pixelDelta();
+    const QPoint angleDelta = event->angleDelta();
+    const int pixelAmount = useVerticalDelta ? pixelDelta.y() : pixelDelta.x();
+    const int angleAmount = useVerticalDelta ? angleDelta.y() : angleDelta.x();
+    const bool hasPixelDelta = pixelAmount != 0;
+    const int amount = hasPixelDelta ? pixelAmount : angleAmount;
+    if (amount == 0) return false;
+
+    qreal frameDelta = 0.0;
+    if (hasPixelDelta) {
+        const int frameSize = mTracks->getFrameSize();
+        if (frameSize <= 0) {
+            qWarning() << "[TimelineScroll] Ignoring trackpad scroll: invalid frame size" << frameSize;
+            event->ignore();
+            return true;
+        }
+        // Pixel delta follows the gesture direction; invert it to move the viewport
+        // with the content while preserving sub-frame motion across wheel events.
+        frameDelta = -qreal(pixelAmount) / qreal(frameSize);
+    } else {
+        // Traditional wheels report 120 units per notch; one notch moves one frame.
+        frameDelta = -qreal(angleAmount) / 120.0 * qMax(1, mHScrollbar->singleStep());
     }
-    else
-    {
-        mVScrollbar->event(event);
+
+    mHorizontalWheelFrameRemainder += frameDelta;
+    const int wholeFrames = int(mHorizontalWheelFrameRemainder);
+    mHorizontalWheelFrameRemainder -= wholeFrames;
+    if (wholeFrames != 0) {
+        mHScrollbar->setValue(mHScrollbar->value() + wholeFrames);
     }
+
+    event->accept();
+    return true;
 }
 
 void TimeLine::onScrollbarValueChanged()

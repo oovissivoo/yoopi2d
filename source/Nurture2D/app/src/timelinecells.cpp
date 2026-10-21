@@ -49,6 +49,7 @@ GNU General Public License for more details.
 #include <QGuiApplication>
 #include <QScreen>
 #include <QMouseEvent>
+#include <QWheelEvent>
 #include <QSignalBlocker>
 #include <QFrame>
 #include <QVBoxLayout>
@@ -141,6 +142,24 @@ void TimeLineCells::keyPressEvent(QKeyEvent* event)
     }
 
     QWidget::keyPressEvent(event);
+}
+
+void TimeLineCells::wheelEvent(QWheelEvent* event)
+{
+    if (!event) return;
+
+    const QPoint pixelDelta = event->pixelDelta();
+    const QPoint angleDelta = event->angleDelta();
+    const bool hasHorizontalDelta = pixelDelta.x() != 0 || angleDelta.x() != 0;
+    const bool shiftToHorizontal = !hasHorizontalDelta &&
+                                   event->modifiers().testFlag(Qt::ShiftModifier) &&
+                                   (pixelDelta.y() != 0 || angleDelta.y() != 0);
+    if (mTimeLine && (hasHorizontalDelta || shiftToHorizontal) &&
+        mTimeLine->scrollTimelineHorizontally(event, shiftToHorizontal)) {
+        return;
+    }
+
+    QWidget::wheelEvent(event);
 }
 
 namespace {

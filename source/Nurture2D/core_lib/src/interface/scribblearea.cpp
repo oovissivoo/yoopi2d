@@ -27,6 +27,7 @@ GNU General Public License for more details.
 #include <QPainter>
 #include <QImage>
 #include <QShowEvent>
+#include <QNativeGestureEvent>
 
 #include "pointerevent.h"
 #include "beziercurve.h"
@@ -874,6 +875,39 @@ void ScribbleArea::onObjectLoaded()
 bool ScribbleArea::event(QEvent *event)
 {
     bool processed = false;
+    if (event->type() == QEvent::NativeGesture) {
+        auto* gesture = static_cast<QNativeGestureEvent*>(event);
+        if (gesture->gestureType() == Qt::ZoomNativeGesture) {
+            // macOS reports each pinch update as a magnification delta.
+            // Keep the canvas point under the gesture stationary while scaling.
+            if (isPointerInUse() || !mEditor || !mEditor->view() ||
+                (mEditor->shiftTrace() && mEditor->shiftTrace()->activeMoveEntryId() != -1)) {
+                event->accept();
+                return true;
+            }
+
+            const qreal magnificationDelta = gesture->value();
+            const qreal scaleFactor = 1.0 + magnificationDelta;
+            if (!std::isfinite(scaleFactor) || scaleFactor <= 0.0) {
+                qWarning() << "[ScribbleArea] Ignoring invalid trackpad zoom delta:" << magnificationDelta;
+                event->accept();
+                return true;
+            }
+
+            const qreal newScale = mEditor->view()->scaling() * scaleFactor;
+            if (!std::isfinite(newScale) || newScale <= 0.0) {
+                qWarning() << "[ScribbleArea] Ignoring invalid trackpad zoom scale:" << newScale;
+                event->accept();
+                return true;
+            }
+
+            startNavigating();
+            mEditor->view()->scaleAtOffset(newScale,
+                mEditor->view()->mapScreenToCanvas(gesture->localPos()));
+            event->accept();
+            return true;
+        }
+    }
     // Intercept shortcuts before QAction to allow tools to override Ctrl+Z during drags
     if (event->type() == QEvent::ShortcutOverride)
     {
@@ -1319,6 +1353,28 @@ void ScribbleArea::wheelEvent(QWheelEvent* event)
     static const bool isX11 = QGuiApplication::platformName() == "xcb";
     const QPoint pixels = event->pixelDelta();
     const QPoint angle = event->angleDelta();
+    if (!isX11 && !pixels.isNull()) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+        const QPointF screenPosition = event->position();
+#else
+        const QPointF screenPosition = event->posF();
+#endif
+        const QTransform viewInverse = mEditor->view()->getViewInverse();
+        const QPointF screenDelta(pixels.x(), pixels.y());
+        const QPointF viewDelta = viewInverse.map(screenPosition + screenDelta) -
+                                  viewInverse.map(screenPosition);
+        if (!std::isfinite(viewDelta.x()) || !std::isfinite(viewDelta.y())) {
+            qWarning() << "[ScribbleArea] Ignoring invalid trackpad pan delta:" << pixels;
+            event->accept();
+            return;
+        }
+
+        // Pixel deltas follow the fingers; translate the view in the same direction.
+        startNavigating();
+        mEditor->view()->translate(mEditor->view()->translation() + viewDelta);
+        event->accept();
+        return;
+    }
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     const QPointF offset = mEditor->view()->mapScreenToCanvas(event->position());
 #else

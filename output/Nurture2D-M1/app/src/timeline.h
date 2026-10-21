@@ -82,6 +82,7 @@ public:
     void onObjectLoaded();
     void onCurrentLayerChanged();
     void onScrollbarValueChanged();
+    bool scrollTimelineHorizontally(QWheelEvent* event, bool useVerticalDelta = false);
 
 signals:
     void selectionChanged();
@@ -144,6 +145,7 @@ private:
     TimeControls* mTimeControls = nullptr;
 
     QTimer* mScrollingStoppedTimer = nullptr;
+    qreal mHorizontalWheelFrameRemainder = 0.0;
 
     CosmicButton* mLayerDeleteButton = nullptr;
     CosmicHSlider* mLayersHeaderOpacitySlider = nullptr;
