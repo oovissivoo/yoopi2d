@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="96"
+   height="96"
+   viewBox="0 0 25.399999 25.4"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="Tool_Curve.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#2c2c2c"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#101010"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="4.1770833"
+     inkscape:cx="39.860349"
+     inkscape:cy="51.710723"
+     inkscape:window-width="1920"
+     inkscape:window-height="1025"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path7027"
+       style="color:#000000;display:inline;fill:#808080;stroke-width:13.5826;stroke-linecap:round;stroke-dashoffset:64.2217;-inkscape-stroke:none;paint-order:stroke fill markers"
+       d="m 12.811948,4.8074713 c -3.4747852,0 -6.404119,1.977492 -8.3807011,4.4851133 C 2.8584759,11.28787 1.805294,13.649886 1.4411578,16.016791 1.9647674,15.68945 2.5838627,15.496577 3.2380147,15.497935 c 0.6664987,-5.43e-4 1.2851865,0.202381 1.810915,0.540588 0.349888,-1.553443 1.1073901,-3.222746 2.168871,-4.569325 1.4906101,-1.8911069 3.4555513,-3.102404 5.5941473,-3.102404 2.134792,0 4.104216,1.2333009 5.601169,3.13052 1.070989,1.356902 1.82974,3.027699 2.175893,4.576388 0.54249,-0.362656 1.189158,-0.575903 1.881096,-0.575903 0.632407,0.0016 1.22488,0.182007 1.733685,0.491691 C 23.829182,13.636575 22.768666,11.281894 21.199657,9.2932637 19.219082,6.7829259 16.290549,4.8081504 12.811948,4.8081504 Z M 3.2310061,16.760846 a 2.1602008,2.1602008 0 0 0 -2.1618624,2.161808 2.1602008,2.1602008 0 0 0 2.1618624,2.161944 2.1602008,2.1602008 0 0 0 2.1618488,-2.161944 2.1602008,2.1602008 0 0 0 -2.1618488,-2.161808 z m 19.2390999,0 a 2.1602008,2.1602008 0 0 0 -2.161862,2.161808 2.1602008,2.1602008 0 0 0 2.161862,2.161944 2.1602008,2.1602008 0 0 0 2.154827,-2.161944 2.1602008,2.1602008 0 0 0 -2.154827,-2.161808 z" />
+  </g>
+</svg>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="96"
+   height="96"
+   viewBox="0 0 25.399999 25.4"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="ReffWindowSnapShot.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#2c2c2c"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#101010"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="5.9072879"
+     inkscape:cx="27.508393"
+     inkscape:cy="51.800421"
+     inkscape:window-width="1920"
+     inkscape:window-height="1025"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g26897"
+       inkscape:label="Camera Icon SnapShot"
+       transform="matrix(3.7809179,0,0,3.7809179,-67.231209,-313.52394)">
+      <path
+         id="rect26877"
+         style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.665001;stroke-dasharray:none;stroke-dashoffset:64.2217"
+         d="m 19.822663,83.930657 c -0.403592,0 -0.728638,0.325046 -0.728638,0.728638 v 0.162264 c 0,0.0088 2.14e-4,0.01768 5.17e-4,0.02636 h -0.03721 c -0.434213,0 -0.783931,0.349201 -0.783931,0.783414 v 2.217953 c 0,0.434213 0.349718,0.783415 0.783931,0.783415 h 3.781681 c 0.434213,0 0.783932,-0.349202 0.783932,-0.783415 v -0.49506 c 0.306583,-0.0113 0.549837,-0.262101 0.549837,-0.571542 0,-0.309441 -0.243254,-0.560245 -0.549837,-0.571541 v -0.57981 c 0,-0.434213 -0.349719,-0.783414 -0.783932,-0.783414 h -2.288232 c 3.03e-4,-0.0087 5.17e-4,-0.0176 5.17e-4,-0.02636 v -0.162264 c 0,-0.403592 -0.325046,-0.728638 -0.728638,-0.728638 z" />
+      <circle
+         style="fill:#333333;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.665001;stroke-dasharray:none;stroke-dashoffset:64.2217"
+         id="path26883"
+         cx="20.899128"
+         cy="86.746964"
+         r="1.176788" />
+      <circle
+         style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.183584;stroke-dasharray:none;stroke-dashoffset:64.2217"
+         id="circle26892"
+         cx="20.305851"
+         cy="86.302986"
+         r="0.32487071" />
+    </g>
+  </g>
+</svg>

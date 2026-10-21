@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GeneralPage</class>
+ <widget class="QWidget" name="GeneralPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>337</width>
+    <height>551</height>
+   </rect>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOn</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="contents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>-407</y>
+        <width>314</width>
+        <height>932</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="lay">
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string comment="GroupBox title in Preference">Language</string>
+         </property>
+         <layout class="QGridLayout" name="langLayout">
+          <item row="0" column="0">
+           <widget class="QComboBox" name="languageCombo">
+            <property name="currentText">
+             <string comment="First item of the language list">[System-Language]</string>
+            </property>
+            <item>
+             <property name="text">
+              <string comment="First item of the language list">[System-Language]</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="windowOpacityBox">
+         <property name="title">
+          <string comment="GroupBox title in Preference">Window opacity</string>
+         </property>
+         <layout class="QGridLayout" name="windowOpacityLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="windowOpacityLabel">
+            <property name="text">
+             <string>Opacity</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSlider" name="windowOpacityLevel">
+            <property name="minimum">
+             <number>30</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="appearanceBox">
+         <property name="title">
+          <string comment="GroupBox title in Preference">Appearance</string>
+         </property>
+         <layout class="QVBoxLayout" name="appearanceLayout">
+          <item>
+           <widget class="QCheckBox" name="shadowsBox">
+            <property name="text">
+             <string>Shadows</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="toolCursorsBox">
+            <property name="text">
+             <string>Tool Cursors</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      <item>
+       <widget class="QGroupBox" name="cursorsBox">
+        <property name="title">
+         <string>Cursors</string>
+        </property>
+        <layout class="QVBoxLayout" name="cursorsLayout">
+         <item>
+          <widget class="QCheckBox" name="canvasCursorBox">
+           <property name="visible">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Show Canvas Cursor</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cursorStyleLabel">
+           <property name="text">
+            <string>Cursor Shape:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="cursorStyleCombo">
+           <item><property name="text"><string>Circle</string></property></item>
+           <item><property name="text"><string>Cross</string></property></item>
+           <item><property name="text"><string>Triangle Up</string></property></item>
+           <item><property name="text"><string>Triangle Down</string></property></item>
+           <item><property name="text"><string>Triangle Left</string></property></item>
+           <item><property name="text"><string>Triangle Right</string></property></item>
+           <item><property name="text"><string>Triangle Left-Up</string></property></item>
+           <item><property name="text"><string>Triangle Left-Down</string></property></item>
+           <item><property name="text"><string>Triangle Right-Up</string></property></item>
+           <item><property name="text"><string>Triangle Right-Down</string></property></item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="alwaysShowCircleBox">
+           <property name="text">
+            <string>Always Show Circle</string>
+           </property>
+           <property name="toolTip">
+            <string>Show both the circle (indicating brush size) and the custom cursor icon</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cursorPressureSizeBox">
+           <property name="text">
+            <string>Cursor Size Reflects Pressure</string>
+           </property>
+           <property name="toolTip">
+            <string>When enabled, the cursor circle size changes with stylus pressure during drawing</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="rememberCursorSizeBox">
+           <property name="text">
+            <string>Remember Cursor Size</string>
+           </property>
+           <property name="toolTip">
+            <string>When enabled, the cursor size stays at its pressure-scaled value after lifting the pen</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+       <item>
+        <widget class="QGroupBox" name="backgroundBox">
+         <property name="title">
+          <string comment="GroupBox title in Preference">Background</string>
+         </property>
+         <layout class="QHBoxLayout" name="backgroundLayout">
+          <item>
+           <widget class="QRadioButton" name="checkerBackgroundButton">
+            <attribute name="buttonGroup">
+             <string notr="true">backgroundButtons</string>
+            </attribute>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="whiteBackgroundButton">
+            <attribute name="buttonGroup">
+             <string notr="true">backgroundButtons</string>
+            </attribute>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="greyBackgroundButton">
+            <attribute name="buttonGroup">
+             <string notr="true">backgroundButtons</string>
+            </attribute>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="dotsBackgroundButton">
+            <attribute name="buttonGroup">
+             <string notr="true">backgroundButtons</string>
+            </attribute>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="weaveBackgroundButton">
+            <attribute name="buttonGroup">
+             <string notr="true">backgroundButtons</string>
+            </attribute>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="displayBox">
+         <property name="title">
+          <string comment="GroupBox title in Preference">Canvas</string>
+         </property>
+         <layout class="QGridLayout" name="displayLayout">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="antialiasingBox">
+            <property name="visible">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Antialiasing</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="zoomHorizontalDragBox">
+            <property name="text">
+             <string>Invert Zoom</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="invertScrollDirectionBox">
+            <property name="text">
+             <string>Invert Scroll Direction</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="lowResNavigationBox">
+            <property name="text">
+             <string>Low-resolution preview while navigating</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="editingBox">
+         <property name="title">
+          <string comment="GroupBox title in Preference">Editing</string>
+         </property>
+         <layout class="QGridLayout" name="editingLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="curveSmoothingLabel">
+            <property name="text">
+             <string>Vector curve smoothing</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QSlider" name="curveSmoothingLevel">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="highResBox">
+            <property name="text">
+             <string>Tablet high-resolution position</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="gridBox">
+         <property name="title">
+          <string comment="groupBox title in Preference">Grid</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="2" column="0">
+           <widget class="QLabel" name="labGridH">
+            <property name="text">
+             <string>Grid Height</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="gridCheckBox">
+            <property name="text">
+             <string>Enable Grid</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="gridSizeInputW">
+            <property name="minimumSize">
+             <size>
+              <width>80</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="gridSizeInputH">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labGridW">
+            <property name="text">
+             <string>Grid Width</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Overlays</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="actionSafeCheckBox">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labActionSafe">
+            <property name="text">
+             <string>Enable Action Safe area (%)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="3">
+           <widget class="QSpinBox" name="actionSafeInput">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>25</number>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="titleSafeCheckBox">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="labTitleSafe">
+            <property name="text">
+             <string>Enable Title Safe area (%)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="3">
+           <widget class="QSpinBox" name="titleSafeInput">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>25</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="safeHelperTextCheckbox">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="labSafeHelperText">
+            <property name="text">
+             <string>Show Safe area labels</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="advancedBox">
+         <property name="title">
+          <string comment="groupBox title in Preference">Advanced</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0">
+          <property name="leftMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>6</number>
+          </property>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="cacheLabel">
+              <property name="text">
+               <string>Memory Cache Budget</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="framePoolSizeSpin">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>80</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>80</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="suffix">
+               <string>MB</string>
+              </property>
+              <property name="minimum">
+               <number>100</number>
+              </property>
+              <property name="maximum">
+               <number>16000</number>
+              </property>
+              <property name="value">
+               <number>1024</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Undo/Redo</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="undoStepsLabel">
+              <property name="toolTip">
+               <string>How many steps you're allowed to undo/redo</string>
+              </property>
+              <property name="text">
+               <string>Maximum Number of Undo/Redo Steps</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="undoStepsBox">
+              <property name="maximumSize">
+               <size>
+                <width>80</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="minimum">
+               <number>20</number>
+              </property>
+              <property name="maximum">
+               <number>250</number>
+              </property>
+              <property name="value">
+               <number>100</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="undoRedoGroupApplyButton">
+              <property name="text">
+               <string>Apply</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="undoRedoGroupCancelButton">
+              <property name="text">
+               <string>Cancel</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>languageCombo</tabstop>
+  <tabstop>windowOpacityLevel</tabstop>
+  <tabstop>shadowsBox</tabstop>
+  <tabstop>toolCursorsBox</tabstop>
+  <tabstop>canvasCursorBox</tabstop>
+  <tabstop>checkerBackgroundButton</tabstop>
+  <tabstop>whiteBackgroundButton</tabstop>
+  <tabstop>greyBackgroundButton</tabstop>
+  <tabstop>dotsBackgroundButton</tabstop>
+  <tabstop>weaveBackgroundButton</tabstop>
+  <tabstop>antialiasingBox</tabstop>
+  <tabstop>curveSmoothingLevel</tabstop>
+  <tabstop>highResBox</tabstop>
+  <tabstop>gridCheckBox</tabstop>
+  <tabstop>gridSizeInputW</tabstop>
+  <tabstop>gridSizeInputH</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+ <buttongroups>
+  <buttongroup name="backgroundButtons"/>
+ </buttongroups>
+</ui>

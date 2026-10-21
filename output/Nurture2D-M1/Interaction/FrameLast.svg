@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="96"
+   height="96"
+   viewBox="0 0 25.399999 25.4"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="FrameLast.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#2c2c2c"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#101010"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="2.953644"
+     inkscape:cx="21.498867"
+     inkscape:cy="40.458498"
+     inkscape:window-width="1920"
+     inkscape:window-height="1020"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       d="M 25.4,2.2122029 V 23.187797 C 25.4,24.40789 24.410301,25.4 23.188838,25.4 h -3.496719 c -1.221211,0 -2.211162,-0.989605 -2.211162,-2.212203 V 14.907695 2.2122029 C 17.480957,0.9921091 18.470657,0 19.692119,0 h 3.496719 C 24.410051,0 25.4,0.98960376 25.4,2.2122029 Z M 15.69216,13.996757 1.7887234,24.098984 C 1.0443197,24.640136 0,24.108256 0,23.187045 V 2.2114508 C 0,1.2894914 1.0440704,0.75836209 1.7889748,1.2995126 L 15.691834,11.39673 c 0.883463,0.641363 0.883463,1.956659 2.25e-4,2.599024 z"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.604246;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:12.3364;stroke-opacity:1;paint-order:stroke fill markers"
+       id="path212110" />
+  </g>
+</svg>

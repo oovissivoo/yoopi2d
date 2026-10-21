@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   fill-rule="evenodd"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   viewBox="0 0 22 22"
+   version="1.1"
+   id="svg3580"
+   sodipodi:docname="frame-remove.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3584" />
+  <sodipodi:namedview
+     id="namedview3582"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     showgrid="false"
+     inkscape:zoom="27.512882"
+     inkscape:cx="9.886278"
+     inkscape:cy="9.2138657"
+     inkscape:window-width="1920"
+     inkscape:window-height="1048"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3580" />
+  <path
+     d="M 20.693969,13.203559 V 8.7964415 H 1.3060311 v 4.4071175 z"
+     id="path3578"
+     style="fill:#cccccc;fill-opacity:1;stroke:#cccccc;stroke-opacity:1;stroke-width:1.46521" />
+</svg>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="96"
+   height="96"
+   viewBox="0 0 25.399999 25.4"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="CellStack.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#2c2c2c"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#101010"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="5.8704594"
+     inkscape:cx="40.797488"
+     inkscape:cy="46.078165"
+     inkscape:window-width="1920"
+     inkscape:window-height="1020"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path9492"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:3.80442;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:12.3364;stroke-opacity:0.652891;paint-order:stroke fill markers"
+       d="m 0.0623195,1.2025179 v 4.2474787 a 1.2030903,1.2030903 0 0 0 1.203098,1.2025178 H 24.13458 a 1.2030903,1.2030903 0 0 0 1.2031,-1.2025178 V 1.2025179 A 1.2030903,1.2030903 0 0 0 24.13458,0 H 1.2654175 a 1.2030903,1.2030903 0 0 0 -1.203098,1.2025179 z m 1.5085606,8.077942 V 23.03479 A 2.3650688,2.3650688 0 0 0 3.9359544,25.4 H 21.464122 a 2.3650688,2.3650688 0 0 0 2.365074,-2.36521 V 9.2804599 A 0.46857559,0.46857559 0 0 0 23.360755,8.8106661 H 2.0395914 A 0.46857559,0.46857559 0 0 0 1.5711508,9.2804599 Z M 5.9934394,11.592699 H 19.406637 a 0.37482772,0.37482772 0 0 1 0.374868,0.373128 v 2.978842 A 0.37482772,0.37482772 0 0 1 19.406637,15.31973 H 5.9934394 a 0.37482772,0.37482772 0 0 1 -0.374869,-0.375061 v -2.978842 a 0.37482772,0.37482772 0 0 1 0.374869,-0.373128 z" />
+  </g>
+</svg>

@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/icons">
+    <file>Fill.svg</file>
+    <file>dark_tool_rect_selection.svg</file>
+  </qresource>
+</RCC>

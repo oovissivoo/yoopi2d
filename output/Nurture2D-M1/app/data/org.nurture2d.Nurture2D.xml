@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-pencil2d-pcl">
+    <comment>Nurture2D animation (old format)</comment>
+    <generic-icon name="video-x-generic"/>
+    <glob pattern="*.pcl"/>
+    <magic priority="90">
+      <match type="string" offset="0" value="&lt;!DOCTYPE PencilDocument&gt;"/>
+    </magic>
+    <sub-class-of type="text/xml"/>
+  </mime-type>
+  <mime-type type="application/x-pencil2d-pclx">
+    <comment>Nurture2D animation</comment>
+    <generic-icon name="video-x-generic"/>
+    <glob pattern="*.pclx"/>
+    <sub-class-of type="application/zip"/>
+  </mime-type>
+  <mime-type type="application/x-pencil2d-palette">
+    <comment>Nurture2D palette</comment>
+    <glob pattern="*.xml"/>
+    <magic priority="90">
+      <match type="string" offset="0" value="&lt;!DOCTYPE PencilPalette&gt;"/>
+    </magic>
+    <sub-class-of type="text/xml"/>
+  </mime-type>
+  <mime-type type="application/x-pencil2d-shortcuts">
+    <comment>Nurture2D shortcuts</comment>
+    <glob pattern="*.pcls"/>
+    <magic priority="90">
+      <match type="string" offset="0" value="[shortcuts]"/>
+    </magic>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+</mime-info> 

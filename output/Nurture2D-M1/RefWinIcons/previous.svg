@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="64"
+   height="64"
+   viewBox="0 0 16.933333 16.933333"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="previous.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="8.778679"
+     inkscape:cx="13.783395"
+     inkscape:cy="37.98977"
+     inkscape:window-width="1920"
+     inkscape:window-height="1048"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect501"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0.60478089,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0.60478089,0,1 @ F,0,0,1,0,0.60478089,0,1 @ F,0,0,1,0,0.60478089,0,1 @ F,0,0,1,0,0.48977391,0,1 @ F,0,0,1,0,0.3481937,0,1"
+       unit="px"
+       method="auto"
+       mode="F"
+       radius="0"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="rect1964"
+       style="fill:#ffffff;stroke:none;stroke-width:1.12459;stroke-miterlimit:2.2;stroke-dasharray:none"
+       d="m 4.1234454,8.4663764 c -10e-7,0.0956 0.03658,0.191166 0.109838,0.264423 l 7.4427826,7.4427826 c 0.146514,0.146514 0.382332,0.146514 0.528845,1e-6 L 12.809888,15.568606 5.9726634,8.7308004 c -0.146515,-0.146514 -0.146513,-0.382334 0,-0.528847 L 12.809888,1.3647283 12.204912,0.7597513 c -0.146514,-0.146514 -0.382332,-0.146514 -0.528846,0 L 4.2332824,8.2019544 c -0.07326,0.07326 -0.109837,0.168818 -0.109837,0.264422 z" />
+  </g>
+</svg>

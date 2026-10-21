@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="96"
+   height="32"
+   viewBox="0 0 25.399999 8.4666667"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="WindowStyleMac.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#2c2c2c"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#101010"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="5.8704594"
+     inkscape:cx="51.358842"
+     inkscape:cy="44.71541"
+     inkscape:window-width="1920"
+     inkscape:window-height="1020"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g19143"
+       transform="matrix(2.0079829,0,0,2.0079829,-42.335765,-261.14137)"
+       style="display:inline;stroke:none;stroke-width:0.0264583;stroke-dasharray:none">
+      <rect
+         style="display:inline;fill:#1f1f1f;fill-opacity:1;stroke:none;stroke-width:0.0264583;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;paint-order:stroke fill markers"
+         id="rect19080"
+         width="12.649512"
+         height="1.911966"
+         x="21.083727"
+         y="131.20386"
+         rx="0.67185205"
+         ry="0.54234624" />
+      <g
+         id="g19094"
+         transform="translate(10.623281,-7.976416)"
+         style="stroke:none;stroke-width:0.0264583;stroke-dasharray:none">
+        <rect
+           style="fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.0264583;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:12.3364;paint-order:stroke fill markers"
+           id="rect19090"
+           width="5.7855496"
+           height="1.5714325"
+           x="10.679285"
+           y="139.35054"
+           ry="0.50811261" />
+        <ellipse
+           style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.0264583;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:12.3364;paint-order:stroke fill markers"
+           id="ellipse19092"
+           cx="11.427069"
+           cy="140.13626"
+           rx="0.4306466"
+           ry="0.41364133" />
+      </g>
+      <g
+         id="g19110"
+         transform="matrix(-1,0,0,1,44.296918,-7.976416)"
+         style="stroke:none;stroke-width:0.0264583;stroke-dasharray:none">
+        <rect
+           style="fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.0264583;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:12.3364;paint-order:stroke fill markers"
+           id="rect19106"
+           width="5.7855496"
+           height="1.5714325"
+           x="10.679285"
+           y="139.35054"
+           ry="0.50811261" />
+        <ellipse
+           style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.0264583;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:12.3364;paint-order:stroke fill markers"
+           id="ellipse19108"
+           cx="11.427069"
+           cy="140.13626"
+           rx="0.4306466"
+           ry="0.41364133" />
+      </g>
+    </g>
+  </g>
+</svg>

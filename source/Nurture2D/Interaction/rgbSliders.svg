@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+
+<svg
+   fill="#deddda"
+   width="800px"
+   height="800px"
+   viewBox="0 0 24 24"
+   version="1.1"
+   id="svg46382"
+   sodipodi:docname="rgbSliders.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs46386" />
+  <sodipodi:namedview
+     id="namedview46384"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="0.743346"
+     inkscape:cx="365.24041"
+     inkscape:cy="472.86189"
+     inkscape:window-width="1920"
+     inkscape:window-height="1025"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="SVGRepo_iconCarrier" />
+  <g
+     id="SVGRepo_bgCarrier"
+     stroke-width="0" />
+  <g
+     id="SVGRepo_tracerCarrier"
+     stroke-linecap="round"
+     stroke-linejoin="round" />
+  <g
+     id="SVGRepo_iconCarrier">
+    <path
+       d="m 23,4 c 0,0.5522847 -0.447715,1 -1,1 h -7.368407 c -1.333333,0 -1.333333,-2 0,-2 H 22 c 0.552285,0 1,0.4477153 1,1 z M 2,3 h 3.8155926 c 1.1250257,-3.18205305 5.8273004,-2.36934294 5.8273004,1 0,3.3693429 -4.7022747,4.1820531 -5.8273004,1 H 2 C 0.66666725,5 0.66666725,3 2,3 Z m 5.6315926,1 c 0,0.8909668 1.0771386,1.3370032 1.7070709,0.7070709 C 9.9685958,4.0771386 9.5225594,3 8.6315926,3 c -0.5522847,0 -1,0.4477153 -1,1 z M 1,12 c 0,-0.552285 0.4477153,-1 1,-1 h 9.676386 c 1.125025,-3.1820531 5.8273,-2.3693429 5.8273,1 0,3.369343 -4.702275,4.182053 -5.8273,1 H 2 C 1.4477153,13 1,12.552285 1,12 Z m 12.492386,0 c 0,0.890967 1.077138,1.337003 1.707071,0.707071 C 15.829389,12.077139 15.383352,11 14.492386,11 c -0.552285,0 -1,0.447715 -1,1 z M 22,11 h -1.507614 c -1.333333,0 -1.333333,2 0,2 H 22 c 1.333333,0 1.333333,-2 0,-2 z m 0,8 h -5.801106 c -1.333333,0 -1.333333,2 0,2 H 22 c 1.333333,0 1.333333,-2 0,-2 z M 1,20 c 0,-0.552285 0.4477153,-1 1,-1 h 5.3828936 c 1.1250256,-3.182053 5.8273004,-2.369343 5.8273004,1 0,3.369343 -4.7022748,4.182053 -5.8273004,1 H 2 C 1.4477153,21 1,20.552285 1,20 Z m 8.1988936,0 c 0,0.890967 1.0771394,1.337003 1.7070714,0.707071 C 11.535897,20.077139 11.089861,19 10.198894,19 9.6466086,19 9.1988936,19.447715 9.1988936,20 Z"
+       id="path46379"
+       sodipodi:nodetypes="ssssssscscsssssssscscsssssssssssssssssscscssssss"
+       style="fill:#808080" />
+  </g>
+</svg>

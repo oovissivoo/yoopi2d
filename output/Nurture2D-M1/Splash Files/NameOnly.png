@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1663"
+   width="720"
+   height="350"
+   viewBox="0 0 720 350"
+   sodipodi:docname="NameOnly.png"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1667" />
+  <sodipodi:namedview
+     id="namedview1665"
+     pagecolor="#232323"
+     bordercolor="#cfcfcf"
+     borderopacity="0.24705882"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#2f2f2f"
+     showgrid="false"
+     showguides="false"
+     inkscape:zoom="0.88459923"
+     inkscape:cx="396.22463"
+     inkscape:cy="98.914849"
+     inkscape:window-width="1920"
+     inkscape:window-height="1020"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1669" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g1669">
+    <g
+       id="g4843"
+       transform="matrix(1.4228803,0,0,1.4228803,-138.59939,-74.004053)">
+      <path
+         id="path1490"
+         style="font-weight:bold;font-size:1.41111px;-inkscape-font-specification:'sans-serif Bold';fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:12.3032;stroke-linecap:square;stroke-dashoffset:12.3364;paint-order:stroke fill markers"
+         d="m 253.48315,66.512291 -31.01308,38.717989 v 47.25432 l 31.01308,38.70832 z m -135.93349,62.345149 31.09038,38.805 v -12.34529 l 47.50568,65.83509 h 57.33743 l -31.09039,-38.805 v 12.34529 l -47.50567,-65.83509 z m 0,29.94965 v 124.68062 l 31.01308,-38.70832 v -47.25431 z" />
+      <text
+         xml:space="preserve"
+         style="font-weight:bold;font-size:72px;font-family:Inter;-inkscape-font-specification:'Inter Bold';fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:7.67244;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:12.3364;stroke-opacity:1;paint-order:stroke fill markers"
+         x="254.99239"
+         y="201.15625"
+         id="text4684"><tspan
+           sodipodi:role="line"
+           id="tspan4682"
+           x="254.99239"
+           y="201.15625">urture 2D</tspan></text>
+    </g>
+  </g>
+</svg>

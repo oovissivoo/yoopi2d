@@ -1,0 +1,4436 @@
+/*
+
+Pencil2D - Traditional Animation Software
+Copyright (C) 2005-2007 Patrick Corrieri & Pascal Naidon
+Copyright (C) 2008-2009 Mj Mendoza IV
+Copyright (C) 2012-2020 Matthew Chiawen Chang
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; version 2 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+*/
+
+#include "mainwindow2.h"
+#include "mainwindow2.h"
+#include "ui_mainwindow2.h"
+
+
+// Qt headers
+#include <QActionGroup>
+#include <QDir>
+#include <QList>
+#include <QMenu>
+#include <QFile>
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QProgressDialog>
+#include <QTabletEvent>
+#include <QTabWidget>
+#include <QStandardPaths>
+#include <QDateTime>
+#include <QLabel>
+#include <QClipboard>
+#include <QToolBar>
+#include <QToolButton>
+#include <QDebug>
+#include <QApplication>
+#include <QGuiApplication>
+#include <QScreen>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QSlider>
+#include <QSplitter>
+#include <QWidgetAction>
+#include <QIcon>
+#include <QTimer>
+#include <QShortcut>
+#include <QShortcutEvent>
+#include <QKeyEvent>
+#include <QMap>
+#include <QRegularExpression>
+#include <QPainter>
+#include <QPainterPath>
+#include <QRegion>
+#include <QBitmap>
+#include <QRubberBand>
+#include <QPushButton>
+#include <QButtonGroup>
+#include <algorithm>
+
+// core_lib headers
+#include "pencildef.h"
+#include "pencilsettings.h"
+#include "object.h"
+#include "editor.h"
+#include "colormanager.h"
+#include "importimageconfig.h"
+
+#include "n2dprojectio.h"
+#include "scenesequencemanager.h"
+#include "toolmanager.h"
+#include "playbackmanager.h"
+#include "selectionmanager.h"
+#include "soundmanager.h"
+#include "viewmanager.h"
+#include "selectionmanager.h"
+#include "layermanager.h"
+#include "undoredomanager.h"
+#include "managers/settingsmanager.h"
+
+#include "actioncommands.h"
+#include "../core_lib/src/util/fileformat.h"
+#include "util.h"
+#include "undoredocommand.h"
+#include "popupcolorwheelwidget.h"
+#include "recentfilemenu.h"
+
+// app headers
+#include "colorbox.h"
+#include "colorslidersdock.h"
+#include "colorinspector.h"
+#include "colorpalettewidget.h"
+#include "tooloptionwidget.h"
+#include "preferencesdialog.h"
+#include "timeline.h"
+#include "toolbox.h"
+#include "onionskinwidget.h"
+#include "scribblearea.h"
+#include "pegbaralignmentdialog.h"
+#include "addtransparencytopaperdialog.h"
+#include "repositionframesdialog.h"
+
+#include "errordialog.h"
+#include "filedialog.h"
+#include "importimageseqdialog.h"
+#include "importlayersdialog.h"
+#include "importpositiondialog.h"
+#include "layeropacitydialog.h"
+#include "app_util.h"
+#include "presetdialog.h"
+#include "pegbaralignmentdialog.h"
+#include "camerapropertiesdialog.h"
+#include "layercamera.h"
+#include "shifttracewidget.h"
+#include "shortcutfilter.h"
+#include "referencewindow.h"
+#include "inlinecolorinspector.h"
+#include "canvaspaletteoverlay.h"
+#include "canvasgalleryoverlay.h"
+#include "timelinesettingsdialog.h"
+#include "ignorefillsplittoggle.h"
+#include "brushfactorydock.h"
+#include "pencolorpalette.h"
+#include "cosmiclefttoolpanel.h"
+#include "cosmicrighttoolpanel.h"
+#include "cosmictoolspane.h"
+#include "cosmiccolorwheelwidget.h"
+#include "brushpresetlistwidget.h"
+#include "managers/brushpresetstore.h"
+#include "cosmicrighttoolsbar.h"
+#include "cosmiccontrolcenter.h"
+
+#include <QPainter>
+#include "../CUI/blenderstyledropdown.h"
+#include "../CUI/cosmicdropdown.h"
+#include "../CUI/cosmicinputfield.h"
+#include "../CUI/blenderstylecombobox.h"
+#include "../CUI/blenderstyletoggle.h"
+#include "../CUI/blenderstylemodalpopup.h"
+#include "cellstackwidget.h"
+
+#include "managers/shifttracemanager.h"
+
+#ifdef GIT_TIMESTAMP
+#define BUILD_DATE S__GIT_TIMESTAMP
+#else
+#define BUILD_DATE __DATE__
+#endif
+
+#if defined(PENCIL2D_RELEASE_BUILD)
+#define PENCIL_WINDOW_TITLE QString("[*]Nurture2D v%1").arg(APP_VERSION)
+#elif defined(PENCIL2D_NIGHTLY_BUILD)
+#define PENCIL_WINDOW_TITLE QString("[*]Nurture2D Nightly Build %1").arg(BUILD_DATE)
+#else
+#define PENCIL_WINDOW_TITLE QString("[*]Nurture2D Development Build %1").arg(BUILD_DATE)
+#endif
+
+#include "../paintlyFillAlgorithm/blenderstyleslider.h"
+#include "../CUI/cosmiccontextmenu.h"
+
+// Helper struct for image sequence parsing (file scope)
+struct ImageSequenceFileInfo {
+    QString filePath;
+    QString baseName;   // name without separator+digits
+    QChar separator;    // '.', '-', '_'
+    int frameNumber = -1; // extracted frame number
+    int digitCount = 0;   // 3 or 4
+    bool valid() const { return !baseName.isEmpty() && frameNumber >= 0 && (digitCount == 3 || digitCount == 4); }
+};
+
+// Parse padding patterns: .xxx, -xxx, _xxx, and 4-digit equivalents
+static ImageSequenceFileInfo parseImageSequencePadding(const QString& filePath)
+{
+    ImageSequenceFileInfo info;
+    info.filePath = filePath;
+    const QFileInfo fi(filePath);
+    const QString base = fi.completeBaseName(); // filename without extension
+    if (base.isEmpty()) return info; // invalid
+
+    // Search for last separator occurrence
+    int lastDot = base.lastIndexOf('.');
+    int lastDash = base.lastIndexOf('-');
+    int lastUnd = base.lastIndexOf('_');
+    int sepIdx = qMax(lastDot, qMax(lastDash, lastUnd));
+    if (sepIdx <= 0 || sepIdx >= base.size()-1) {
+        return info; // no separator or at ends
+    }
+
+    const QChar sep = base.at(sepIdx);
+    // Count consecutive digits after sep
+    int i = sepIdx + 1;
+    int count = 0;
+    while (i < base.size() && base.at(i).isDigit()) { ++count; ++i; }
+    if (!(count == 3 || count == 4)) {
+        return info;
+    }
+    // Ensure digits reach the end
+    if (i != base.size()) {
+        return info;
+    }
+    const QString digits = base.mid(sepIdx + 1, count);
+    bool ok = false;
+    int frameNum = digits.toInt(&ok);
+    if (!ok) return info;
+
+    info.baseName = base.left(sepIdx);
+    info.separator = sep;
+    info.digitCount = count;
+    info.frameNumber = frameNum;
+    return info;
+}
+
+MainWindow2::MainWindow2(QWidget* parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow2)
+{
+    ui->setupUi(this);
+
+    // Ensure the menubar is always above other widgets and offset from any window controls area
+    if (ui->menuBar) {
+        ui->menuBar->raise();
+        ui->menuBar->setContentsMargins(60, 0, 0, 0); // add left padding to avoid overlap with window controls
+#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+        ui->menuBar->setNativeMenuBar(false);
+#endif
+    }
+
+    ensureMenubarUnobstructed();
+
+    // Apply dark theme stylesheet scoped to main window and common Qt widgets
+    QFile darkQss(":/styles/dark_theme.qss");
+    if (darkQss.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QString qss = QString::fromUtf8(darkQss.readAll());
+        // Apply to this window only to reduce impact on custom widgets
+        this->setStyleSheet(qss);
+
+        // Apply a matching dark palette so custom-painted widgets (using palette()) render correctly
+        QPalette pal = qApp->palette();
+        pal.setColor(QPalette::Window, QColor("#262626"));      // panels / window bg
+        pal.setColor(QPalette::Base, QColor("#353535"));        // text inputs / lists (will be updated from prefs)
+        pal.setColor(QPalette::AlternateBase, QColor("#353535"));
+        pal.setColor(QPalette::Button, QColor("#353535"));
+        pal.setColor(QPalette::Text, QColor("#b2b2b2"));
+        pal.setColor(QPalette::WindowText, QColor("#b2b2b2"));
+        pal.setColor(QPalette::ButtonText, QColor("#b2b2b2"));
+        pal.setColor(QPalette::Mid, QColor("#3a3a3a"));
+        pal.setColor(QPalette::Dark, QColor("#1f1f1f"));
+        pal.setColor(QPalette::Light, QColor("#4a4a4a"));
+        pal.setColor(QPalette::Highlight, QColor("#505050"));
+        pal.setColor(QPalette::HighlightedText, QColor("#ffffff"));
+        qApp->setPalette(pal);
+    }
+
+    // Initialize order
+    // 1. editor 2. object 3. scribble area 4. other widgets
+    mEditor = new Editor(this);
+    mEditor->setScribbleArea(ui->scribbleArea);
+    mEditor->init();
+
+    newObject();
+
+    ui->scribbleArea->setEditor(mEditor);
+    ui->scribbleArea->init();
+
+    ui->statusBar->setEditor(mEditor);
+    ui->statusBar->updateZoomStatus();
+    ui->statusBar->setVisible(mEditor->preference()->isOn(SETTING::SHOW_STATUS_BAR));
+
+    mCommands = new ActionCommands(this);
+    mCommands->setCore(mEditor);
+
+    createDockWidgets();
+    createMenus();
+    createToolbars();
+    applyAccentColorToToolbars();  // Apply accent color after toolbars are created
+    setupKeyboardShortcuts();
+
+    readSettings();
+    ensureMenubarUnobstructed();
+
+    selectionChanged();
+    currentLayerChanged();
+
+    connect(mEditor, &Editor::needSave, this, &MainWindow2::autoSave);
+
+    mEditor->tools()->setDefaultTool();
+    // Ensure Pen tool is the default active tool and highlighted
+    mEditor->tools()->setCurrentTool(PEN);
+    if (mToolsToolbar) {
+        for (QAction* a : mToolsToolbar->actions()) a->setChecked(false);
+        // Find and check pen action
+        ui->actionPen->setChecked(true);
+    }
+    ui->background->init(mEditor->preference());
+
+    setWindowTitle(PENCIL_WINDOW_TITLE);
+
+    // Install shortcut tap/hold filter on tool actions and canvas
+    if (!mShortcutFilter) {
+        mShortcutFilter = new ShortcutFilter(ui->scribbleArea, this);
+        // Install on all QAction children so tool shortcuts start tracking
+        for (QAction* a : findChildren<QAction*>()) {
+            a->installEventFilter(mShortcutFilter);
+        }
+    }
+
+    // Install global event filter to detect attempts on restricted actions
+    qApp->installEventFilter(this);
+    if (mTimeLine) { mTimeLine->installEventFilter(this); }
+}
+
+MainWindow2::~MainWindow2()
+{
+    delete ui;
+}
+
+void MainWindow2::createDockWidgets()
+{
+    try {
+        mTimeLine = new TimeLine(this);
+        if (!mTimeLine) throw std::runtime_error("Failed to create TimeLine");
+        mTimeLine->setObjectName("TimeLine");
+    } catch (const std::exception& e) {
+        qCritical() << "MainWindow2: Failed to create TimeLine:" << e.what();
+    }
+
+    mCellStackWidget = new CellStackWidget(this);
+
+    try {
+        mColorBox = new ColorBox(this);
+        if (!mColorBox) throw std::runtime_error("Failed to create ColorBox");
+        mColorBox->setToolTip(tr("color palette:<br>use <b>(C)</b><br>toggle at cursor"));
+        mColorBox->setObjectName("ColorWheel");
+    } catch (const std::exception& e) {
+        qCritical() << "MainWindow2: Failed to create ColorBox:" << e.what();
+    }
+
+    try {
+        mColorSlidersDock = new ColorSlidersDock(this);
+        if (!mColorSlidersDock) throw std::runtime_error("Failed to create ColorSlidersDock");
+        mColorSlidersDock->setObjectName("colorSlidersDock");
+        mColorSlidersDock->setEditor(mEditor);
+        mColorSlidersDock->initUI();
+    } catch (const std::exception& e) {
+        qCritical() << "MainWindow2: Failed to create ColorSlidersDock:" << e.what();
+    }
+
+    try {
+        mColorInspector = new ColorInspector(this);
+        if (!mColorInspector) throw std::runtime_error("Failed to create ColorInspector");
+        mColorInspector->setToolTip(tr("Color inspector"));
+        mColorInspector->setObjectName("Color Inspector");
+    } catch (const std::exception& e) {
+        qCritical() << "MainWindow2: Failed to create ColorInspector:" << e.what();
+    }
+
+    try {
+        mColorPalette = new ColorPaletteWidget(this);
+        if (!mColorPalette) throw std::runtime_error("Failed to create ColorPaletteWidget");
+        if (!mEditor) {
+            qCritical() << "MainWindow2: mEditor is null before setCore";
+        } else {
+            mColorPalette->setCore(mEditor);
+        }
+        mColorPalette->setObjectName("ColorPalette");
+    } catch (const std::exception& e) {
+        qCritical() << "MainWindow2: Failed to create ColorPaletteWidget:" << e.what();
+    }
+
+    mOnionSkinWidget = new OnionSkinWidget(this);
+    mOnionSkinWidget->setObjectName("Onion Skin");
+
+    mShiftTraceWidget = new ShiftTraceWidget(this);
+    mShiftTraceWidget->setObjectName("Shift & Trace");
+
+    mToolOptions = new ToolOptionWidget(this);
+    mToolOptions->setObjectName("ToolOption");
+
+    // Dedicated Brush Factory dock (brush engine panel for Pencil tool)
+    mBrushFactoryDock = new BrushFactoryDock(this);
+    mBrushFactoryDock->setObjectName("BrushFactoryDock");
+
+    mToolBox = new ToolBoxDockWidget(this);
+    mToolBox->setObjectName("ToolBox");
+
+    // Reference Window
+    mReferenceWindow = new ReferenceWindow(this);
+    mReferenceWindow->setObjectName("Reference Window");
+
+    mDockWidgets
+        << mTimeLine
+        << mCellStackWidget
+        << mColorBox
+        << mColorSlidersDock
+        << mColorInspector
+        << mColorPalette
+        << mOnionSkinWidget
+        << mShiftTraceWidget
+        << mToolOptions
+        << mBrushFactoryDock
+        << mToolBox
+        << mReferenceWindow;
+
+    mStartIcon = QIcon(":icons/controls/play.png");
+    mStopIcon = QIcon(":icons/controls/stop.png");
+
+    for (BaseDockWidget* pWidget : mDockWidgets)
+    {
+        pWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
+        pWidget->setFeatures(QDockWidget::DockWidgetFeature::DockWidgetClosable |
+                             QDockWidget::DockWidgetFeature::DockWidgetMovable |
+                             QDockWidget::DockWidgetFeature::DockWidgetFloatable);
+        pWidget->setFocusPolicy(Qt::NoFocus);
+
+        pWidget->setEditor(mEditor);
+        pWidget->initUI();
+        qDebug() << "Init Dock widget: " << pWidget->objectName();
+        
+        // Connect to visibility changes to detect manual dock show/hide
+        connect(pWidget, &QDockWidget::visibilityChanged, this, &MainWindow2::onDockVisibilityChanged);
+    }
+
+    // Ghost edit mode lock: disable Timeline interactions while a Shift & Trace entry is being edited.
+    if (mEditor && mTimeLine) {
+        connect(mEditor->shiftTrace(), &ShiftTraceManager::activeMoveEntryChanged, this, [this](int id){
+            const bool locked = (id != -1);
+            mTimeLine->setEnabled(!locked);
+        });
+    }
+
+    addDockWidget(Qt::RightDockWidgetArea, mColorBox);
+    addDockWidget(Qt::RightDockWidgetArea, mColorSlidersDock);
+    splitDockWidget(mColorBox, mColorSlidersDock, Qt::Vertical);
+    {
+        QSettings settings(PENCIL2D, PENCIL2D);
+        const bool hasSavedWindowState = settings.contains(SETTING_WINDOW_STATE);
+        if (!hasSavedWindowState) {
+            mColorSlidersDock->hide();
+        }
+    }
+    // mColorInspector dock is hidden from user interface but kept for ColorBox functionality
+    // addDockWidget(Qt::RightDockWidgetArea, mColorInspector);
+    addDockWidget(Qt::RightDockWidgetArea, mColorPalette);
+    addDockWidget(Qt::LeftDockWidgetArea, mToolBox);
+    addDockWidget(Qt::LeftDockWidgetArea, mToolOptions);
+    addDockWidget(Qt::LeftDockWidgetArea, mOnionSkinWidget);
+    addDockWidget(Qt::LeftDockWidgetArea, mShiftTraceWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, mTimeLine);
+    addDockWidget(Qt::BottomDockWidgetArea, mCellStackWidget);
+    addDockWidget(Qt::RightDockWidgetArea, mReferenceWindow);
+    addDockWidget(Qt::RightDockWidgetArea, mBrushFactoryDock);
+    {
+        QSettings settings(PENCIL2D, PENCIL2D);
+        const bool hasSavedWindowState = settings.contains(SETTING_WINDOW_STATE);
+        if (!hasSavedWindowState) {
+            mBrushFactoryDock->hide();
+        }
+    }
+    setDockNestingEnabled(true);
+    setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+
+    /*
+    mPreview = new PreviewWidget( this );
+    mPreview->setImage( mScribbleArea->mBufferImg );
+    mPreview->setFeatures( QDockWidget::DockWidgetFloatable );
+    mPreview->setFocusPolicy( Qt::NoFocus );
+    addDockWidget( Qt::RightDockWidgetArea, mPreview );
+    */
+
+    makeConnections(mEditor, ui->scribbleArea);
+    makeConnections(mEditor);
+    makeConnections(mEditor, mTimeLine);
+    makeConnections(mEditor, mColorBox);
+    makeConnections(mEditor, mColorInspector);
+    makeConnections(mEditor, mColorPalette);
+    makeConnections(mEditor, mToolOptions);
+    makeConnections(mEditor, ui->statusBar);
+    
+    // Connect ColorBox to ColorSlidersDock
+    if (mColorBox && mColorSlidersDock) {
+        mColorBox->setColorSlidersDock(mColorSlidersDock);
+    }
+    
+    // Ensure toolbox widget shows the correct active tool after connections are made
+    mToolBox->setActiveTool(PEN);
+
+    if (ui->background) {
+        if (!mCosmicControlCenter) {
+            mCosmicControlCenter = new CosmicControlCenter(ui->background);
+            mCosmicControlCenter->raise();
+            mCosmicControlCenter->show();
+        }
+        if (mCosmicControlCenter) {
+            mCosmicControlCenter->setEditor(mEditor);
+            mCosmicControlCenter->setToolbars(mMainToolbar, mViewToolbar, mOverlayToolbar);
+            // Forward header palette changes into the editor using the same logic
+            // that was previously driven by CanvasPaletteOverlay.
+            connect(mCosmicControlCenter, &CosmicControlCenter::colorChanged,
+                    this, &MainWindow2::onCanvasPaletteColorChanged, Qt::UniqueConnection);
+
+            // Sync header palette when the global color changes externally (e.g., ColorBox, inspector).
+            if (mEditor && mEditor->color()) {
+                connect(mEditor->color(), &ColorManager::colorChanged, this,
+                        [this](QColor c, int) {
+                            if (mCosmicControlCenter) mCosmicControlCenter->setColorFromExternal(c);
+                            if (mEditor && mEditor->tools()) mEditor->tools()->clearStrokeColorOverride();
+                        },
+                        Qt::UniqueConnection);
+            }
+
+            // Connect header palette to preference changes for real-time updates.
+            if (mEditor && mEditor->preference() && mCosmicControlCenter->penPalette()) {
+                mCosmicControlCenter->penPalette()->connectToPreferenceManager(mEditor->preference());
+            }
+        }
+        if (!mCosmicLeftToolsBar) {
+            mCosmicLeftToolsBar = new CosmicLeftToolPanel(ui->background);
+            mCosmicLeftToolsBar->raise();
+            mCosmicLeftToolsBar->show();
+
+            if (auto* p = qobject_cast<CosmicLeftToolPanel*>(mCosmicLeftToolsBar)) {
+                connect(p, &CosmicLeftToolPanel::reservedWidthChanged, this, [this]() {
+                    updateCosmicToolsBarsPosition();
+                    updateCanvasPalettePosition();
+                });
+            }
+        }
+        if (!mCosmicRightToolsBar) {
+            mCosmicRightToolsBar = new CosmicRightToolPanel(ui->background);
+            mCosmicRightToolsBar->raise();
+            mCosmicRightToolsBar->show();
+
+            if (auto* p = qobject_cast<CosmicRightToolPanel*>(mCosmicRightToolsBar)) {
+                connect(p, &CosmicRightToolPanel::reservedWidthChanged, this, [this]() {
+                    updateCosmicToolsBarsPosition();
+                    updateCanvasPalettePosition();
+                });
+            }
+        }
+
+        updateCosmicToolsBarsPosition();
+
+        // Track resize of the canvas background so the bars and palette always stay inset.
+        ui->background->installEventFilter(this);
+    }
+
+    // Migrate existing dock contents into the new left panes (tools + options)
+    if (auto* leftPanel = qobject_cast<CosmicLeftToolPanel*>(mCosmicLeftToolsBar)) {
+        CosmicToolsPane* toolsPane = leftPanel->toolsPane();
+        CosmicToolsPane* optionsPane = leftPanel->toolsOptionsPane();
+
+        if (toolsPane && !toolsPane->contentWidget() && mToolBox) {
+            // Tools: migrate the actual toolbox widget.
+            QWidget* toolsContent = mToolBox->getToolBoxWidget();
+            if (toolsContent) {
+                toolsContent->setParent(nullptr);
+                toolsPane->setContentWidget(toolsContent);
+                mToolBox->hide();
+            }
+        }
+
+        if (optionsPane && !optionsPane->contentWidget() && mToolOptions) {
+            // Options: migrate the *inner* options widget directly into the pane.
+            // This avoids nested scrollbars and prevents content cutoff; the outer pane stack
+            // already provides scrolling.
+            QWidget* optionsContent = nullptr;
+            if (auto* sa = qobject_cast<QScrollArea*>(mToolOptions->dockContentWidget())) {
+                optionsContent = sa->takeWidget();
+            }
+            if (!optionsContent) {
+                optionsContent = mToolOptions->innerOptionsWidget();
+            }
+            if (optionsContent) {
+                optionsContent->setParent(nullptr);
+                optionsPane->setContentWidget(optionsContent);
+                mToolOptions->hide();
+            }
+
+            mToolOptions->refreshOptionsPaneState();
+
+            // Header-only when no options: force-hide the pane body if the tool options widget
+            // reports that there is nothing visible for the active tool.
+            optionsPane->setBodyForcedHidden(!mToolOptions->hasVisibleOptions());
+            connect(mToolOptions, &ToolOptionWidget::visibleOptionsChanged, optionsPane, [optionsPane](bool hasOptions) {
+                optionsPane->setBodyForcedHidden(!hasOptions);
+            });
+        }
+
+        // After migrating content, force a deferred recompute. On first-run startup
+        // some option blocks/toolbox sizing can settle after restoreState() and tool init.
+        QTimer::singleShot(0, this, [this]() {
+            auto* leftPanel = qobject_cast<CosmicLeftToolPanel*>(mCosmicLeftToolsBar);
+            if (!leftPanel) {
+                return;
+            }
+
+            CosmicToolsPane* optionsPane = leftPanel->toolsOptionsPane();
+            if (mToolOptions && optionsPane) {
+                mToolOptions->refreshOptionsPaneState();
+                optionsPane->setBodyForcedHidden(!mToolOptions->hasVisibleOptions());
+            }
+
+            leftPanel->refreshPaneLayout();
+
+            if (auto* rightPanel = qobject_cast<CosmicRightToolPanel*>(mCosmicRightToolsBar)) {
+                rightPanel->refreshPaneLayout();
+            }
+
+            updateCosmicToolsBarsPosition();
+            updateCanvasPalettePosition();
+        });
+
+        // Ensure insets update once the panel now contains real content.
+        updateCosmicToolsBarsPosition();
+        updateCanvasPalettePosition();
+        
+        // Migrate Reference Window and Color Palette into the right panel
+        if (auto* rightPanel = qobject_cast<CosmicRightToolPanel*>(mCosmicRightToolsBar)) {
+            CosmicToolsPane* colorWheelPane = rightPanel->colorWheelPane();
+            CosmicToolsPane* palettesPane = rightPanel->palettesPane();
+            CosmicToolsPane* referencePane = rightPanel->referencePane();
+
+            qDebug() << "Right panel palettesPane:" << palettesPane << "contentWidget:" << (palettesPane ? palettesPane->contentWidget() : nullptr);
+            qDebug() << "Right panel referencePane:" << referencePane << "contentWidget:" << (referencePane ? referencePane->contentWidget() : nullptr);
+            qDebug() << "mColorPalette:" << mColorPalette;
+            qDebug() << "mReferenceWindow:" << mReferenceWindow;
+
+            if (colorWheelPane && !colorWheelPane->contentWidget() && mEditor && mEditor->color()) {
+                auto* wheel = new CosmicColorWheelWidget(colorWheelPane);
+                wheel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+                colorWheelPane->setContentWidget(wheel);
+                colorWheelPane->update();
+
+                // Sync from global color manager
+                if (mEditor && mEditor->color()) {
+                    wheel->setColor(mEditor->color()->frontColor());
+                }
+                connect(mEditor->color(), &ColorManager::colorChanged,
+                        wheel, [wheel](QColor c, int) {
+                            wheel->setColor(c);
+                        });
+                // Push to global color manager
+                connect(wheel, &CosmicColorWheelWidget::colorChanged,
+                        mEditor->color(), &ColorManager::setFrontColor);
+            }
+
+            if (palettesPane && !palettesPane->contentWidget() && mColorPalette) {
+                // Palettes: extract the actual inner content widget from the dock.
+                QWidget* palettesContent = mColorPalette->dockContentWidget();
+                if (!palettesContent) {
+                    // Fallback: take the dock's inner widget (the container set by BaseDockWidget)
+                    palettesContent = mColorPalette->widget();
+                    if (palettesContent) {
+                        palettesContent->setParent(nullptr);
+                        
+                        // Apply pill scrollbar styling to match tool panels
+                        palettesContent->setStyleSheet(QStringLiteral(
+                            "QWidget { background: transparent; border: none; }"
+                            "QListWidget { background: transparent; border: none; }"
+                            "QScrollBar:vertical {"
+                            "  background: #1f1f1f;"
+                            "  border: none;"
+                            "  border-radius: 6px;"
+                            "  width: 12px;"
+                            "  margin: 0px;"
+                            "}"
+                            "QScrollBar::handle:vertical {"
+                            "  background: #505050;"
+                            "  border-radius: 6px;"
+                            "  min-height: 26px;"
+                            "}"
+                            "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { background: transparent; height: 0px; }"
+                            "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }"
+                            "QScrollBar:horizontal {"
+                            "  background: #1f1f1f;"
+                            "  border: none;"
+                            "  border-radius: 6px;"
+                            "  height: 12px;"
+                            "  margin: 0px;"
+                            "}"
+                            "QScrollBar::handle:horizontal {"
+                            "  background: #505050;"
+                            "  border-radius: 6px;"
+                            "  min-width: 26px;"
+                            "}"
+                            "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { background: transparent; width: 0px; }"
+                            "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: transparent; }"
+                        ));
+                    }
+                }
+                if (palettesContent) {
+                    qDebug() << "Setting palettesContent as content for Palettes pane:" << palettesContent;
+                    
+                    // Apply pill scrollbar styling to match tool panels
+                    palettesContent->setStyleSheet(QStringLiteral(
+                        "QWidget { background: transparent; border: none; }"
+                        "QListWidget { background: transparent; border: none; }"
+                        "QScrollBar:vertical {"
+                        "  background: #1f1f1f;"
+                        "  border: none;"
+                        "  border-radius: 6px;"
+                        "  width: 12px;"
+                        "  margin: 0px;"
+                        "}"
+                        "QScrollBar::handle:vertical {"
+                        "  background: #505050;"
+                        "  border-radius: 6px;"
+                        "  min-height: 26px;"
+                        "}"
+                        "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { background: transparent; height: 0px; }"
+                        "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }"
+                        "QScrollBar:horizontal {"
+                        "  background: #1f1f1f;"
+                        "  border: none;"
+                        "  border-radius: 6px;"
+                        "  height: 12px;"
+                        "  margin: 0px;"
+                        "}"
+                        "QScrollBar::handle:horizontal {"
+                        "  background: #505050;"
+                        "  border-radius: 6px;"
+                        "  min-width: 26px;"
+                        "}"
+                        "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { background: transparent; width: 0px; }"
+                        "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: transparent; }"
+                    ));
+                    
+                    palettesPane->setContentWidget(palettesContent);
+                    palettesPane->update();
+                } else {
+                    qDebug() << "No palettesContent found";
+                }
+            }
+            if (referencePane && !referencePane->contentWidget() && mReferenceWindow) {
+                // Reference: extract the actual inner content widget from the dock.
+                QWidget* referenceContent = mReferenceWindow->dockContentWidget();
+                if (referenceContent) {
+                    qDebug() << "Setting referenceContent as content for Reference pane:" << referenceContent;
+                    referencePane->setContentWidget(referenceContent);
+                    referencePane->update();
+                } else {
+                    qDebug() << "No referenceContent found";
+                }
+            }
+
+            // Ensure the right panel layout updates after content migration
+            rightPanel->updateGeometry();
+            rightPanel->update();
+            rightPanel->show();
+
+            // Hide the original docks since their content is now in the right panel.
+            if (mColorPalette && mColorPalette->isVisible()) {
+                mColorPalette->hide();
+                qDebug() << "Hiding original ColorPalette dock";
+            }
+            if (mReferenceWindow) {
+                mReferenceWindow->setVisible(false);
+                qDebug() << "Hiding original ReferenceWindow dock";
+            }
+        } else {
+            qDebug() << "Failed to cast mCosmicRightToolsBar to CosmicRightToolPanel";
+        }
+        
+        // Connect brush preset selection to the brush factory system
+        if (auto* brushesPane = leftPanel->brushesPane()) {
+            if (auto* brushesContent = qobject_cast<BrushPresetListWidget*>(brushesPane->contentWidget())) {
+                // Connect preset selection to change active brush preset
+                connect(brushesContent, &BrushPresetListWidget::presetSelected, this, [this](int index) {
+                    if (mBrushFactoryDock) {
+                        // Use the new method to set active preset
+                        mBrushFactoryDock->setActivePreset(index);
+                    }
+                });
+
+                // Keep Brushes pane highlight in sync when the active preset is changed elsewhere
+                if (mBrushFactoryDock) {
+                    connect(mBrushFactoryDock, &BrushFactoryDock::activePresetAboutToChange,
+                            brushesContent, [brushesContent](int, int newIndex) {
+                        brushesContent->setActivePreset(newIndex);
+                    });
+                }
+                
+                // Connect preset settings request (stub for now)
+                connect(brushesContent, &BrushPresetListWidget::presetSettingsRequested, this, [this](int index) {
+                    // TODO: Show preset settings dialog/dock
+                    qDebug() << "Preset settings requested for index:" << index;
+                });
+
+                // Persist preset mutations (duplicate/rename/delete) into the brush factory (source of truth).
+                connect(brushesContent, &BrushPresetListWidget::presetsChanged, this,
+                        [this](const QVector<ToolOptionWidget::BrushPreset>& presets, int activeIndex) {
+                            qDebug() << "[MainWindow2] Brushes pane presetsChanged count=" << presets.size()
+                                     << "activeIndex=" << activeIndex
+                                     << "activeName=" << (activeIndex >= 0 && activeIndex < presets.size() ? presets[activeIndex].name : QString());
+                            if (mBrushFactoryDock) {
+                                mBrushFactoryDock->applyExternalPresets(presets, activeIndex);
+                            } else {
+                                qDebug() << "[MainWindow2] mBrushFactoryDock is null; cannot applyExternalPresets";
+                            }
+                        },
+                        Qt::UniqueConnection);
+
+                // Store-driven pipeline: BrushFactoryDock follows BrushPresetStore.
+                connect(BrushPresetStore::instance(), &BrushPresetStore::presetsUpdated, this,
+                        [this](const QVector<ToolOptionWidget::BrushPreset>& presets, const QString& activeId) {
+                            if (!mBrushFactoryDock || presets.isEmpty()) {
+                                return;
+                            }
+                            int activeIndex = 0;
+                            for (int i = 0; i < presets.size(); ++i) {
+                                if (presets[i].id == activeId) {
+                                    activeIndex = i;
+                                    break;
+                                }
+                            }
+                            mBrushFactoryDock->applyStorePresets(presets, activeIndex);
+                        },
+                        Qt::UniqueConnection);
+            }
+        }
+    }
+
+    // CanvasPaletteOverlay has been migrated into CosmicControlCenter pins.
+
+    // Create Gallery overlay (on background) used to show reference images grid over the canvas
+    if (!mCanvasGalleryOverlay) {
+        if (!ui->background) {
+            qCritical() << "MainWindow2: ui->background is null, cannot create CanvasGalleryOverlay";
+        } else {
+            try {
+                mCanvasGalleryOverlay = new CanvasGalleryOverlay(ui->background);
+                if (!mCanvasGalleryOverlay) {
+                    qCritical() << "MainWindow2: Failed to create CanvasGalleryOverlay";
+                } else {
+                    mCanvasGalleryOverlay->hideOverlay();
+                    mCanvasGalleryOverlay->raise();
+                }
+            } catch (const std::exception& e) {
+                qCritical() << "MainWindow2: Exception creating CanvasGalleryOverlay:" << e.what();
+                mCanvasGalleryOverlay = nullptr;
+            }
+        }
+    }
+
+    QSettings dockDefaultsSettings(PENCIL2D, PENCIL2D);
+    const bool hasSavedWindowState = dockDefaultsSettings.contains(SETTING_WINDOW_STATE);
+
+    for (BaseDockWidget* w : mDockWidgets)
+    {
+        if (!w) {
+            qWarning() << "MainWindow2: Null dock widget in list, skipping";
+            continue;
+        }
+        try {
+            if (!hasSavedWindowState) {
+                w->setFloating(false);
+                // Hide specific widgets by default: ColorInspector, ToolBox, ReferenceWindow, ShiftTraceWidget, OnionSkinWidget, ColorPalette
+                if (w == mColorInspector || w == mToolBox || w == mReferenceWindow || 
+                    w == mShiftTraceWidget || w == mOnionSkinWidget || w == mColorPalette) {
+                    w->hide();
+                } else {
+                    w->show();
+                }
+            }
+            w->updateUI();
+        } catch (const std::exception& e) {
+            qCritical() << "MainWindow2: Exception initializing dock widget" << w->objectName() << ":" << e.what();
+        }
+    }
+    
+    // After all dock widgets are shown, trigger accent color update to ensure
+    // all UI elements sync with the accent color preference where applicable.
+    // Tab visual appearance is controlled by the dark_theme.qss stylesheet.
+    onColorPreferenceChanged(SETTING::ACCENT_COLOR);
+    onColorPreferenceChanged(SETTING::TOOLBOX_SELECTION_COLOR);
+    
+    // Apply UI theme colors from preferences
+    updateUIThemeColors();
+    
+    // Update toolbox and canvas palette colors
+    if (mToolBox && mToolBox->getToolBoxWidget()) {
+        mToolBox->getToolBoxWidget()->onColorPreferenceChanged(SETTING::TOOLBOX_SELECTION_COLOR);
+    }
+    if (mCanvasPaletteOverlay && mCanvasPaletteOverlay->getPalette()) {
+        mCanvasPaletteOverlay->getPalette()->onColorPreferenceChanged(SETTING::TOOL_PALETTE_SELECTION_COLOR);
+    }
+
+    // Wire ReferenceWindow Gallery to CanvasGalleryOverlay
+    if (mReferenceWindow) {
+        // Ensure initial gallery content sync
+        connect(mReferenceWindow, &ReferenceWindow::galleryContentUpdated, this,
+                [this](const QVector<QImage>& imgs, const QStringList& labels, int currentIndex){
+            if (mCanvasGalleryOverlay) mCanvasGalleryOverlay->setImages(imgs, labels, currentIndex);
+        });
+        // Toggle show/hide in canvas and position overlay over the ScribbleArea region
+        connect(mReferenceWindow, &ReferenceWindow::galleryToggled, this, [this](bool on){
+            if (!mCanvasGalleryOverlay || !ui->background || !ui->scribbleArea) return;
+            if (on) {
+                QRect sr = ui->scribbleArea->rect();
+                QPoint tl = ui->scribbleArea->mapTo(ui->background, sr.topLeft());
+                QPoint br = ui->scribbleArea->mapTo(ui->background, sr.bottomRight());
+                QRect mapped(tl, br);
+                mCanvasGalleryOverlay->showOverlayInRect(mapped);
+            } else {
+                mCanvasGalleryOverlay->hideOverlay();
+            }
+        });
+        // Selecting an item in overlay switches current reference image
+        if (mCanvasGalleryOverlay) {
+            connect(mCanvasGalleryOverlay, &CanvasGalleryOverlay::imageActivated,
+                    mReferenceWindow, &ReferenceWindow::selectGalleryIndex);
+            connect(mCanvasGalleryOverlay, &CanvasGalleryOverlay::requestDeleteSelected,
+                    mReferenceWindow, &ReferenceWindow::deleteImagesByIndices);
+            connect(mCanvasGalleryOverlay, &CanvasGalleryOverlay::requestClearAll,
+                    mReferenceWindow, &ReferenceWindow::clearAllImagesSlot);
+            connect(mCanvasGalleryOverlay, &CanvasGalleryOverlay::requestClose, this, [this]{
+                if (!mCanvasGalleryOverlay) return;
+                mCanvasGalleryOverlay->hideOverlay();
+                if (mReferenceWindow) mReferenceWindow->setGalleryToggle(false);
+            });
+        }
+        // Emit initial content
+        mReferenceWindow->emitGalleryUpdate();
+    }
+
+    // Connect Brush Factory toggle to its dedicated dock
+    if (mToolOptions && mBrushFactoryDock) {
+        connect(mToolOptions, &ToolOptionWidget::brushFactoryToggled,
+                this, [this](bool enabled){
+            if (!mBrushFactoryDock || !mEditor) return;
+
+            if (enabled) {
+                // Allow when Pencil tool is active OR when the curve-family tools
+                // explicitly opted into the Pencil preset pipeline.
+                bool isPencil = false;
+                if (mEditor && mEditor->tools() && mEditor->tools()->currentTool()) {
+                    isPencil = (mEditor->tools()->currentTool()->type() == PENCIL);
+                }
+                if (!isPencil) {
+                    SettingsManager* sm = SettingsManager::instance();
+                    const bool curveWantsPencil = sm->getValue("Tool/Curve/Shared/UsePencilPreset", false).toBool();
+                    const ToolType tt = mEditor->tools()->currentTool()->type();
+                    const bool isCurveFamily = (tt == CURVE || tt == BSPLINE || tt == POLYLINE);
+                    if (!(isCurveFamily && curveWantsPencil)) {
+                        mToolOptions->setBrushFactoryToggleState(false);
+                        return;
+                    }
+                }
+
+                // Restore last size (fallback to a reasonable default)
+                QSettings settings(PENCIL2D, PENCIL2D);
+                settings.beginGroup("BrushFactoryDock");
+                int w = settings.value("Width", 880).toInt();
+                int h = settings.value("Height", 420).toInt();
+                settings.endGroup();
+                if (w < 200) w = 200;
+                if (h < 200) h = 200;
+                mBrushFactoryDock->resize(w, h);
+
+                // Keep dock floating and undockable
+                mBrushFactoryDock->setAllowedAreas(Qt::NoDockWidgetArea);
+                mBrushFactoryDock->setFeatures(QDockWidget::DockWidgetClosable |
+                                               QDockWidget::DockWidgetMovable |
+                                               QDockWidget::DockWidgetFloatable);
+                mBrushFactoryDock->setFloating(true);
+
+                // Center over the canvas (scribble area)
+                if (ui && ui->scribbleArea) {
+                    QRect r = ui->scribbleArea->rect();
+                    QPoint center = ui->scribbleArea->mapToGlobal(r.center());
+                    QPoint topLeft(center.x() - mBrushFactoryDock->width() / 2,
+                                   center.y() - mBrushFactoryDock->height() / 2);
+                    mBrushFactoryDock->move(topLeft);
+                }
+
+                mBrushFactoryDock->show();
+                mBrushFactoryDock->raise();
+                mBrushFactoryDock->activateWindow();
+                mBrushFactoryLockActive = true;
+            } else {
+                if (mBrushFactoryDock->isVisible()) {
+                    // Persist size when closing via toggle
+                    QSettings settings(PENCIL2D, PENCIL2D);
+                    settings.beginGroup("BrushFactoryDock");
+                    settings.setValue("Width", mBrushFactoryDock->width());
+                    settings.setValue("Height", mBrushFactoryDock->height());
+                    settings.endGroup();
+                    settings.sync();
+                    mBrushFactoryDock->hide();
+                }
+                mBrushFactoryLockActive = false;
+            }
+        });
+
+        // Keep curve-family preset dropdown in sync when the active brush preset changes.
+        // ToolOptionWidget::updateUI reads the authoritative QSettings ActiveIndex.
+        connect(mBrushFactoryDock, &BrushFactoryDock::activePresetAboutToChange,
+                this, [this](int, int){
+            if (mToolOptions) {
+                mToolOptions->updateUI();
+            }
+        });
+
+        // Keep toggle and lock in sync when the dock is closed manually (titlebar X)
+        connect(mBrushFactoryDock, &QDockWidget::visibilityChanged,
+                this, [this](bool visible){
+            if (!visible && mToolOptions) {
+                // Save size when user closes the dock manually
+                QSettings settings(PENCIL2D, PENCIL2D);
+                settings.beginGroup("BrushFactoryDock");
+                settings.setValue("Width", mBrushFactoryDock->width());
+                settings.setValue("Height", mBrushFactoryDock->height());
+                settings.endGroup();
+                settings.sync();
+
+                mToolOptions->setBrushFactoryToggleState(false);
+                mBrushFactoryLockActive = false;
+            }
+        });
+
+        // (Legacy pencil curve editor popup removed; BrushFactoryDock now owns
+        //  all per-preset pressure curves directly.)
+    }
+}
+
+void MainWindow2::createMenus()
+{
+    //--- File Menu ---
+    connect(ui->actionNew, &QAction::triggered, this, &MainWindow2::newDocument);
+    connect(ui->actionOpen, &QAction::triggered, this, &MainWindow2::openDocument);
+    connect(ui->actionSave_as, &QAction::triggered, this, &MainWindow2::saveAsNewDocument);
+    connect(ui->actionSave, &QAction::triggered, this, &MainWindow2::saveDocument);
+    connect(ui->actionExit, &QAction::triggered, this, &MainWindow2::close);
+
+    //--- Export Menu ---
+    connect(ui->actionExport_Image, &QAction::triggered, mCommands, &ActionCommands::exportImage);
+    // Removed: Current Layer Animation (Image Sequence) export action
+    connect(ui->actionExport_Animation, &QAction::triggered, mCommands, &ActionCommands::exportAnimation);
+    // Removed: Export Palette action
+
+    //--- Import Menu ---
+    //connect( ui->actionExport_Svg_Image, &QAction::triggered, editor, &Editor::saveSvg );
+    connect(ui->actionImportLayers_from_pclx, &QAction::triggered, this, &MainWindow2::importLayers);
+    connect(ui->actionImport_Image, &QAction::triggered, this, &MainWindow2::importSingleImage);
+    connect(ui->actionImport_ImageSeq, &QAction::triggered, this, &MainWindow2::importImageSequenceNew);
+    // Remove problematic/non-functional import options (defensive cleanup if any linger)
+    if (ui->menuFile && ui->menuImport) {
+        QList<QAction*> toRemove;
+        for (QAction* a : ui->menuImport->actions()) {
+            const QString t = a->text();
+            if (t.contains(tr("Movie Video"), Qt::CaseInsensitive)
+                || t.contains(tr("Animated Image"), Qt::CaseInsensitive)
+                || t.contains(tr("Sound"), Qt::CaseInsensitive)
+                || t.contains(tr("Movie Audio"), Qt::CaseInsensitive)) {
+                toRemove.append(a);
+            }
+        }
+        for (QAction* a : toRemove) { ui->menuImport->removeAction(a); }
+    }
+
+    // Removed: Palette import options (Append/Replace)
+
+    //--- Edit Menu ---
+    replaceUndoRedoActions();
+    // Rebind undo/redo actions when active stack switches (per-cell drawing vs timeline)
+    connect(mEditor->undoRedo(), &UndoRedoManager::activeStackChanged, this, [this]() {
+        replaceUndoRedoActions();
+    });
+    connect(ui->actionCut, &QAction::triggered, mEditor, &Editor::copyAndCut);
+    connect(ui->actionCopy, &QAction::triggered, mEditor, &Editor::copy);
+    connect(ui->actionPaste_Previous, &QAction::triggered, mEditor, &Editor::pasteFromPreviousFrame);
+    connect(ui->actionPaste, &QAction::triggered, mEditor, &Editor::paste);
+    connect(ui->actionClearFrame, &QAction::triggered, mEditor, &Editor::clearCurrentFrame);
+    connect(mEditor->select(), &SelectionManager::selectionChanged, this, &MainWindow2::selectionChanged);
+    connect(ui->actionFlip_X, &QAction::triggered, mCommands, &ActionCommands::flipSelectionX);
+    connect(ui->actionFlip_Y, &QAction::triggered, mCommands, &ActionCommands::flipSelectionY);
+    connect(ui->actionPegbarAlignment, &QAction::triggered, this, &MainWindow2::openPegAlignDialog);
+    connect(ui->actionAdd_Transparency_to_paper, &QAction::triggered, this, &MainWindow2::openAddTranspToPaperDialog);
+    connect(ui->actionSelect_All, &QAction::triggered, mCommands, &ActionCommands::selectAll);
+    connect(ui->actionDeselect_All, &QAction::triggered, mCommands, &ActionCommands::deselectAll);
+    connect(ui->actionReposition_Selected_Frames, &QAction::triggered, this, &MainWindow2::openRepositionDialog);
+    connect(ui->actionPreference, &QAction::triggered, [=] { preferences(); });
+
+    //--- Layer Menu ---
+    connect(ui->actionNew_Bitmap_Layer, &QAction::triggered, mCommands, &ActionCommands::addNewBitmapLayer);
+    // Defensive: ensure sound layer menu item is not visible/usable
+    if (ui->actionNew_Sound_Layer) {
+        ui->menuLayer->removeAction(ui->actionNew_Sound_Layer);
+        ui->actionNew_Sound_Layer->setEnabled(false);
+        ui->actionNew_Sound_Layer->setVisible(false);
+    }
+    connect(ui->actionDelete_Current_Layer, &QAction::triggered, mCommands, &ActionCommands::deleteCurrentLayer);
+    connect(ui->actionChangeLineColorCurrent_keyframe, &QAction::triggered, mCommands, &ActionCommands::changeKeyframeLineColor);
+    connect(ui->actionChangeLineColorAll_keyframes_on_layer, &QAction::triggered, mCommands, &ActionCommands::changeallKeyframeLineColor);
+    connect(ui->actionChangeLayerOpacity, &QAction::triggered, this, &MainWindow2::openLayerOpacityDialog);
+
+    QList<QAction*> visibilityActions = ui->menuLayer_Visibility->actions();
+    auto visibilityGroup = new QActionGroup(this);
+    visibilityGroup->setExclusive(true);
+    for (int i = 0; i < visibilityActions.size(); i++) {
+        QAction* action = visibilityActions[i];
+        visibilityGroup->addAction(action);
+        connect(action, &QAction::triggered, [=] { mCommands->setLayerVisibilityIndex(i); });
+    }
+    visibilityActions[mEditor->preference()->getInt(SETTING::LAYER_VISIBILITY)]->setChecked(true);
+    connect(mEditor->preference(), &PreferenceManager::optionChanged, [=](SETTING e) {
+        if (e == SETTING::LAYER_VISIBILITY) {
+            visibilityActions[mEditor->preference()->getInt(SETTING::LAYER_VISIBILITY)]->setChecked(true);
+        }
+    });
+
+    // --- View Menu ---
+    connect(ui->actionZoom_In, &QAction::triggered, mCommands, &ActionCommands::ZoomIn);
+    connect(ui->actionZoom_Out, &QAction::triggered, mCommands, &ActionCommands::ZoomOut);
+    connect(ui->actionRotate_Clockwise, &QAction::triggered, mCommands, &ActionCommands::rotateClockwise);
+    connect(ui->actionRotate_Anticlockwise, &QAction::triggered, mCommands, &ActionCommands::rotateCounterClockwise);
+    connect(ui->actionReset_Rotation, &QAction::triggered, mEditor->view(), &ViewManager::resetRotation);
+    connect(ui->actionReset_View, &QAction::triggered, mEditor->view(), &ViewManager::resetView);
+    connect(ui->actionCenter_View, &QAction::triggered, mEditor->view(), &ViewManager::centerView);
+    connect(ui->actionZoom400, &QAction::triggered, mEditor->view(), &ViewManager::scale400);
+    connect(ui->actionZoom300, &QAction::triggered, mEditor->view(), &ViewManager::scale300);
+    connect(ui->actionZoom200, &QAction::triggered, mEditor->view(), &ViewManager::scale200);
+    connect(ui->actionZoom100, &QAction::triggered, mEditor->view(), &ViewManager::scale100);
+    connect(ui->actionZoom50, &QAction::triggered, mEditor->view(), &ViewManager::scale50);
+    connect(ui->actionZoom33, &QAction::triggered, mEditor->view(), &ViewManager::scale33);
+    connect(ui->actionZoom25, &QAction::triggered, mEditor->view(), &ViewManager::scale25);
+    connect(ui->actionHorizontal_Flip, &QAction::triggered, mEditor->view(), &ViewManager::flipHorizontal);
+    connect(ui->actionVertical_Flip, &QAction::triggered, mEditor->view(), &ViewManager::flipVertical);
+    connect(mEditor->view(), &ViewManager::viewFlipped, this, &MainWindow2::viewFlipped);
+
+    PreferenceManager* prefs = mEditor->preference();
+    connect(ui->actionStatusBar, &QAction::triggered, ui->statusBar, &QStatusBar::setVisible);
+    bindPreferenceSetting(ui->actionStatusBar, prefs, SETTING::SHOW_STATUS_BAR);
+    bindPreferenceSetting(ui->actionThreePointPerspective, prefs, SETTING::OVERLAY_PERSPECTIVE3);
+    bindPreferenceSetting(ui->actionTwoPointPerspective, prefs, SETTING::OVERLAY_PERSPECTIVE2);
+    bindPreferenceSetting(ui->actionOnePointPerspective, prefs, SETTING::OVERLAY_PERSPECTIVE1);
+    bindPreferenceSetting(ui->actionSafeAreas, prefs, SETTING::OVERLAY_SAFE);
+    bindPreferenceSetting(ui->actionGoldenRatio, prefs, SETTING::OVERLAY_GOLDEN);
+    bindPreferenceSetting(ui->actionThirds, prefs, SETTING::OVERLAY_THIRDS);
+    bindPreferenceSetting(ui->actionCenter, prefs, SETTING::OVERLAY_CENTER);
+    bindPreferenceSetting(ui->actionGrid, prefs, SETTING::GRID);
+    bindPreferenceSetting(ui->actionShowOutlinesOnly, prefs, SETTING::OUTLINES);
+    bindPreferenceSetting(ui->actionShowInvisibleLines, prefs, SETTING::INVISIBLE_LINES);
+    bindPreferenceSetting(ui->actionOnionPrev, prefs, SETTING::PREV_ONION);
+    bindPreferenceSetting(ui->actionOnionNext, prefs, SETTING::NEXT_ONION);
+
+    bool enableSafeArea = (prefs->isOn(SETTING::ACTION_SAFE_ON) || prefs->isOn(SETTING::TITLE_SAFE_ON));
+    ui->actionSafeAreas->setEnabled(enableSafeArea);
+
+    auto perspectiveLinesAngleGroup = new QActionGroup(this);
+    perspectiveLinesAngleGroup->setExclusive(true);
+    perspectiveLinesAngleGroup->addAction(ui->action2Degrees);
+    perspectiveLinesAngleGroup->addAction(ui->action3Degrees);
+    perspectiveLinesAngleGroup->addAction(ui->action5Degrees);
+    perspectiveLinesAngleGroup->addAction(ui->action7_5Degrees);
+    perspectiveLinesAngleGroup->addAction(ui->action10Degrees);
+    perspectiveLinesAngleGroup->addAction(ui->action15Degrees);
+    perspectiveLinesAngleGroup->addAction(ui->action20Degrees);
+    perspectiveLinesAngleGroup->addAction(ui->action30Degrees);
+    connect(perspectiveLinesAngleGroup, &QActionGroup::triggered, this, [&](QAction* action) {
+        if (action == ui->action2Degrees)        mEditor->preference()->set(SETTING::OVERLAY_ANGLE, 2);
+        else if (action == ui->action3Degrees)   mEditor->preference()->set(SETTING::OVERLAY_ANGLE, 3);
+        else if (action == ui->action5Degrees)   mEditor->preference()->set(SETTING::OVERLAY_ANGLE, 5);
+        else if (action == ui->action7_5Degrees) mEditor->preference()->set(SETTING::OVERLAY_ANGLE, 7);
+        else if (action == ui->action10Degrees)  mEditor->preference()->set(SETTING::OVERLAY_ANGLE, 10);
+        else if (action == ui->action15Degrees)  mEditor->preference()->set(SETTING::OVERLAY_ANGLE, 15);
+        else if (action == ui->action20Degrees)  mEditor->preference()->set(SETTING::OVERLAY_ANGLE, 20);
+        else if (action == ui->action30Degrees)  mEditor->preference()->set(SETTING::OVERLAY_ANGLE, 30);
+        else Q_UNREACHABLE();
+        emit mEditor->view()->viewChanged();
+    });
+
+    switch (prefs->getInt(SETTING::OVERLAY_ANGLE)) {
+    case 2: ui->action2Degrees->setChecked(true); break;
+    case 3: ui->action3Degrees->setChecked(true); break;
+    case 5: ui->action5Degrees->setChecked(true); break;
+    case 7: ui->action7_5Degrees->setChecked(true); break;
+    case 10: ui->action10Degrees->setChecked(true); break;
+    case 15: ui->action15Degrees->setChecked(true); break;
+    case 20: ui->action20Degrees->setChecked(true); break;
+    case 30: ui->action30Degrees->setChecked(true); break;
+    }
+
+    //--- Animation Menu ---
+    PlaybackManager* pPlaybackManager = mEditor->playback();
+    connect(ui->actionPlay, &QAction::triggered, this, &MainWindow2::onPlayTriggered);
+
+    connect(ui->actionLoop, &QAction::triggered, pPlaybackManager, &PlaybackManager::setLooping);
+    connect(ui->actionLoopControl, &QAction::triggered, pPlaybackManager, &PlaybackManager::enableRangedPlayback);
+    connect(pPlaybackManager, &PlaybackManager::loopStateChanged, ui->actionLoop, &QAction::setChecked);
+    connect(pPlaybackManager, &PlaybackManager::loopStateChanged, mTimeLine, &TimeLine::setLoop);
+    connect(pPlaybackManager, &PlaybackManager::rangedPlaybackStateChanged, ui->actionLoopControl, &QAction::setChecked);
+    connect(pPlaybackManager, &PlaybackManager::rangedPlaybackStateChanged, mTimeLine, &TimeLine::setRangeState);
+    connect(pPlaybackManager, &PlaybackManager::playStateChanged, mTimeLine, &TimeLine::setPlaying);
+    connect(pPlaybackManager, &PlaybackManager::playStateChanged, this, &MainWindow2::changePlayState);
+    connect(pPlaybackManager, &PlaybackManager::playStateChanged, ui->scribbleArea, &ScribbleArea::onPlayStateChanged);
+    connect(ui->actionFlip_inbetween, &QAction::triggered, pPlaybackManager, &PlaybackManager::playFlipInBetween);
+    connect(ui->actionFlip_rolling, &QAction::triggered, pPlaybackManager, &PlaybackManager::playFlipRoll);
+
+    connect(ui->actionAdd_Frame, &QAction::triggered, mCommands, &ActionCommands::insertKeyFrameAtCurrentPosition);
+    connect(ui->actionRemove_Frame, &QAction::triggered, mCommands, &ActionCommands::removeKey);
+    connect(ui->actionAdd_Frame_Exposure, &QAction::triggered, mCommands, &ActionCommands::addExposureToSelectedFrames);
+    connect(ui->actionSubtract_Frame_Exposure, &QAction::triggered, mCommands, &ActionCommands::subtractExposureFromSelectedFrames);
+    connect(ui->actionNext_Frame, &QAction::triggered, mCommands, &ActionCommands::GotoNextFrame);
+    connect(ui->actionPrevious_Frame, &QAction::triggered, mCommands, &ActionCommands::GotoPrevFrame);
+    connect(ui->actionNext_KeyFrame, &QAction::triggered, mCommands, &ActionCommands::GotoNextKeyFrame);
+    connect(ui->actionPrev_KeyFrame, &QAction::triggered, mCommands, &ActionCommands::GotoPrevKeyFrame);
+    connect(ui->actionMove_Frame_Forward, &QAction::triggered, mCommands, &ActionCommands::moveFrameForward);
+    connect(ui->actionMove_Frame_Backward, &QAction::triggered, mCommands, &ActionCommands::moveFrameBackward);
+
+    connect(ui->actionReverse_Frames_Order, &QAction::triggered, mCommands, &ActionCommands::reverseSelectedFrames);
+    connect(ui->actionRemove_Frames, &QAction::triggered, mCommands, &ActionCommands::removeSelectedFrames);
+
+
+    mToolsActionGroup = new QActionGroup(this);
+    mToolsActionGroup->setExclusive(true);
+    mToolsActionGroup->addAction(ui->actionMove);
+    mToolsActionGroup->addAction(ui->actionSelect);
+    mToolsActionGroup->addAction(ui->actionPolyline);
+    mToolsActionGroup->addAction(ui->actionPen);
+    mToolsActionGroup->addAction(ui->actionHand);
+    mToolsActionGroup->addAction(ui->actionBucket);
+    mToolsActionGroup->addAction(ui->actionEyedropper);
+    mToolsActionGroup->addAction(ui->actionEraser);
+    // Dplate action will be created below and added to toolbar; also add to group
+    if (!mActionDplate) mActionDplate = new QAction(QIcon(":/CustomToolIcons/Dplate.svg"), tr("Dplate"), this);
+    mToolsActionGroup->addAction(mActionDplate);
+
+    connect(mToolsActionGroup, &QActionGroup::triggered, this, [&](QAction* action) {
+        if (action == ui->actionMove) mToolBox->setActiveTool(MOVE);
+        else if (action == ui->actionSelect) mToolBox->setActiveTool(SELECT);
+        else if (action == ui->actionPolyline) mToolBox->setActiveTool(POLYLINE);
+        else if (action == ui->actionPen) mToolBox->setActiveTool(PEN);
+        else if (action == ui->actionHand) mToolBox->setActiveTool(HAND);
+        else if (action == ui->actionBucket) mToolBox->setActiveTool(BUCKET);
+        else if (action == ui->actionEyedropper) mToolBox->setActiveTool(EYEDROPPER);
+        else if (action == ui->actionEraser) mToolBox->setActiveTool(ERASER);
+        else if (action == mActionDplate) mToolBox->setActiveTool(DPLATE);
+        else if (action == mActionLassoSelect) mEditor->tools()->setCurrentTool(LASSO_SELECT);
+        else Q_UNREACHABLE();
+    });
+
+    //--- Window Menu ---
+    QMenu* winMenu = ui->menuWindows;
+    const std::vector<QAction*> actions
+    {
+        mCellStackWidget->toggleViewAction(),
+        mColorBox->toggleViewAction(),
+        mColorPalette->toggleViewAction(),
+        mOnionSkinWidget->toggleViewAction(),
+        mReferenceWindow->toggleViewAction(),
+        mShiftTraceWidget->toggleViewAction(),
+        mTimeLine->toggleViewAction(),
+        // mColorInspector->toggleViewAction(), // Hidden from user interface
+        mToolBox->toggleViewAction(),
+        mToolOptions->toggleViewAction()
+    };
+
+    for (QAction* action : actions)
+    {
+        action->setMenuRole(QAction::NoRole);
+        winMenu->insertAction(ui->menuToolbars->menuAction(), action);
+    }
+    winMenu->insertSeparator(ui->menuToolbars->menuAction());
+    connect(ui->actionResetWindows, &QAction::triggered, this, &MainWindow2::resetAndDockAllSubWidgets);
+    connect(ui->actionLockWindows, &QAction::toggled, this, &MainWindow2::lockWidgets);
+    bindPreferenceSetting(ui->actionLockWindows, prefs, SETTING::LAYOUT_LOCK);
+
+    // Add a Toggle Docks action to the Window menu
+    if (!mToggleDocksAction) {
+        mToggleDocksAction = new QAction(tr("Toggle All Docks"), this);
+        mToggleDocksAction->setMenuRole(QAction::NoRole);
+        winMenu->insertAction(ui->menuToolbars->menuAction(), mToggleDocksAction);
+        connect(mToggleDocksAction, &QAction::triggered, this, &MainWindow2::toggleDocksVisibility);
+    }
+
+    // Create global actions for shortcut-only commands that may not have a menu item.
+    // They must be registered on the main window via addAction() for shortcuts to work.
+    if (!mToggleGapCheckAction) {
+        mToggleGapCheckAction = new QAction(tr("Toggle Gap Checking"), this);
+        mToggleGapCheckAction->setMenuRole(QAction::NoRole);
+        mToggleGapCheckAction->setCheckable(true);
+        bindPreferenceSetting(mToggleGapCheckAction, prefs, SETTING::GAP_CHECK_MODE);
+        addAction(mToggleGapCheckAction);
+    }
+    if (!mIncreaseSizeAction) {
+        mIncreaseSizeAction = new QAction(tr("Increase Size"), this);
+        mIncreaseSizeAction->setMenuRole(QAction::NoRole);
+        addAction(mIncreaseSizeAction);
+        connect(mIncreaseSizeAction, &QAction::triggered, this, [this]() {
+            if (!mEditor || !mEditor->tools() || !mEditor->tools()->currentTool()) return;
+            BaseTool* tool = mEditor->tools()->currentTool();
+            if (!tool->isPropertyEnabled(WIDTH)) return;
+            const qreal cur = (tool->properties.width > 0.0) ? tool->properties.width : 1.0;
+            const qreal next = qMax<qreal>(1.0, cur + 1.0);
+            ToolManager* tm = mEditor->tools();
+            tm->beginEditingPropertiesForTool(tool->type());
+            tm->setWidth(static_cast<float>(next));
+            tm->endEditingProperties();
+        });
+    }
+    if (!mDecreaseSizeAction) {
+        mDecreaseSizeAction = new QAction(tr("Decrease Size"), this);
+        mDecreaseSizeAction->setMenuRole(QAction::NoRole);
+        addAction(mDecreaseSizeAction);
+        connect(mDecreaseSizeAction, &QAction::triggered, this, [this]() {
+            if (!mEditor || !mEditor->tools() || !mEditor->tools()->currentTool()) return;
+            BaseTool* tool = mEditor->tools()->currentTool();
+            if (!tool->isPropertyEnabled(WIDTH)) return;
+            const qreal cur = (tool->properties.width > 0.0) ? tool->properties.width : 1.0;
+            const qreal next = qMax<qreal>(1.0, cur - 1.0);
+            ToolManager* tm = mEditor->tools();
+            tm->beginEditingPropertiesForTool(tool->type());
+            tm->setWidth(static_cast<float>(next));
+            tm->endEditingProperties();
+        });
+    }
+
+    // About action
+    connect(ui->actionAbout, &QAction::triggered, mCommands, &ActionCommands::about);
+    // Ensure About menu displays text only (no icon)
+    if (ui->menuAbout) ui->menuAbout->setIcon(QIcon());
+    ui->actionAbout->setIcon(QIcon());
+
+    //--- Menus ---
+    mRecentFileMenu = new RecentFileMenu(tr("Open Recent"), this);
+    mRecentFileMenu->loadFromDisk();
+    ui->menuFile->insertMenu(ui->actionSave, mRecentFileMenu);
+
+    connect(mRecentFileMenu, &RecentFileMenu::loadRecentFile, this, &MainWindow2::openFile);
+
+    // --- Canvas Menu ---
+    QMenu* canvasMenu = new QMenu(tr("Canvas"), this);
+    QAction* setCanvasSizeAct = new QAction(tr("Set Canvas Size…"), this);
+    connect(setCanvasSizeAct, &QAction::triggered, this, &MainWindow2::openCanvasSizeDialog);
+    canvasMenu->addAction(setCanvasSizeAct);
+    // Show Canvas Color Palette toggle (persisted)
+    mActionShowCanvasPalette = new QAction(tr("Show Canvas Color Palette"), this);
+    mActionShowCanvasPalette->setCheckable(true);
+    canvasMenu->addAction(mActionShowCanvasPalette);
+
+    QWidget* canvasColorWidget = new QWidget(this);
+    QHBoxLayout* ccLayout = new QHBoxLayout(canvasColorWidget);
+    ccLayout->setContentsMargins(8, 4, 8, 4);
+    QLabel* ccLabel = new QLabel(tr("Canvas color"), canvasColorWidget);
+    QPushButton* canvasColorButton = new QPushButton(canvasColorWidget);
+    canvasColorButton->setFixedSize(28, 18);
+    ccLayout->addWidget(ccLabel);
+    ccLayout->addStretch(1);
+    ccLayout->addWidget(canvasColorButton);
+    QWidgetAction* ccAction = new QWidgetAction(this);
+    ccAction->setDefaultWidget(canvasColorWidget);
+    canvasMenu->addAction(ccAction);
+
+    QWidget* extraSpaceWidget = new QWidget(this);
+    QVBoxLayout* esVLayout = new QVBoxLayout(extraSpaceWidget);
+    esVLayout->setContentsMargins(8, 6, 8, 6);
+    esVLayout->setSpacing(6);
+
+    QWidget* esStyleRow = new QWidget(extraSpaceWidget);
+    QHBoxLayout* esStyleLayout = new QHBoxLayout(esStyleRow);
+    esStyleLayout->setContentsMargins(0, 0, 0, 0);
+    QLabel* esStyleLabel = new QLabel(tr("Extra Space Style"), esStyleRow);
+    CosmicDropDown* esStyleDropdown = new CosmicDropDown(esStyleRow);
+    esStyleDropdown->setOptions(QStringList() << tr("Auto") << tr("Manual"));
+    esStyleLayout->addWidget(esStyleLabel);
+    esStyleLayout->addStretch(1);
+    esStyleLayout->addWidget(esStyleDropdown);
+    esVLayout->addWidget(esStyleRow);
+
+    QWidget* esAutoRow = new QWidget(extraSpaceWidget);
+    QHBoxLayout* esAutoLayout = new QHBoxLayout(esAutoRow);
+    esAutoLayout->setContentsMargins(0, 0, 0, 0);
+    QLabel* esAutoLabel = new QLabel(tr("Scale"), esAutoRow);
+    CosmicDropDown* esScaleDropdown = new CosmicDropDown(esAutoRow);
+    QStringList scaleOptions;
+    QList<int> scalePercents;
+    for (int p = 100; p <= 200; p += 10) {
+        const qreal v = static_cast<qreal>(p) / 100.0;
+        QString txt;
+        if (p == 100 || p == 200) {
+            txt = QString::number(v, 'f', 0) + QStringLiteral("x");
+        } else {
+            txt = QString::number(v, 'f', 1) + QStringLiteral("x");
+        }
+        scaleOptions << txt;
+        scalePercents << p;
+    }
+    esScaleDropdown->setOptions(scaleOptions);
+    esAutoLayout->addWidget(esAutoLabel);
+    esAutoLayout->addStretch(1);
+    esAutoLayout->addWidget(esScaleDropdown);
+    esVLayout->addWidget(esAutoRow);
+
+    QWidget* esManualRow = new QWidget(extraSpaceWidget);
+    QHBoxLayout* esManualLayout = new QHBoxLayout(esManualRow);
+    esManualLayout->setContentsMargins(0, 0, 0, 0);
+    esManualLayout->setSpacing(6);
+    QLabel* esWLabel = new QLabel(tr("X"), esManualRow);
+    CosmicInputField* esWInput = new CosmicInputField(esManualRow);
+    esWInput->setDecimals(0);
+    esWInput->setSingleStep(1.0);
+    QLabel* esHLabel = new QLabel(tr("Y"), esManualRow);
+    CosmicInputField* esHInput = new CosmicInputField(esManualRow);
+    esHInput->setDecimals(0);
+    esHInput->setSingleStep(1.0);
+    esManualLayout->addWidget(esWLabel);
+    esManualLayout->addWidget(esWInput);
+    esManualLayout->addWidget(esHLabel);
+    esManualLayout->addWidget(esHInput);
+    esVLayout->addWidget(esManualRow);
+
+    QWidgetAction* esAction = new QWidgetAction(this);
+    esAction->setDefaultWidget(extraSpaceWidget);
+    canvasMenu->addAction(esAction);
+
+    auto updateManualRanges = [prefs, esWInput, esHInput]() {
+        const int baseW = qMax(1, prefs->getInt(SETTING::FIELD_W));
+        const int baseH = qMax(1, prefs->getInt(SETTING::FIELD_H));
+        esWInput->setRange(baseW, baseW * 2);
+        esHInput->setRange(baseH, baseH * 2);
+    };
+
+    auto updateCanvasColorButton = [prefs, canvasColorButton]() {
+        QColor c = QColor::fromRgba(prefs->getInt(SETTING::CANVAS_COLOR));
+        if (!c.isValid()) c = Qt::white;
+        const QString css = QString("QPushButton { background-color:%1; border: 1px solid #666; }")
+                                .arg(c.name(QColor::HexArgb));
+        canvasColorButton->setStyleSheet(css);
+    };
+
+    auto updateExtraSpaceUi = [prefs, esStyleDropdown, esScaleDropdown, esAutoRow, esManualRow, esWInput, esHInput]() {
+        int style = prefs->getInt(SETTING::EXTRA_SPACE_STYLE);
+        if (style != 0 && style != 1) style = 0;
+        esStyleDropdown->setCurrentIndex(style);
+        esAutoRow->setVisible(style == 0);
+        esManualRow->setVisible(style == 1);
+
+        const int baseW = qMax(1, prefs->getInt(SETTING::FIELD_W));
+        const int baseH = qMax(1, prefs->getInt(SETTING::FIELD_H));
+
+        const int scale = qBound(100, prefs->getInt(SETTING::EXTRA_SPACE_SCALE_PERCENT), 200);
+        int index = (scale - 100) / 10;
+        index = qBound(0, index, 10);
+        esScaleDropdown->setCurrentIndex(index);
+
+        int w = prefs->getInt(SETTING::EXTRA_SPACE_MANUAL_W);
+        int h = prefs->getInt(SETTING::EXTRA_SPACE_MANUAL_H);
+        w = qBound(baseW, w, baseW * 2);
+        h = qBound(baseH, h, baseH * 2);
+        esWInput->setValue(w);
+        esHInput->setValue(h);
+    };
+
+    updateManualRanges();
+    updateCanvasColorButton();
+    updateExtraSpaceUi();
+
+    connect(canvasColorButton, &QPushButton::clicked, this, [this, prefs, canvasColorButton]() {
+        QColor initial = QColor::fromRgba(prefs->getInt(SETTING::CANVAS_COLOR));
+        if (!initial.isValid()) initial = Qt::white;
+        auto* popup = new PopupColorWheelWidget(this);
+        popup->setPreferenceManager(prefs);
+        popup->setColor(initial);
+
+        connect(popup, &PopupColorWheelWidget::colorChanged, this, [prefs, canvasColorButton](const QColor& c) {
+            if (!c.isValid()) return;
+            prefs->set(SETTING::CANVAS_COLOR, static_cast<int>(c.rgba()));
+            const QString css = QString("QPushButton { background-color:%1; border: 1px solid #666; }")
+                                    .arg(c.name(QColor::HexArgb));
+            canvasColorButton->setStyleSheet(css);
+        });
+
+        connect(popup, &PopupColorWheelWidget::colorSelected, this, [prefs, canvasColorButton](const QColor& c) {
+            if (!c.isValid()) return;
+            prefs->set(SETTING::CANVAS_COLOR, static_cast<int>(c.rgba()));
+            const QString css = QString("QPushButton { background-color:%1; border: 1px solid #666; }")
+                                    .arg(c.name(QColor::HexArgb));
+            canvasColorButton->setStyleSheet(css);
+        });
+
+        popup->showAt(QCursor::pos());
+    });
+
+    connect(esStyleDropdown, &CosmicDropDown::currentIndexChanged, this, [prefs, esAutoRow, esManualRow, updateManualRanges](int idx) {
+        const int style = (idx == 1) ? 1 : 0;
+        prefs->set(SETTING::EXTRA_SPACE_STYLE, style);
+        esAutoRow->setVisible(style == 0);
+        esManualRow->setVisible(style == 1);
+        updateManualRanges();
+    });
+
+    connect(esScaleDropdown, &CosmicDropDown::currentIndexChanged, this, [prefs, scalePercents](int idx) {
+        const int safeIdx = qBound(0, idx, scalePercents.size() - 1);
+        prefs->set(SETTING::EXTRA_SPACE_STYLE, 0);
+        prefs->set(SETTING::EXTRA_SPACE_SCALE_PERCENT, scalePercents[safeIdx]);
+    });
+
+    connect(esWInput, &CosmicInputField::valueCommitted, this, [prefs](double v) {
+        const int baseW = qMax(1, prefs->getInt(SETTING::FIELD_W));
+        const int w = qBound(baseW, static_cast<int>(qRound(v)), baseW * 2);
+        prefs->set(SETTING::EXTRA_SPACE_STYLE, 1);
+        prefs->set(SETTING::EXTRA_SPACE_MANUAL_W, w);
+    });
+    connect(esHInput, &CosmicInputField::valueCommitted, this, [prefs](double v) {
+        const int baseH = qMax(1, prefs->getInt(SETTING::FIELD_H));
+        const int h = qBound(baseH, static_cast<int>(qRound(v)), baseH * 2);
+        prefs->set(SETTING::EXTRA_SPACE_STYLE, 1);
+        prefs->set(SETTING::EXTRA_SPACE_MANUAL_H, h);
+    });
+
+    connect(prefs, &PreferenceManager::optionChanged, this, [=](SETTING s) {
+        if (s == SETTING::CANVAS_COLOR) {
+            updateCanvasColorButton();
+        } else if (s == SETTING::ACCENT_COLOR) {
+            const QColor accent = BlenderStyleSlider::getAccentColor();
+            esWInput->setAccentColor(accent);
+            esHInput->setAccentColor(accent);
+        } else if (s == SETTING::EXTRA_SPACE_STYLE || s == SETTING::EXTRA_SPACE_SCALE_PERCENT ||
+                   s == SETTING::EXTRA_SPACE_MANUAL_W || s == SETTING::EXTRA_SPACE_MANUAL_H ||
+                   s == SETTING::FIELD_W || s == SETTING::FIELD_H) {
+            updateManualRanges();
+            updateExtraSpaceUi();
+        }
+    });
+
+    {
+        const QColor accent = BlenderStyleSlider::getAccentColor();
+        esWInput->setAccentColor(accent);
+        esHInput->setAccentColor(accent);
+    }
+
+    // Free Transform action (Selection)
+    // Free Transform intentionally not listed in Canvas menu
+
+    ui->menuBar->insertMenu(ui->menuLayer->menuAction(), canvasMenu);
+
+    // Restore persisted value (default true) and connect
+    {
+        QSettings settings(PENCIL2D, PENCIL2D);
+        const bool visible = settings.value("Canvas/ShowPaletteOverlay", true).toBool();
+        mActionShowCanvasPalette->setChecked(visible);
+        if (mCanvasPaletteOverlay) mCanvasPaletteOverlay->setVisible(visible);
+    }
+    connect(mActionShowCanvasPalette, &QAction::toggled, this, [this](bool on){
+        if (mCanvasPaletteOverlay) mCanvasPaletteOverlay->setVisible(on);
+        QSettings settings(PENCIL2D, PENCIL2D);
+        settings.setValue("Canvas/ShowPaletteOverlay", on);
+        settings.sync();
+    });
+
+    connect(mRecentFileMenu, &RecentFileMenu::loadRecentFile, this, &MainWindow2::openFile);
+
+    // Hide icons in menus while keeping them in toolbars for a more professional appearance
+    QList<QMenu*> allMenus = ui->menuBar->findChildren<QMenu*>();
+    allMenus.append(ui->menuFile);
+    allMenus.append(ui->menuEdit);
+    allMenus.append(ui->menuView);
+    allMenus.append(ui->menuLayer);
+    allMenus.append(ui->menuAnimation);
+    allMenus.append(ui->menuWindows);
+    allMenus.append(ui->menuAbout);
+    allMenus.append(canvasMenu);
+    
+    for (QMenu* menu : allMenus) {
+        if (!menu) continue;
+        for (QAction* action : menu->actions()) {
+            if (action && !action->isSeparator()) {
+                action->setIconVisibleInMenu(false);
+            }
+        }
+    }
+}
+
+void MainWindow2::replaceUndoRedoActions()
+{
+    // Preserve existing actions' icons and shortcuts
+    QAction* oldUndo = ui->actionUndo;
+    QAction* oldRedo = ui->actionRedo;
+    const QIcon oldUndoIcon = oldUndo ? oldUndo->icon() : QIcon();
+    const QIcon oldRedoIcon = oldRedo ? oldRedo->icon() : QIcon();
+    const QList<QKeySequence> oldUndoShortcuts = oldUndo ? oldUndo->shortcuts() : QList<QKeySequence>();
+    const QList<QKeySequence> oldRedoShortcuts = oldRedo ? oldRedo->shortcuts() : QList<QKeySequence>();
+
+    // Replace in Edit menu
+    if (oldUndo) ui->menuEdit->removeAction(oldUndo);
+    if (oldRedo) ui->menuEdit->removeAction(oldRedo);
+    ui->actionUndo = mEditor->undoRedo()->createUndoAction(this, oldUndoIcon);
+    ui->actionRedo = mEditor->undoRedo()->createRedoAction(this, oldRedoIcon);
+    if (!oldUndoShortcuts.isEmpty()) ui->actionUndo->setShortcuts(oldUndoShortcuts);
+    if (!oldRedoShortcuts.isEmpty()) ui->actionRedo->setShortcuts(oldRedoShortcuts);
+    ui->menuEdit->insertAction(ui->actionCut, ui->actionUndo);
+    ui->menuEdit->insertAction(ui->actionCut, ui->actionRedo);
+    // Hide icons in menu while keeping them in toolbar
+    ui->actionUndo->setIconVisibleInMenu(false);
+    ui->actionRedo->setIconVisibleInMenu(false);
+
+    // Also update any toolbars that contained the old actions
+    const QList<QToolBar*> toolbars = findChildren<QToolBar*>();
+    for (QToolBar* tb : toolbars) {
+        if (!tb) continue;
+        // Track whether toolbar had old actions
+        bool hadUndo = false, hadRedo = false;
+        for (QAction* a : tb->actions()) {
+            if (a == oldUndo) { hadUndo = true; }
+            if (a == oldRedo) { hadRedo = true; }
+        }
+        if (hadUndo && oldUndo) {
+            tb->removeAction(oldUndo);
+            tb->addAction(ui->actionUndo);
+        }
+        if (hadRedo && oldRedo) {
+            tb->removeAction(oldRedo);
+            tb->addAction(ui->actionRedo);
+        }
+    }
+}
+
+void MainWindow2::setOpacity(int opacity)
+{
+    mEditor->preference()->set(SETTING::WINDOW_OPACITY, 100 - opacity);
+    setWindowOpacity(opacity / 100.0);
+}
+
+void MainWindow2::updateSaveState()
+{
+    const bool hasUnsavedChanges = mEditor->undoRedo()->hasUnsavedChanges();
+    setWindowModified(hasUnsavedChanges);
+    ui->statusBar->updateModifiedStatus(hasUnsavedChanges);
+}
+
+void MainWindow2::updateBackupActionState()
+{
+    mEditor->undoRedo()->updateUndoAction(ui->actionUndo);
+    mEditor->undoRedo()->updateRedoAction(ui->actionRedo);
+}
+
+void MainWindow2::openPegAlignDialog()
+{
+    if (mPegAlign != nullptr)
+    {
+        QMessageBox::information(this, nullptr,
+                                 tr("Dialog is already open!"),
+                                 QMessageBox::Ok);
+        return;
+    }
+
+    mPegAlign = new PegBarAlignmentDialog(mEditor, this);
+    mPegAlign->setAttribute(Qt::WA_DeleteOnClose);
+
+    Qt::WindowFlags flags = mPegAlign->windowFlags();
+    flags |= Qt::WindowStaysOnTopHint;
+    flags &= (~Qt::WindowContextHelpButtonHint);
+    mPegAlign->setWindowFlags(flags);
+    mPegAlign->show();
+    connect(mPegAlign, &PegBarAlignmentDialog::finished, [=]
+    {
+        mPegAlign = nullptr;
+    });
+}
+
+void MainWindow2::openLayerOpacityDialog()
+{
+    if (mLayerOpacityDialog != nullptr)
+    {
+        QMessageBox::information(this, nullptr,
+                                 tr("Dialog is already open!"),
+                                 QMessageBox::Ok);
+        return;
+    }
+    mLayerOpacityDialog = new LayerOpacityDialog(this);
+    mLayerOpacityDialog->setAttribute(Qt::WA_DeleteOnClose);
+    mLayerOpacityDialog->setCore(mEditor);
+    mLayerOpacityDialog->initUI();
+    mLayerOpacityDialog->setWindowFlags(mLayerOpacityDialog->windowFlags() | Qt::WindowStaysOnTopHint);
+    mLayerOpacityDialog->show();
+
+    connect(mLayerOpacityDialog, &LayerOpacityDialog::finished, [=]
+    {
+        mLayerOpacityDialog = nullptr;
+    });
+}
+
+void MainWindow2::openAddTranspToPaperDialog()
+{
+    if (mAddTranspToPaper)
+    {
+        mAddTranspToPaper->activateWindow();
+        mAddTranspToPaper->raise();
+        return;
+    }
+
+    mAddTranspToPaper = new AddTransparencyToPaperDialog(this);
+    mAddTranspToPaper->setCore(mEditor);
+    mAddTranspToPaper->initUI();
+    mAddTranspToPaper->setWindowFlag(Qt::WindowStaysOnTopHint);
+    mAddTranspToPaper->show();
+
+    connect(mAddTranspToPaper, &AddTransparencyToPaperDialog::finished, [=](int result)
+    {
+        if (result == QDialog::Accepted)
+        {
+            mSuppressAutoSaveDialog = true;
+            mAddTranspToPaper->traceScannedDrawings();
+            mSuppressAutoSaveDialog = false;
+        }
+        mAddTranspToPaper->deleteLater();
+        mAddTranspToPaper = nullptr;
+    });
+}
+
+void MainWindow2::openRepositionDialog()
+{
+    if (mEditor->layers()->currentLayer()->getSelectedFramesByPos().count() < 2)
+    {
+        QMessageBox::information(this, nullptr,
+                                 tr("Please select at least 2 frames!"),
+                                 QMessageBox::Ok);
+        return;
+    }
+    if (mReposDialog != nullptr)
+    {
+        return;
+    }
+
+    mReposDialog = new RepositionFramesDialog(this);
+    mReposDialog->setAttribute(Qt::WA_DeleteOnClose);
+    mReposDialog->setWindowFlags(mReposDialog->windowFlags() | Qt::WindowStaysOnTopHint);
+    hideQuestionMark(*mReposDialog);
+    mReposDialog->setCore(mEditor);
+    mReposDialog->initUI();
+    mEditor->tools()->setCurrentTool(ToolType::MOVE);
+    connect(mReposDialog, &RepositionFramesDialog::finished, this, &MainWindow2::closeRepositionDialog);
+    mReposDialog->show();
+}
+
+void MainWindow2::closeRepositionDialog()
+{
+    selectionChanged();
+    mReposDialog = nullptr;
+}
+
+void MainWindow2::currentLayerChanged()
+{
+    bool isBitmap = (mEditor->layers()->currentLayer()->type() == Layer::BITMAP);
+    ui->menuChange_line_color->setEnabled(isBitmap);
+
+    bool isVector = (mEditor->layers()->currentLayer()->type() == Layer::VECTOR);
+    ui->actionShowInvisibleLines->setEnabled(isVector);
+    ui->actionShowOutlinesOnly->setEnabled(isVector);
+}
+
+void MainWindow2::selectionChanged()
+{
+    auto sel = mEditor->select();
+    // Only consider restriction when a lasso-made selection is finalized, or there is floating content
+    bool finalized = false;
+    if (sel) {
+        const bool floating = sel->hasFloating() || sel->needsFloatingCommit();
+        const bool lassoFinal = sel->isFromLasso()
+                                 && sel->somethingSelected()
+                                 && (sel->state() == SelectionManager::SelectionState::SELECTED);
+        finalized = floating || lassoFinal;
+    }
+
+    // While a floating selection (temporary buffer) is active or awaiting
+    // commit, disable global undo/redo actions. This prevents the per-keyframe
+    // undo stack from diverging from the floating buffer state. Tool-local
+    // handlers (like lasso's Ctrl+Z drag-cancel) still receive raw key events
+    // via ScribbleArea and are not affected by this UI-level disable.
+    const bool hasFloating = sel && (sel->hasFloating() || sel->needsFloatingCommit());
+    if (ui->actionUndo) ui->actionUndo->setEnabled(!hasFloating);
+    if (ui->actionRedo) ui->actionRedo->setEnabled(!hasFloating);
+    ui->menuSelection->setEnabled(finalized);
+    // Activate/deactivate restriction only when state changes
+    if (finalized != mLassoRestrictionActive && !mApplyingLassoRestriction) {
+        applyLassoRestriction(finalized);
+    }
+}
+
+bool MainWindow2::hasFloatingSelection() const
+{
+    if (!mEditor) return false;
+    auto sel = mEditor->select();
+    return sel && (sel->hasFloating() || sel->needsFloatingCommit());
+}
+
+void MainWindow2::viewFlipped()
+{
+    ui->actionHorizontal_Flip->setChecked(mEditor->view()->isFlipHorizontal());
+    ui->actionVertical_Flip->setChecked(mEditor->view()->isFlipVertical());
+}
+
+void MainWindow2::closeEvent(QCloseEvent* event)
+{
+    if (m2ndCloseEvent)
+    {
+        // https://bugreports.qt.io/browse/QTBUG-43344
+        event->accept();
+        return;
+    }
+
+    if (!maybeSave())
+    {
+        event->ignore();
+        return;
+    }
+    writeSettings();
+    event->accept();
+    m2ndCloseEvent = true;
+}
+
+void MainWindow2::tabletEvent(QTabletEvent* event)
+{
+    event->ignore();
+}
+
+void MainWindow2::newDocument()
+{
+    if (maybeSave() && !tryLoadPreset())
+    {
+        newObject();
+    }
+}
+
+void MainWindow2::openDocument()
+{
+    if (!maybeSave())
+    {
+        return;
+    }
+    QString fileName = FileDialog::getOpenFileName(this, FileType::ANIMATION);
+    if (!fileName.isEmpty())
+    {
+        openObject(fileName);
+    }
+}
+
+bool MainWindow2::saveAsNewDocument()
+{
+    QString fileName = FileDialog::getSaveFileName(this, FileType::ANIMATION);
+    if (fileName.isEmpty())
+    {
+        return false;
+    }
+    return saveObject(fileName);
+}
+
+void MainWindow2::openStartupFile(const QString& filename)
+{
+    if (tryRecoverUnsavedProject())
+    {
+        return;
+    }
+
+    if (!filename.isEmpty() && openObject(filename))
+    {
+        return;
+    }
+
+    loadMostRecent() || tryLoadPreset();
+}
+
+void MainWindow2::openFile(const QString& filename)
+{
+    if (maybeSave())
+    {
+        openObject(filename);
+    }
+}
+
+bool MainWindow2::openObject(const QString& strFilePath)
+{
+    QProgressDialog progress(tr("Opening document..."), tr("Abort"), 0, 100, this);
+    hideQuestionMark(progress);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.show();
+
+    const N2DProjectIO::ProgressCallbacks cb{
+        [&progress](int p) {
+            progress.setValue(p);
+            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+        },
+        [&progress](int max) {
+            progress.setRange(0, max);
+        }
+    };
+
+    SceneSequenceManager* ssm = (mTimeLine) ? mTimeLine->sceneSequenceManager() : nullptr;
+    Status s = N2DProjectIO::loadProject(strFilePath, mEditor, ssm, cb);
+
+    if (!s.ok())
+    {
+        ErrorDialog errorDialog(s.title(), s.description(), s.details().str());
+        errorDialog.exec();
+        emptyDocumentWhenErrorOccurred();
+        return false;
+    }
+
+    if (ssm) {
+        ssm->setProjectFilePath(strFilePath);
+    }
+
+    QSettings settings(PENCIL2D, PENCIL2D);
+    settings.setValue(LAST_PCLX_PATH, strFilePath);
+
+    // Add to recent file list, but only if we are
+    if (!strFilePath.isEmpty())
+    {
+        mRecentFileMenu->addRecentFile(strFilePath);
+        mRecentFileMenu->saveToDisk();
+    }
+
+    closeDialogs();
+
+    setWindowTitle(QStringLiteral("[*]%1").arg(strFilePath));
+    setWindowModified(false);
+    ui->statusBar->updateModifiedStatus(false);
+
+    progress.setValue(progress.maximum());
+
+    updateSaveState();
+    updateBackupActionState();
+
+    if (!QFileInfo(strFilePath).isWritable())
+    {
+        QMessageBox::warning(this, tr("Warning"),
+                             tr("This program does not currently have permission to write to the file you have selected. "
+                                "Please make sure you have write permission for this file before attempting to save it. "
+                                "Alternatively, you can use the Save As... menu option to save to a writable location."),
+                             QMessageBox::Ok);
+    }
+
+    return true;
+}
+
+bool MainWindow2::saveObject(QString strSavedFileName)
+{
+    QProgressDialog progress(tr("Saving document..."), tr("Abort"), 0, 100, this);
+    hideQuestionMark(progress);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.show();
+
+    // Persist any manager state (fps, view, etc.) before snapshotting.
+    mEditor->prepareSave();
+
+    const N2DProjectIO::ProgressCallbacks cb{
+        [&progress](int p) {
+            progress.setValue(p);
+            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+        },
+        [&progress](int max) {
+            progress.setRange(0, max + 3);
+        }
+    };
+
+    SceneSequenceManager* ssm = (mTimeLine) ? mTimeLine->sceneSequenceManager() : nullptr;
+    Status st = N2DProjectIO::saveProject(strSavedFileName, mEditor, ssm, cb);
+
+
+    if (!st.ok())
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+        QDir errorLogFolder(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
+#else
+        QDir errorLogFolder(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+#endif
+        errorLogFolder.mkpath("./logs");
+        errorLogFolder.cd("logs");
+
+        QDateTime dt = QDateTime::currentDateTime();
+        dt.setTimeSpec(Qt::UTC);
+        QFile eLog(errorLogFolder.absoluteFilePath(QString("error-%1.txt").arg(dt.toString(Qt::ISODate))));
+        if (eLog.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            QTextStream out(&eLog);
+            out << st.details().str();
+        }
+        eLog.close();
+
+        ErrorDialog errorDialog(st.title(),
+                                st.description().append(tr("<br><br>An error has occurred and your file may not have saved successfully."
+                                                           "\nIf you believe that this error is an issue with Pencil2D, please create a new issue at:"
+                                                           "<br><a href='https://github.com/pencil2d/pencil/issues'>https://github.com/pencil2d/pencil/issues</a><br>"
+                                                           "Please be sure to include the following details in your issue:")), st.details().html());
+        errorDialog.exec();
+        return false;
+    }
+
+    if (ssm) {
+        ssm->setProjectFilePath(strSavedFileName);
+    }
+
+    if (mEditor->object()) {
+        mEditor->object()->setFilePath(strSavedFileName);
+        mEditor->object()->setModified(false);
+    }
+
+    mEditor->clearTemporary();
+
+    QSettings settings(PENCIL2D, PENCIL2D);
+    settings.setValue(LAST_PCLX_PATH, strSavedFileName);
+
+    mRecentFileMenu->addRecentFile(strSavedFileName);
+    mRecentFileMenu->saveToDisk();
+
+    mTimeLine->updateContent();
+
+    setWindowTitle(strSavedFileName.prepend("[*]"));
+    updateSaveState();
+
+    progress.setValue(progress.maximum());
+
+    mEditor->resetAutoSaveCounter();
+
+    return true;
+}
+
+bool MainWindow2::saveDocument()
+{
+    SceneSequenceManager* ssm = (mTimeLine) ? mTimeLine->sceneSequenceManager() : nullptr;
+    const QString projectPath = ssm ? ssm->projectFilePath() : QString();
+    if (!projectPath.isEmpty()) {
+        return saveObject(projectPath);
+    }
+
+    if (mEditor->object() && !mEditor->object()->filePath().isEmpty()) {
+        return saveObject(mEditor->object()->filePath());
+    }
+
+    return saveAsNewDocument();
+}
+
+bool MainWindow2::maybeSave()
+{
+    if (!mEditor->undoRedo()->hasUnsavedChanges())
+    {
+        return true;
+    }
+
+    int ret = QMessageBox::warning(this, tr("Warning"),
+                                   tr("This animation has been modified.\n Do you want to save your changes?"),
+                                   QMessageBox::Discard | QMessageBox::Save | QMessageBox::Cancel);
+    if (ret == QMessageBox::Save)
+        return saveDocument();
+    else
+        return ret == QMessageBox::Discard;
+}
+
+bool MainWindow2::autoSave()
+{
+    SceneSequenceManager* ssm = (mTimeLine) ? mTimeLine->sceneSequenceManager() : nullptr;
+    const QString projectPath = ssm ? ssm->projectFilePath() : QString();
+    if (!projectPath.isEmpty()) {
+        return saveObject(projectPath);
+    }
+
+    if (ssm && ssm->hasWorkspace() && ssm->workspaceIsTransient())
+    {
+        const QString autosavePath = ssm->workspaceAutoSavePath();
+        if (!autosavePath.isEmpty())
+        {
+            // Save a snapshot to autosave.n2d without changing the project's save target.
+            const QString prevProjectPath = ssm->projectFilePath();
+            const QString prevEditorPath = (mEditor && mEditor->object()) ? mEditor->object()->filePath() : QString();
+
+            QProgressDialog progress(tr("Autosaving..."), tr("Abort"), 0, 100, this);
+            hideQuestionMark(progress);
+            progress.setWindowModality(Qt::WindowModal);
+            progress.show();
+
+            mEditor->prepareSave();
+
+            const N2DProjectIO::ProgressCallbacks cb{
+                [&progress](int p) {
+                    progress.setValue(p);
+                    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+                },
+                [&progress](int max) {
+                    progress.setRange(0, max + 3);
+                }
+            };
+
+            Status st = N2DProjectIO::saveProject(autosavePath, mEditor, ssm, cb);
+
+            // Restore transient state.
+            if (ssm) {
+                ssm->setProjectFilePath(prevProjectPath);
+                ssm->setWorkspaceTransient(true);
+            }
+            if (mEditor && mEditor->object()) {
+                mEditor->object()->setFilePath(prevEditorPath);
+            }
+
+            progress.setValue(progress.maximum());
+            mEditor->resetAutoSaveCounter();
+            return st.ok();
+        }
+    }
+
+    if (mEditor->object() && !mEditor->object()->filePath().isEmpty())
+    {
+        return saveDocument();
+    }
+
+    if (mEditor->autoSaveNeverAskAgain())
+        return false;
+
+    if(mSuppressAutoSaveDialog)
+        return false;
+
+    QMessageBox msgBox(this);
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setWindowTitle(tr("AutoSave Reminder"));
+    msgBox.setText(tr("The animation is not saved yet.\n Do you want to save now?"));
+    msgBox.addButton(tr("Never ask again", "AutoSave reminder button"), QMessageBox::RejectRole);
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+
+    int ret = msgBox.exec();
+    if (ret == QMessageBox::Yes)
+    {
+        return saveDocument();
+    }
+    if (ret != QMessageBox::No) // Never ask again
+    {
+        mEditor->dontAskAutoSave(true);
+    }
+
+    return false;
+}
+
+void MainWindow2::emptyDocumentWhenErrorOccurred()
+{
+    newObject();
+
+    setWindowTitle(PENCIL_WINDOW_TITLE);
+    updateSaveState();
+}
+
+void MainWindow2::importLayers()
+{
+    ImportLayersDialog* importLayers = new ImportLayersDialog(this);
+    importLayers->setCore(mEditor);
+    importLayers->setAttribute(Qt::WA_DeleteOnClose);
+    // Refresh timeline & canvas when the dialog closes (whether imported or canceled)
+    connect(importLayers, &ImportLayersDialog::finished, [this](int)
+    {
+        if (mTimeLine) { mTimeLine->updateContent(); }
+        if (mEditor)  { mEditor->updateFrame(); }
+    });
+    importLayers->open();
+}
+
+void MainWindow2::importSingleImage()
+{
+    // Open file dialog for single image import
+    const QString filePath = FileDialog::getOpenFileName(this, FileType::IMAGE);
+    if (filePath.isEmpty()) {
+        return; // user canceled
+    }
+
+    // Create a new bitmap layer named after the file (without extension)
+    const QString layerName = QFileInfo(filePath).baseName();
+    if (mEditor && mEditor->layers()) {
+        mEditor->layers()->createBitmapLayer(layerName);
+    }
+
+    // Ensure we import at frame 1
+    if (mEditor) {
+        mEditor->scrubTo(1);
+    }
+
+    // Configure import at canvas center (0,0) on frame 1
+    ImportImageConfig cfg;
+    cfg.importFrame = 1;
+    cfg.positionType = ImportImageConfig::CenterOfCanvas;
+
+    // Perform import
+    Status st = mEditor->importImage(filePath, cfg);
+    if (!st.ok()) {
+        ErrorDialog errorDialog(st.title(), st.description(), st.details().html(), this);
+        errorDialog.exec();
+        return;
+    }
+
+    // Refresh the timeline to show the new layer/content
+    if (mTimeLine) {
+        mTimeLine->updateContent();
+    }
+}
+
+void MainWindow2::importImageSequenceNew()
+{
+    // a) File selection
+    const QStringList files = FileDialog::getOpenFileNames(this, FileType::IMAGE);
+    if (files.isEmpty()) return;
+
+    // b) Parse and group
+    QMap<QString, QList<ImageSequenceFileInfo>> groups; // baseName -> files
+    int validCount = 0;
+    for (const QString& fp : files) {
+        ImageSequenceFileInfo p = parseImageSequencePadding(fp);
+        if (!p.valid()) continue;
+        groups[p.baseName].append(p);
+        ++validCount;
+    }
+    if (validCount == 0 || groups.isEmpty()) {
+        ErrorDialog dlg(tr("Import Image Sequence"),
+                        tr("No valid sequence padding found."),
+                        tr("Expected formats: name_###, name-###, name.###, name_####, name-####, name.####"),
+                        this);
+        dlg.exec();
+        return;
+    }
+
+    // c) Progress dialog
+    QProgressDialog progress(tr("Importing image sequence..."), tr("Abort"), 0, validCount, this);
+    progress.setWindowModality(Qt::WindowModal);
+    hideQuestionMark(progress);
+    progress.show();
+
+    int imported = 0;
+    for (auto it = groups.constBegin(); it != groups.constEnd(); ++it) {
+        if (progress.wasCanceled()) break;
+
+        const QString baseName = it.key();
+        QList<ImageSequenceFileInfo> seq = it.value();
+        std::sort(seq.begin(), seq.end(), [](const ImageSequenceFileInfo& a, const ImageSequenceFileInfo& b){
+            return a.frameNumber < b.frameNumber;
+        });
+
+        // Create layer for this sequence with a unique name (auto-selects as current)
+        if (mEditor && mEditor->layers()) {
+            auto* layers = mEditor->layers();
+            const QString uniqueName = layers->nameSuggestLayer(baseName);
+            layers->createBitmapLayer(uniqueName);
+        }
+
+        // Import files
+        for (const ImageSequenceFileInfo& f : seq) {
+            if (progress.wasCanceled()) break;
+
+            const int clampedFrame = std::max(1, f.frameNumber);
+            mEditor->scrubTo(clampedFrame);
+
+            ImportImageConfig cfg;
+            cfg.importFrame = clampedFrame;
+            cfg.positionType = ImportImageConfig::CenterOfCanvas;
+
+            Status st = mEditor->importImage(f.filePath, cfg);
+            if (!st.ok()) {
+                ErrorDialog err(st.title(), st.description(), st.details().html(), this);
+                err.exec();
+                break;
+            }
+
+            ++imported;
+            progress.setValue(imported);
+            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+        }
+    }
+
+    progress.close();
+    if (mTimeLine) mTimeLine->updateContent();
+}
+
+void MainWindow2::importAnimatedImage()
+{
+    // Flag this so we don't prompt the user about auto-save in the middle of the import.
+    mSuppressAutoSaveDialog = true;
+
+    mCommands->importAnimatedImage();
+    mSuppressAutoSaveDialog = false;
+}
+
+void MainWindow2::lockWidgets(bool shouldLock)
+{
+    QDockWidget::DockWidgetFeatures feat = shouldLock
+        ? QDockWidget::NoDockWidgetFeatures
+        : (QDockWidget::DockWidgetFeature::DockWidgetClosable |
+           QDockWidget::DockWidgetFeature::DockWidgetMovable |
+           QDockWidget::DockWidgetFeature::DockWidgetFloatable);
+
+    for (BaseDockWidget* d : mDockWidgets)
+    {
+        d->setFeatures(feat);
+        d->lock(shouldLock);
+    }
+}
+
+void MainWindow2::preferences()
+{
+    if (mPrefDialog)
+    {
+        mPrefDialog->activateWindow();
+        mPrefDialog->raise();
+        return;
+    }
+    mPrefDialog = new PreferencesDialog(this);
+    mPrefDialog->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    mPrefDialog->setAttribute(Qt::WA_DeleteOnClose);
+    mPrefDialog->init(mEditor->preference());
+
+    connect(mPrefDialog, &PreferencesDialog::windowOpacityChange, this, &MainWindow2::setOpacity);
+    connect(mPrefDialog, &PreferencesDialog::soundScrubChanged, mEditor->playback(), &PlaybackManager::setSoundScrubActive);
+    connect(mPrefDialog, &PreferencesDialog::soundScrubMsecChanged, mEditor->playback(), &PlaybackManager::setSoundScrubMsec);
+    connect(mPrefDialog, &PreferencesDialog::finished, [&]
+    {
+        clearKeyboardShortcuts();
+        setupKeyboardShortcuts();
+        mPrefDialog = nullptr;
+    });
+
+    mPrefDialog->show();
+}
+
+void MainWindow2::resetAndDockAllSubWidgets()
+{
+    QSettings settings(PENCIL2D, PENCIL2D);
+    settings.remove(SETTING_WINDOW_GEOMETRY);
+    settings.remove(SETTING_WINDOW_STATE);
+    // Clear all persisted floating lock state for docks
+    settings.remove("DockFloatingLock");
+
+    for (BaseDockWidget* dock : mDockWidgets)
+    {
+        // Return docks to an unlocked, dockable state before re-docking
+        dock->setFloatingLock(false);
+        dock->setFloating(false);
+        dock->raise();
+        // Hide ColorInspector from user interface but keep it for ColorBox functionality
+        if (dock != mColorInspector) {
+            dock->show();
+        } else {
+            dock->hide();
+        }
+    }
+
+    addDockWidget(Qt::RightDockWidgetArea, mColorBox);
+    addDockWidget(Qt::RightDockWidgetArea, mColorSlidersDock);
+    splitDockWidget(mColorBox, mColorSlidersDock, Qt::Vertical);
+    // mColorInspector dock is hidden from user interface but kept for ColorBox functionality
+    // addDockWidget(Qt::RightDockWidgetArea, mColorInspector);
+    addDockWidget(Qt::RightDockWidgetArea, mColorPalette);
+    addDockWidget(Qt::LeftDockWidgetArea, mToolBox);
+    addDockWidget(Qt::LeftDockWidgetArea, mToolOptions);
+    addDockWidget(Qt::LeftDockWidgetArea, mOnionSkinWidget);
+    addDockWidget(Qt::LeftDockWidgetArea, mShiftTraceWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, mTimeLine);
+    addDockWidget(Qt::BottomDockWidgetArea, mCellStackWidget);
+    addDockWidget(Qt::RightDockWidgetArea, mReferenceWindow);
+
+    addDockWidget(Qt::RightDockWidgetArea, mBrushFactoryDock);
+    mBrushFactoryDock->hide();
+
+    setDockNestingEnabled(true);
+    setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+}
+
+void MainWindow2::newObject()
+{
+    auto object = new Object();
+    object->init();
+
+    // default layers
+    object->addNewCameraLayer();
+    object->addNewBitmapLayer();
+    // Layers are counted bottom up
+    // 0 - Camera Layer
+    // 1 - Bitmap Layer
+    object->data()->setCurrentLayer(1);
+
+    mEditor->setObject(object);
+
+    closeDialogs();
+
+    setWindowTitle(PENCIL_WINDOW_TITLE);
+
+    updateBackupActionState();
+    
+    // Set the drawing color to black with red hue for consistency with app launch
+    // This ensures File/New behaves the same as app startup - black drawing color
+    // but with the hue wheel positioned at red (hue=0)
+    if (mColorBox) {
+        mColorBox->setColor(QColor::fromHsv(0, 0, 0)); // Black with red hue (0)
+    }
+}
+
+bool MainWindow2::newObjectFromPresets(int presetIndex)
+{
+    QString presetFilePath = PresetDialog::getPresetPath(presetIndex);
+
+    if (presetFilePath.isEmpty())
+    {
+        return false;
+    }
+
+    Status st = Status::OK;
+    const N2DProjectIO::ProgressCallbacks cb;
+    std::unique_ptr<Object> object = N2DProjectIO::loadSingleShotProjectAsObject(presetFilePath, cb, &st);
+    if (!st.ok() || !object) {
+        return false;
+    }
+
+    mEditor->setObject(object.release());
+    if (mEditor->object()) {
+        mEditor->object()->setFilePath(QString());
+    }
+
+    setWindowTitle(PENCIL_WINDOW_TITLE);
+    updateSaveState();
+    updateBackupActionState();
+
+    return true;
+}
+
+bool MainWindow2::loadMostRecent()
+{
+    if(!mEditor->preference()->isOn(SETTING::LOAD_MOST_RECENT))
+    {
+        return false;
+    }
+
+    QSettings settings(PENCIL2D, PENCIL2D);
+    QString myPath = settings.value(LAST_PCLX_PATH, QVariant("")).toString();
+    if (myPath.isEmpty() || !QFile::exists(myPath))
+    {
+        return false;
+    }
+    return openObject(myPath);
+}
+
+bool MainWindow2::tryLoadPreset()
+{
+    if (!mEditor->preference()->isOn(SETTING::ASK_FOR_PRESET))
+    {
+        int defaultPreset = mEditor->preference()->getInt(SETTING::DEFAULT_PRESET);
+        return newObjectFromPresets(defaultPreset);
+    }
+
+    PresetDialog* presetDialog = new PresetDialog(mEditor->preference(), this);
+    presetDialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(presetDialog, &PresetDialog::finished, [=](int result)
+    {
+        if (result != QDialog::Accepted)
+        {
+            return;
+        }
+
+        int presetIndex = presetDialog->getPresetIndex();
+        if (presetDialog->shouldAlwaysUse())
+        {
+            mEditor->preference()->set(SETTING::ASK_FOR_PRESET, false);
+            mEditor->preference()->set(SETTING::DEFAULT_PRESET, presetIndex);
+        }
+        if (!newObjectFromPresets(presetIndex))
+        {
+            newObject();
+        }
+    });
+    presetDialog->open();
+    return true;
+}
+
+void MainWindow2::closeDialogs()
+{
+    for (auto dialog : findChildren<QDialog*>(QString(), Qt::FindDirectChildrenOnly)) {
+        dialog->close();
+    }
+}
+
+void MainWindow2::readSettings()
+{
+    QSettings settings(PENCIL2D, PENCIL2D);
+
+    // Ignore dock visibility changes during settings restoration
+    mIgnoreDockVisibilityChanges = true;
+
+    // Defer restoreState() and restoreGeometry() until after the event loop starts.
+    // This allows widgets to be fully laid out before restoring geometry, fixing dock resize issues
+    // and preventing the window from expanding unnecessarily on launch.
+    QTimer::singleShot(0, this, SLOT(restoreDockState()));
+
+    int opacity = mEditor->preference()->getInt(SETTING::WINDOW_OPACITY);
+    setOpacity(100 - opacity);
+
+    bool isWindowsLocked = mEditor->preference()->isOn(SETTING::LAYOUT_LOCK);
+    lockWidgets(isWindowsLocked);
+}
+
+void MainWindow2::writeSettings()
+{
+    QSettings settings(PENCIL2D, PENCIL2D);
+    settings.setValue(SETTING_WINDOW_GEOMETRY, saveGeometry());
+    settings.setValue(SETTING_WINDOW_STATE, saveState());
+    
+    // Save toggle docks state
+    settings.setValue("ToggleDocks/Hidden", mDocksHidden);
+    if (mDocksHidden) {
+        QStringList dockNames;
+        for (BaseDockWidget* dock : mPreviouslyVisibleDocks) {
+            if (dock) {
+                dockNames.append(dock->objectName());
+            }
+        }
+        settings.setValue("ToggleDocks/PreviouslyVisible", dockNames);
+    }
+
+    // Save per-dock floating lock state
+    for (BaseDockWidget* dock : mDockWidgets)
+    {
+        if (!dock) {
+            continue;
+        }
+        const QString key = QString("DockFloatingLock/%1").arg(dock->objectName());
+        settings.setValue(key, dock->floatingLock());
+    }
+}
+
+void MainWindow2::setupKeyboardShortcuts()
+{
+    checkExistingShortcuts();
+
+    auto cmdKeySeq = [](QString strCommandName) -> QKeySequence
+    {
+        strCommandName = QString("shortcuts/") + strCommandName;
+        QKeySequence keySequence(pencilSettings().value(strCommandName).toString());
+        return keySequence;
+    };
+
+    // File menu
+    ui->actionNew->setShortcut(cmdKeySeq(CMD_NEW_FILE));
+    ui->actionOpen->setShortcut(cmdKeySeq(CMD_OPEN_FILE));
+    ui->actionSave->setShortcut(cmdKeySeq(CMD_SAVE_FILE));
+    ui->actionSave_as->setShortcut(cmdKeySeq(CMD_SAVE_AS));
+
+    
+    // Removed: shortcuts for Import Movie Video and Animated Image
+    ui->actionImport_Image->setShortcut(cmdKeySeq(CMD_IMPORT_IMAGE));
+    ui->actionImportLayers_from_pclx->setShortcut(cmdKeySeq(CMD_IMPORT_LAYERS));
+    // Removed: shortcuts for Import Sound and Import Movie Audio
+    // Removed: shortcuts for Import Palette (Append/Replace)
+
+    ui->actionExport_Image->setShortcut(cmdKeySeq(CMD_EXPORT_IMAGE));
+    // Removed: shortcut for Current Layer Animation (Image Sequence)
+    ui->actionExport_Animation->setShortcut(cmdKeySeq(CMD_EXPORT_ANIMATION));
+    // Removed: shortcut for Export Palette
+
+    // Restore import image sequence shortcut
+    ui->actionImport_ImageSeq->setShortcut(cmdKeySeq(CMD_IMPORT_IMAGE_SEQ));
+
+    // edit menu
+    ui->actionUndo->setShortcut(cmdKeySeq(CMD_UNDO));
+    ui->actionRedo->setShortcut(cmdKeySeq(CMD_REDO));
+    ui->actionCut->setShortcut(cmdKeySeq(CMD_CUT));
+    ui->actionCopy->setShortcut(cmdKeySeq(CMD_COPY));
+    ui->actionPaste_Previous->setShortcut(cmdKeySeq(CMD_PASTE_FROM_PREVIOUS));
+    ui->actionPaste->setShortcut(cmdKeySeq(CMD_PASTE));
+    ui->actionClearFrame->setShortcut(cmdKeySeq(CMD_CLEAR_FRAME));
+    ui->actionFlip_X->setShortcut(cmdKeySeq(CMD_SELECTION_FLIP_HORIZONTAL));
+    ui->actionFlip_Y->setShortcut(cmdKeySeq(CMD_SELECTION_FLIP_VERTICAL));
+    ui->actionSelect_All->setShortcut(cmdKeySeq(CMD_SELECT_ALL));
+    ui->actionDeselect_All->setShortcut(cmdKeySeq(CMD_DESELECT_ALL));
+    ui->actionPegbarAlignment->setShortcut(cmdKeySeq(CMD_PEGBAR_ALIGNMENT));
+    ui->actionPreference->setShortcut(cmdKeySeq(CMD_PREFERENCE));
+
+    // Layer menu
+    ui->actionNew_Bitmap_Layer->setShortcut(cmdKeySeq(CMD_NEW_BITMAP_LAYER));
+    ui->actionDelete_Current_Layer->setShortcut(cmdKeySeq(CMD_DELETE_CUR_LAYER));
+    ui->actionChangeLineColorCurrent_keyframe->setShortcut(cmdKeySeq(CMD_CHANGE_LINE_COLOR_KEYFRAME));
+    ui->actionChangeLineColorAll_keyframes_on_layer->setShortcut(cmdKeySeq(CMD_CHANGE_LINE_COLOR_LAYER));
+    ui->actionChangeLayerOpacity->setShortcut(cmdKeySeq(CMD_CHANGE_LAYER_OPACITY));
+    ui->actionVisibilityCurrentLayerOnly->setShortcut(cmdKeySeq(CMD_CURRENT_LAYER_VISIBILITY));
+    ui->actionVisibilityRelative->setShortcut(cmdKeySeq(CMD_RELATIVE_LAYER_VISIBILITY));
+    ui->actionVisibilityAll->setShortcut(cmdKeySeq(CMD_ALL_LAYER_VISIBILITY));
+
+    // Selection / animation operations from the Animation menu
+    ui->actionMove_Frame_Backward->setShortcut(cmdKeySeq(CMD_MOVE_FRAME_BACKWARD));
+    ui->actionMove_Frame_Forward->setShortcut(cmdKeySeq(CMD_MOVE_FRAME_FORWARD));
+    ui->actionFlip_inbetween->setShortcut(cmdKeySeq(CMD_FLIP_INBETWEEN));
+    ui->actionFlip_rolling->setShortcut(cmdKeySeq(CMD_FLIP_ROLLING));
+    ui->actionAdd_Frame_Exposure->setShortcut(cmdKeySeq(CMD_SELECTION_ADD_FRAME_EXPOSURE));
+    ui->actionSubtract_Frame_Exposure->setShortcut(cmdKeySeq(CMD_SELECTION_SUBTRACT_FRAME_EXPOSURE));
+    ui->actionReverse_Frames_Order->setShortcut(cmdKeySeq(CMD_REVERSE_SELECTED_FRAMES));
+    ui->actionRemove_Frames->setShortcut(cmdKeySeq(CMD_REMOVE_SELECTED_FRAMES));
+    ui->actionReposition_Selected_Frames->setShortcut(cmdKeySeq(CMD_SELECTION_REPOSITION_FRAMES));
+
+    // Misc
+    ui->actionResetToolsDefault->setShortcut(cmdKeySeq(CMD_RESET_ALL_TOOLS));
+    ui->actionExit->setShortcut(cmdKeySeq(CMD_EXIT));
+
+    // View menu
+    ui->actionResetWindows->setShortcut(cmdKeySeq(CMD_RESET_WINDOWS));
+    ui->actionLockWindows->setShortcut(cmdKeySeq(CMD_LOCK_WINDOWS));
+    ui->actionReset_View->setShortcut(cmdKeySeq(CMD_RESET_ZOOM_ROTATE));
+    ui->actionCenter_View->setShortcut(cmdKeySeq(CMD_CENTER_VIEW));
+    ui->actionZoom_In->setShortcut(cmdKeySeq(CMD_ZOOM_IN));
+    ui->actionZoom_Out->setShortcut(cmdKeySeq(CMD_ZOOM_OUT));
+    ui->actionZoom400->setShortcut(cmdKeySeq(CMD_ZOOM_400));
+    ui->actionZoom300->setShortcut(cmdKeySeq(CMD_ZOOM_300));
+    ui->actionZoom200->setShortcut(cmdKeySeq(CMD_ZOOM_200));
+    ui->actionZoom100->setShortcut(cmdKeySeq(CMD_ZOOM_100));
+    ui->actionZoom50->setShortcut(cmdKeySeq(CMD_ZOOM_50));
+    ui->actionZoom33->setShortcut(cmdKeySeq(CMD_ZOOM_33));
+    ui->actionZoom25->setShortcut(cmdKeySeq(CMD_ZOOM_25));
+    // Clear default rotate shortcuts regardless of kb.ini defaults
+    ui->actionRotate_Clockwise->setShortcut(QKeySequence());
+    ui->actionRotate_Anticlockwise->setShortcut(QKeySequence());
+    ui->actionReset_Rotation->setShortcut(cmdKeySeq(CMD_RESET_ROTATION));
+    ui->actionHorizontal_Flip->setShortcut(cmdKeySeq(CMD_FLIP_HORIZONTAL));
+    ui->actionVertical_Flip->setShortcut(cmdKeySeq(CMD_FLIP_VERTICAL));
+    ui->actionGrid->setShortcut(cmdKeySeq(CMD_GRID));
+    ui->actionCenter->setShortcut(cmdKeySeq(CMD_OVERLAY_CENTER));
+    ui->actionThirds->setShortcut(cmdKeySeq(CMD_OVERLAY_THIRDS));
+    ui->actionGoldenRatio->setShortcut(cmdKeySeq(CMD_OVERLAY_GOLDEN_RATIO));
+    ui->actionSafeAreas->setShortcut(cmdKeySeq(CMD_OVERLAY_SAFE_AREAS));
+    ui->actionOnePointPerspective->setShortcut(cmdKeySeq(CMD_OVERLAY_ONE_POINT_PERSPECTIVE));
+    ui->actionTwoPointPerspective->setShortcut(cmdKeySeq(CMD_OVERLAY_TWO_POINT_PERSPECTIVE));
+    ui->actionThreePointPerspective->setShortcut(cmdKeySeq(CMD_OVERLAY_THREE_POINT_PERSPECTIVE));
+    ui->actionOnionPrev->setShortcut(cmdKeySeq(CMD_ONIONSKIN_PREV));
+    ui->actionOnionNext->setShortcut(cmdKeySeq(CMD_ONIONSKIN_NEXT));
+    ui->actionStatusBar->setShortcut(cmdKeySeq(CMD_TOGGLE_STATUS_BAR));
+
+    // Animation menu
+    ui->actionPlay->setShortcut(cmdKeySeq(CMD_PLAY));
+    ui->actionLoop->setShortcut(cmdKeySeq(CMD_LOOP));
+    ui->actionLoopControl->setShortcut(cmdKeySeq(CMD_LOOP_CONTROL));
+    ui->actionPrevious_Frame->setShortcut(cmdKeySeq(CMD_GOTO_PREV_FRAME));
+    ui->actionNext_Frame->setShortcut(cmdKeySeq(CMD_GOTO_NEXT_FRAME));
+    ui->actionPrev_KeyFrame->setShortcut(cmdKeySeq(CMD_GOTO_PREV_KEY_FRAME));
+    ui->actionNext_KeyFrame->setShortcut(cmdKeySeq(CMD_GOTO_NEXT_KEY_FRAME));
+    ui->actionAdd_Frame->setShortcut(cmdKeySeq(CMD_ADD_FRAME));
+    ui->actionDuplicate_Frame->setShortcut(cmdKeySeq(CMD_DUPLICATE_FRAME));
+    ui->actionRemove_Frame->setShortcut(cmdKeySeq(CMD_REMOVE_FRAME));
+
+    // Tool shortcuts (Tools menu / toolbar)
+    ui->actionMove->setShortcut(cmdKeySeq(CMD_TOOL_MOVE));
+    ui->actionSelect->setShortcut(cmdKeySeq(CMD_TOOL_SELECT));
+    ui->actionPen->setShortcut(cmdKeySeq(CMD_TOOL_PEN));
+    ui->actionHand->setShortcut(cmdKeySeq(CMD_TOOL_HAND));
+    ui->actionBucket->setShortcut(cmdKeySeq(CMD_TOOL_BUCKET));
+    ui->actionEyedropper->setShortcut(cmdKeySeq(CMD_TOOL_EYEDROPPER));
+    ui->actionEraser->setShortcut(cmdKeySeq(CMD_TOOL_ERASER));
+    ui->actionPolyline->setShortcut(cmdKeySeq(CMD_TOOL_POLYLINE));
+
+    // Optional tools created programmatically (toolbar-only actions)
+    if (mActionPencil)       { mActionPencil->setShortcut(cmdKeySeq(CMD_TOOL_PENCIL)); }
+    if (mActionCurve)        { mActionCurve->setShortcut(cmdKeySeq(CMD_TOOL_CURVE)); }
+    if (mActionBSpline)      { mActionBSpline->setShortcut(cmdKeySeq(CMD_TOOL_BSPLINE)); }
+    if (mActionRectGapFill)  { mActionRectGapFill->setShortcut(cmdKeySeq(CMD_TOOL_RECT_GAP_FILL)); }
+    if (mActionLassoGapFill) { mActionLassoGapFill->setShortcut(cmdKeySeq(CMD_TOOL_LASSO_GAP_FILL)); }
+    if (mActionLassoSelect)  { mActionLassoSelect->setShortcut(cmdKeySeq(CMD_TOOL_LASSO_SELECT)); }
+    if (mActionDplate)       { mActionDplate->setShortcut(cmdKeySeq(CMD_TOOL_DPLATE)); }
+
+    // Add tool actions to MainWindow so Qt routes shortcut events to them.
+    // This follows the same pattern as dock toggle actions (lines 2443-2450).
+    // Without addAction(), shortcuts are applied but never trigger.
+
+    // UI-defined tool actions (always present)
+    ui->actionMove->setShortcutContext(Qt::WindowShortcut);
+    addAction(ui->actionMove);
+
+    ui->actionSelect->setShortcutContext(Qt::WindowShortcut);
+    addAction(ui->actionSelect);
+
+    ui->actionPen->setShortcutContext(Qt::WindowShortcut);
+    addAction(ui->actionPen);
+
+    ui->actionHand->setShortcutContext(Qt::WindowShortcut);
+    addAction(ui->actionHand);
+
+    ui->actionBucket->setShortcutContext(Qt::WindowShortcut);
+    addAction(ui->actionBucket);
+
+    ui->actionEyedropper->setShortcutContext(Qt::WindowShortcut);
+    addAction(ui->actionEyedropper);
+
+    ui->actionEraser->setShortcutContext(Qt::WindowShortcut);
+    addAction(ui->actionEraser);
+
+    ui->actionPolyline->setShortcutContext(Qt::WindowShortcut);
+    addAction(ui->actionPolyline);
+
+    // Programmatic tool actions (toolbar-only, may be null if toolbar creation failed)
+    if (mActionPencil) {
+        mActionPencil->setShortcutContext(Qt::WindowShortcut);
+        addAction(mActionPencil);
+    }
+
+    if (mActionCurve) {
+        mActionCurve->setShortcutContext(Qt::WindowShortcut);
+        addAction(mActionCurve);
+    }
+
+    if (mActionBSpline) {
+        mActionBSpline->setShortcutContext(Qt::WindowShortcut);
+        addAction(mActionBSpline);
+    }
+
+    if (mActionRectGapFill) {
+        mActionRectGapFill->setShortcutContext(Qt::WindowShortcut);
+        addAction(mActionRectGapFill);
+    }
+
+    if (mActionLassoGapFill) {
+        mActionLassoGapFill->setShortcutContext(Qt::WindowShortcut);
+        addAction(mActionLassoGapFill);
+    }
+
+    if (mActionLassoSelect) {
+        mActionLassoSelect->setShortcutContext(Qt::WindowShortcut);
+        addAction(mActionLassoSelect);
+    }
+
+    if (mActionDplate) {
+        mActionDplate->setShortcutContext(Qt::WindowShortcut);
+        addAction(mActionDplate);
+    }
+
+    // Popup color wheel: use a dedicated QShortcut instead of relying on QAction routing.
+    // This avoids interference from menu/tool actions and keeps the behavior explicit.
+    QKeySequence popupSeq = cmdKeySeq(CMD_POPUP_COLOR_WHEEL);
+    if (popupSeq.isEmpty()) {
+        // Fallback default if user has not defined a shortcut in preferences
+        popupSeq = QKeySequence(Qt::SHIFT + Qt::Key_C);
+    }
+
+    if (!mPopupColorWheelShortcut) {
+        mPopupColorWheelShortcut = new QShortcut(popupSeq, this);
+        mPopupColorWheelShortcut->setContext(Qt::ApplicationShortcut);
+        connect(mPopupColorWheelShortcut, &QShortcut::activated,
+                this, &MainWindow2::showPopupColorWheelAtCursor);
+        qDebug() << "[MainWindow2] PopupColorWheel QShortcut created with key=" << popupSeq.toString();
+    } else {
+        mPopupColorWheelShortcut->setKey(popupSeq);
+        qDebug() << "[MainWindow2] PopupColorWheel QShortcut updated to key=" << popupSeq.toString();
+    }
+
+    // Dock toggles + shortcut-only commands that appear in Preferences.
+    // These are not part of the autogenerated ui->action* set, so we must apply shortcuts here.
+    struct DockToggleBinding {
+        QDockWidget* dock;
+        const char* cmd;
+    };
+    const DockToggleBinding dockBindings[] = {
+        { mTimeLine, CMD_TOGGLE_TIMELINE },
+        { mToolBox, CMD_TOGGLE_TOOLBOX },
+        { mToolOptions, CMD_TOGGLE_TOOL_OPTIONS },
+        { mColorBox, CMD_TOGGLE_COLOR_WHEEL },
+        { mColorPalette, CMD_TOGGLE_COLOR_LIBRARY },
+        { mOnionSkinWidget, CMD_TOGGLE_ONION_SKIN },
+        { mShiftTraceWidget, CMD_TOGGLE_SHIFT_TRACE },
+        { mReferenceWindow, CMD_TOGGLE_REFERENCE_WINDOW },
+        { mCellStackWidget, CMD_TOGGLE_CELL_STACK },
+        { mColorSlidersDock, CMD_TOGGLE_COLOR_INSPECTOR },
+    };
+
+    for (const auto& b : dockBindings) {
+        if (!b.dock) continue;
+        QAction* a = b.dock->toggleViewAction();
+        if (!a) continue;
+        a->setShortcut(cmdKeySeq(QString::fromLatin1(b.cmd)));
+        a->setShortcutContext(Qt::WindowShortcut);
+        addAction(a);
+    }
+
+    if (mToggleDocksAction) {
+        mToggleDocksAction->setShortcut(cmdKeySeq(CMD_TOGGLE_DOCKS));
+        mToggleDocksAction->setShortcutContext(Qt::WindowShortcut);
+        addAction(mToggleDocksAction);
+    }
+    if (mToggleGapCheckAction) {
+        mToggleGapCheckAction->setShortcut(cmdKeySeq(CMD_TOGGLE_GAP_CHECK));
+        mToggleGapCheckAction->setShortcutContext(Qt::WindowShortcut);
+    }
+    if (mIncreaseSizeAction) {
+        mIncreaseSizeAction->setShortcut(cmdKeySeq(CMD_INCREASE_SIZE));
+        mIncreaseSizeAction->setShortcutContext(Qt::WindowShortcut);
+    }
+    if (mDecreaseSizeAction) {
+        mDecreaseSizeAction->setShortcut(cmdKeySeq(CMD_DECREASE_SIZE));
+        mDecreaseSizeAction->setShortcutContext(Qt::WindowShortcut);
+    }
+
+    // Basic runtime validation hook for shortcut configuration. This logs
+    // potential misconfigurations (such as missing actions for known shortcut
+    // commands) once at startup without altering runtime behavior.
+    auto validateShortcuts = [&]() {
+        QSettings defaults(":/resources/kb.ini", QSettings::IniFormat);
+        if (defaults.allKeys().isEmpty()) {
+            qWarning() << "[MainWindow2] validateShortcuts: kb.ini missing or unreadable";
+            return;
+        }
+
+        defaults.beginGroup(SHORTCUTS_GROUP);
+        const QStringList allCmds = defaults.allKeys();
+        defaults.endGroup();
+
+        // Build a lookup of all QAction and QShortcut objects currently
+        // registered on the main window so we can detect orphaned commands.
+        const QList<QAction*> allActions = findChildren<QAction*>();
+        const QList<QShortcut*> allShortcuts = findChildren<QShortcut*>();
+
+        auto hasBindingFor = [&](const QString& cmdName) -> bool {
+            const QString fullKey = QStringLiteral("shortcuts/") + cmdName;
+
+            // Check QActions that use our cmdKeySeq mapping
+            for (QAction* a : allActions) {
+                if (!a) continue;
+                const QKeySequence seq = a->shortcut();
+                if (seq.isEmpty()) continue;
+                if (seq == cmdKeySeq(cmdName)) {
+                    return true;
+                }
+            }
+
+            // Check any dedicated QShortcuts (e.g. popup color wheel)
+            for (QShortcut* s : allShortcuts) {
+                if (!s) continue;
+                const QKeySequence seq = s->key();
+                if (seq.isEmpty()) continue;
+                if (seq == cmdKeySeq(cmdName)) {
+                    return true;
+                }
+            }
+            Q_UNUSED(fullKey);
+            return false;
+        };
+
+        for (const QString& fullKey : allCmds) {
+            const QString cmdName = fullKey;
+            if (!hasBindingFor(cmdName)) {
+                qWarning() << "[MainWindow2] Orphaned shortcut command in kb.ini:" << cmdName;
+            }
+        }
+    };
+
+    validateShortcuts();
+}
+
+void MainWindow2::showPopupColorWheelAtCursor()
+{
+    if (!mEditor) return;
+
+    qDebug() << "[MainWindow2] showPopupColorWheelAtCursor triggered";
+
+    // Obtain current drawing color from color manager
+    QColor initial = mEditor->color()->frontColor();
+
+    // Create popup owned by main window so it closes with the app
+    auto* popup = new PopupColorWheelWidget(this);
+    popup->setPreferenceManager(mEditor->preference());
+    if (initial.isValid()) {
+        popup->setColor(initial);
+    }
+
+    // Live preview while dragging
+    connect(popup, &PopupColorWheelWidget::colorChanged, this, [this](const QColor& c){
+        if (c.isValid()) {
+            mEditor->color()->setFrontColor(c);
+        }
+    });
+
+    // Commit on release
+    connect(popup, &PopupColorWheelWidget::colorSelected, this, [this](const QColor& c){
+        if (c.isValid()) {
+            mEditor->color()->setFrontColor(c);
+        }
+    });
+
+    popup->showAt(QCursor::pos());
+}
+
+
+void MainWindow2::clearKeyboardShortcuts()
+{
+    QList<QAction*> actionList = findChildren<QAction*>();
+    for (QAction* action : actionList)
+    {
+        action->setShortcut(QKeySequence(0));
+    }
+}
+
+void MainWindow2::applyLassoRestriction(bool restricted)
+{
+    if (mApplyingLassoRestriction) return; // guard re-entrancy
+    mApplyingLassoRestriction = true;
+    // Track transition for one-time popup when activating
+    const bool wasActive = mLassoRestrictionActive;
+    Q_UNUSED(wasActive);
+    mLassoRestrictionActive = restricted;
+    if (restricted) { mRestrictionHintShown = false; }
+
+    // Disable the Timeline dock and all of its child controls explicitly
+    if (mTimeLine) {
+        mTimeLine->setDisabled(restricted);
+        if (QAction* tlToggle = mTimeLine->toggleViewAction()) {
+            tlToggle->setEnabled(!restricted ? true : false);
+        }
+    }
+
+    QList<QAction*> whitelist;
+    whitelist << ui->actionDeselect_All;
+    whitelist << ui->actionUndo << ui->actionRedo
+              << ui->actionCut << ui->actionCopy
+              << ui->actionPaste << ui->actionPaste_Previous;
+    whitelist << ui->actionMove << ui->actionSelect << ui->actionPolyline << ui->actionPen
+              << ui->actionHand << ui->actionBucket << ui->actionEyedropper << ui->actionEraser;
+    if (mActionCurve) whitelist << mActionCurve;
+    if (mActionBSpline) whitelist << mActionBSpline;
+    if (mActionRectGapFill) whitelist << mActionRectGapFill;
+    if (mActionLassoGapFill) whitelist << mActionLassoGapFill;
+    if (mActionLassoSelect) whitelist << mActionLassoSelect;
+    if (mActionDplate) whitelist << mActionDplate;
+    if (mToolBox && mToolBox->toggleViewAction()) whitelist << mToolBox->toggleViewAction();
+    if (mToolOptions && mToolOptions->toggleViewAction()) whitelist << mToolOptions->toggleViewAction();
+    if (mColorBox && mColorBox->toggleViewAction()) whitelist << mColorBox->toggleViewAction();
+    if (mColorPalette && mColorPalette->toggleViewAction()) whitelist << mColorPalette->toggleViewAction();
+    if (mColorSlidersDock && mColorSlidersDock->toggleViewAction()) whitelist << mColorSlidersDock->toggleViewAction();
+    if (mOnionSkinWidget && mOnionSkinWidget->toggleViewAction()) whitelist << mOnionSkinWidget->toggleViewAction();
+    if (mShiftTraceWidget && mShiftTraceWidget->toggleViewAction()) whitelist << mShiftTraceWidget->toggleViewAction();
+    if (mReferenceWindow && mReferenceWindow->toggleViewAction()) whitelist << mReferenceWindow->toggleViewAction();
+    if (mCellStackWidget && mCellStackWidget->toggleViewAction()) whitelist << mCellStackWidget->toggleViewAction();
+    for (QAction* a : findChildren<QAction*>()) {
+        if (a && a->text() == tr("Toggle All Docks")) { whitelist << a; break; }
+    }
+
+    QList<QAction*> allActions = findChildren<QAction*>();
+    if (restricted) {
+        for (QAction* a : allActions) {
+            if (!a) continue;
+            if (mTimeLine && a == mTimeLine->toggleViewAction()) { a->setEnabled(false); continue; }
+            if (whitelist.contains(a)) { a->setEnabled(true); continue; }
+            a->setEnabled(false);
+        }
+    } else {
+        if (mTimeLine) {
+            mTimeLine->setDisabled(false);
+            if (QAction* tlToggle = mTimeLine->toggleViewAction()) {
+                tlToggle->setEnabled(true);
+            }
+        }
+        for (QAction* a : allActions) {
+            if (!a) continue;
+            a->setEnabled(true);
+        }
+        updateLayerMenu();
+        updateSaveState();
+        updateBackupActionState();
+        mRestrictionHintShown = false;
+    }
+    mApplyingLassoRestriction = false;
+}
+
+void MainWindow2::applyRoundedMenuMask(QMenu* menu)
+{
+    if (!menu) return;
+    const QRect r = menu->rect();
+    if (!r.isValid() || r.width() <= 0 || r.height() <= 0) return;
+    menu->setAttribute(Qt::WA_TranslucentBackground, true);
+    const qreal desiredRadius = 10.0; 
+    const qreal maxRadius = qreal(std::min(r.width(), r.height())) / 2.0;
+    const qreal radius = qMax<qreal>(3.0, qMin(desiredRadius, maxRadius));
+
+    QBitmap maskBitmap(r.size());
+    maskBitmap.fill(Qt::color0); 
+    QPainter p(&maskBitmap);
+    p.setRenderHint(QPainter::Antialiasing, true);
+    p.setPen(Qt::NoPen);
+    p.setBrush(Qt::color1); 
+    const QRectF drawRect(0.5, 0.5, qreal(r.width()) - 1.0, qreal(r.height()) - 1.0);
+    p.drawRoundedRect(drawRect, radius, radius);
+    p.end();
+    menu->setMask(maskBitmap);
+}
+
+QMenu* MainWindow2::createPopupMenu()
+{
+    QMenu* baseMenu = QMainWindow::createPopupMenu();
+    if (!baseMenu) {
+        return nullptr;
+    }
+
+    CosmicContextMenu* cosmicMenu = new CosmicContextMenu(this);
+    for (QAction* src : baseMenu->actions()) {
+        if (!src) {
+            continue;
+        }
+
+        if (src->isSeparator()) {
+            cosmicMenu->addSeparator();
+            continue;
+        }
+
+        // Clone the action's basic properties into a menu-local QAction
+        QAction* clone = new QAction(src->text(), cosmicMenu);
+        clone->setCheckable(src->isCheckable());
+        clone->setChecked(src->isChecked());
+        clone->setEnabled(src->isEnabled());
+        clone->setShortcut(src->shortcut());
+        clone->setToolTip(src->toolTip());
+
+        // Keep the clone visually in sync when the source toggles
+        if (src->isCheckable()) {
+            connect(src, &QAction::toggled, clone, &QAction::setChecked);
+        }
+
+        // Drive the original action when the clone is triggered
+        connect(clone, &QAction::triggered, this, [src]() {
+            if (src && src->isEnabled()) {
+                src->trigger();
+            }
+        });
+
+        cosmicMenu->addAction(clone);
+    }
+
+    baseMenu->deleteLater();
+    return cosmicMenu;
+}
+
+bool MainWindow2::eventFilter(QObject* obj, QEvent* event)
+{
+    if (ui && ui->background && obj == ui->background && event) {
+        if (event->type() == QEvent::Resize) {
+            updateCosmicToolsBarsPosition();
+            updateCanvasPalettePosition();
+        }
+    }
+
+    // Suppress Qt's default docking rubber band highlight so that only the
+    // reserved dock space is used as a visual indicator when dragging
+    // docks. This keeps the drop target area at the normal dock
+    // background color instead of adding an extra overlay.
+    if (auto* rubberBand = qobject_cast<QRubberBand*>(obj)) {
+        // Limit this to dock-related rubber bands by checking for the
+        // top-level parent being this main window. This avoids
+        // interfering with any other potential QRubberBand usages.
+        QWidget* top = rubberBand->parentWidget();
+        while (top && top->parentWidget()) {
+            top = top->parentWidget();
+        }
+        if (top == this) {
+            switch (event->type()) {
+            case QEvent::Show:
+            case QEvent::Paint:
+            case QEvent::Resize:
+                rubberBand->hide();
+                return true; // consume visual updates
+            default:
+                break;
+            }
+        }
+    }
+
+    // Block Qt's default "Alt focuses menubar" accelerator at the shortcut
+    // override stage, so the File menu doesn't react to plain Alt. Normal
+    // key events (KeyPress/KeyRelease) still reach ScribbleArea and other
+    // widgets, preserving the Alt-based canvas eyedropper behavior.
+    if (event->type() == QEvent::ShortcutOverride) {
+        if (auto* ke = dynamic_cast<QKeyEvent*>(event)) {
+            const bool isPlainAlt = (ke->key() == Qt::Key_Alt) &&
+                                    (ke->modifiers() == Qt::AltModifier);
+            if (isPlainAlt) {
+                // Accept the shortcut override so Qt does not treat plain Alt
+                // as a menubar accelerator, but do not filter out the event.
+                // This allows the subsequent KeyPress/KeyRelease events for
+                // Alt to still reach widgets like ScribbleArea.
+                event->accept();
+            }
+        }
+    }
+
+    if (QMenu* menu = qobject_cast<QMenu*>(obj)) {
+        // Keep cosmic context menus perfectly angular; skip the rounded mask for them
+        if (!qobject_cast<CosmicContextMenu*>(menu)) {
+            if (event->type() == QEvent::Show || event->type() == QEvent::Resize) {
+                applyRoundedMenuMask(menu);
+            }
+        }
+    }
+
+    // Global exclusive-editor lock: when the Brush Factory is active, restrict
+    // interaction to that dock and its controlling toggle. Everything else,
+    // including the canvas and shortcuts, is temporarily disabled.
+    if (mBrushFactoryLockActive) {
+        // Block all QAction-based shortcuts while locked to avoid hidden
+        // interactions elsewhere in the app.
+        if (event->type() == QEvent::Shortcut) {
+            return true;
+        }
+
+        QWidget* w = qobject_cast<QWidget*>(obj);
+        if (!w) {
+            return QMainWindow::eventFilter(obj, event);
+        }
+
+        bool allow = false;
+
+        // Brush Factory lock: allow only the dock and its toggle.
+        if (!allow && mBrushFactoryLockActive) {
+            if (mBrushFactoryDock) {
+                allow = (w == mBrushFactoryDock) || mBrushFactoryDock->isAncestorOf(w);
+            }
+            if (!allow && mToolOptions) {
+                QWidget* bfToggle = mToolOptions->getBrushFactoryToggle();
+                if (bfToggle) {
+                    allow = (w == bfToggle) || bfToggle->isAncestorOf(w);
+                }
+            }
+        }
+
+        if (!allow) {
+            switch (event->type()) {
+            case QEvent::MouseButtonPress:
+            case QEvent::MouseButtonRelease:
+            case QEvent::MouseButtonDblClick:
+            case QEvent::Wheel:
+            case QEvent::ContextMenu:
+            case QEvent::KeyPress:
+            case QEvent::KeyRelease:
+            case QEvent::Gesture:
+            case QEvent::TouchBegin:
+            case QEvent::TouchUpdate:
+            case QEvent::TouchEnd:
+                return true;
+            default:
+                break;
+            }
+        }
+
+        return QMainWindow::eventFilter(obj, event);
+    }
+
+    if (mCanvasGalleryOverlay && mCanvasGalleryOverlay->isVisible()) {
+        if (event->type() == QEvent::KeyPress) {
+            QKeyEvent* ke = static_cast<QKeyEvent*>(event);
+            if (ke && ke->key() == Qt::Key_Escape) {
+                if (mReferenceWindow) mReferenceWindow->triggerGalleryToggle(false);
+                return true; 
+            }
+        }
+        QWidget* w = qobject_cast<QWidget*>(obj);
+        if (!w) return QMainWindow::eventFilter(obj, event);
+        bool allow = (w == mCanvasGalleryOverlay) || mCanvasGalleryOverlay->isAncestorOf(w);
+        if (!allow && mReferenceWindow) {
+            QWidget* tog = mReferenceWindow->galleryToggleWidget();
+            if (tog) allow = (w == tog) || tog->isAncestorOf(w);
+        }
+        if (!allow) {
+            switch (event->type()) {
+            case QEvent::MouseButtonPress:
+            case QEvent::MouseButtonRelease:
+            case QEvent::MouseButtonDblClick:
+            case QEvent::Wheel:
+            case QEvent::ContextMenu:
+            case QEvent::KeyPress:
+            case QEvent::KeyRelease:
+            case QEvent::Gesture:
+            case QEvent::TouchBegin:
+            case QEvent::TouchUpdate:
+            case QEvent::TouchEnd:
+                return true; 
+            default: break;
+            }
+        }
+        return QMainWindow::eventFilter(obj, event);
+    }
+
+    if (!mLassoRestrictionActive) return QMainWindow::eventFilter(obj, event);
+
+    auto isTimelineDescendant = [this](QObject* o) -> bool {
+        if (!mTimeLine) return false;
+        if (o == mTimeLine) return true;
+        QWidget* w = qobject_cast<QWidget*>(o);
+        return w && mTimeLine->isAncestorOf(w);
+    };
+
+    switch (event->type()) {
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonDblClick:
+    case QEvent::Wheel:
+    case QEvent::ContextMenu:
+        if (isTimelineDescendant(obj)) {
+            maybeShowRestrictionHint();
+            return true;
+        }
+        break;
+    default: break;
+    }
+
+    if (event->type() == QEvent::Shortcut) {
+        auto* se = static_cast<QShortcutEvent*>(event);
+        QKeySequence pressed = se->key();
+
+        QList<QAction*> allowed;
+        allowed << ui->actionDeselect_All;
+        if (!hasFloatingSelection()) {
+            allowed << ui->actionUndo << ui->actionRedo;
+        }
+        allowed << ui->actionCut << ui->actionCopy
+                << ui->actionPaste << ui->actionPaste_Previous
+                << ui->actionMove << ui->actionSelect << ui->actionPolyline << ui->actionPen
+                << ui->actionHand << ui->actionBucket << ui->actionEyedropper << ui->actionEraser;
+        if (mActionCurve) allowed << mActionCurve;
+        if (mActionBSpline) allowed << mActionBSpline;
+        if (mActionRectGapFill) allowed << mActionRectGapFill;
+        if (mActionLassoGapFill) allowed << mActionLassoGapFill;
+        if (mActionLassoSelect) allowed << mActionLassoSelect;
+        if (mActionDplate) allowed << mActionDplate;
+        if (mToolBox && mToolBox->toggleViewAction()) allowed << mToolBox->toggleViewAction();
+        if (mToolOptions && mToolOptions->toggleViewAction()) allowed << mToolOptions->toggleViewAction();
+        if (mColorBox && mColorBox->toggleViewAction()) allowed << mColorBox->toggleViewAction();
+        if (mColorPalette && mColorPalette->toggleViewAction()) allowed << mColorPalette->toggleViewAction();
+        if (mColorSlidersDock && mColorSlidersDock->toggleViewAction()) allowed << mColorSlidersDock->toggleViewAction();
+        if (mOnionSkinWidget && mOnionSkinWidget->toggleViewAction()) allowed << mOnionSkinWidget->toggleViewAction();
+        if (mShiftTraceWidget && mShiftTraceWidget->toggleViewAction()) allowed << mShiftTraceWidget->toggleViewAction();
+        if (mReferenceWindow && mReferenceWindow->toggleViewAction()) allowed << mReferenceWindow->toggleViewAction();
+        if (mCellStackWidget && mCellStackWidget->toggleViewAction()) allowed << mCellStackWidget->toggleViewAction();
+
+        bool shortcutAllowed = false;
+        for (QAction* a : allowed) {
+            if (!a) continue;
+            for (const QKeySequence& ks : a->shortcuts()) {
+                if (!ks.isEmpty() && ks == pressed) { shortcutAllowed = true; break; }
+            }
+            if (shortcutAllowed) break;
+        }
+
+        if (!shortcutAllowed) {
+            maybeShowRestrictionHint();
+            return true; 
+        }
+    }
+
+    return QMainWindow::eventFilter(obj, event);
+}
+
+void MainWindow2::maybeShowRestrictionHint()
+{
+    if (mRestrictionHintShown) return;
+    mRestrictionHintShown = true;
+    QMessageBox::information(this, tr("Selection Active"),
+                             tr("Restriction mode is active for non-canvas interactions.\n\n"
+                                "Allowed: Using Lasso, switching tools, Undo/Redo, Copy/Cut/Paste, Deselect (Ctrl+D), non-timeline docks.\n"
+                                "Disabled temporarily: Timeline and certain scene/menu actions.\n\n"
+                                "To exit, deselect by switching tools, pressing Esc/Enter, or Ctrl+D."));
+}
+
+void MainWindow2::exportPalette()
+{
+    QString filePath = FileDialog::getSaveFileName(this, FileType::PALETTE);
+    if (!filePath.isEmpty())
+    {
+        mEditor->object()->exportPalette(filePath);
+    }
+}
+
+void MainWindow2::importPalette()
+{
+    QString filePath = FileDialog::getOpenFileName(this, FileType::PALETTE);
+    if (!filePath.isEmpty())
+    {
+        mEditor->object()->importPalette(filePath);
+        mColorPalette->refreshColorList();
+        mColorPalette->adjustSwatches();
+        if (mEditor->object()->getColorCount() > 0)
+        {
+            mEditor->color()->setColorNumber(0);
+        }
+        else
+        {
+            mEditor->color()->clearSelection();
+        }
+        mColorPalette->resetPresetSelection();
+    }
+}
+
+void MainWindow2::openPalette()
+{
+    for (int i = 0; i < mEditor->object()->getColorCount(); i++)
+    {
+        if (!mEditor->object()->isColorInUse(i))
+        {
+            continue;
+        }
+
+        QMessageBox msgBox;
+        msgBox.setText(tr("Opening a palette will replace the old palette.\n"
+                          "Color(s) in strokes will be altered by this action!"));
+        msgBox.addButton(tr("Open Palette"), QMessageBox::AcceptRole);
+        msgBox.addButton(QMessageBox::Cancel);
+
+        if (msgBox.exec() == QMessageBox::Cancel) {
+            return;
+        }
+        break;
+    }
+
+    QString filePath = FileDialog::getOpenFileName(this, FileType::PALETTE);
+    if (filePath.isEmpty())
+    {
+        return;
+    }
+
+    mEditor->object()->openPalette(filePath);
+    mColorPalette->refreshColorList();
+    if (mEditor->object()->getColorCount() > 0)
+    {
+        mEditor->color()->setColorNumber(0);
+    }
+    else
+    {
+        mEditor->color()->clearSelection();
+    }
+    mColorPalette->resetPresetSelection();
+}
+
+void MainWindow2::makeConnections(Editor* editor)
+{
+    connect(editor->undoRedo(), &UndoRedoManager::didUpdateUndoStack, this, &MainWindow2::updateSaveState);
+    connect(editor->undoRedo(), &UndoRedoManager::didUpdateUndoStack, this, &MainWindow2::updateBackupActionState);
+    connect(editor->undoRedo(), &UndoRedoManager::didUpdateUndoStack, this, [this]() {
+        if (ui && ui->scribbleArea) {
+            ui->scribbleArea->updateFrame();
+        }
+    });
+    connect(editor, &Editor::needDisplayInfo, this, &MainWindow2::displayMessageBox);
+    connect(editor, &Editor::needDisplayInfoNoTitle, this, &MainWindow2::displayMessageBoxNoTitle);
+    connect(editor->layers(), &LayerManager::currentLayerChanged, this, &MainWindow2::currentLayerChanged);
+    connect(editor->select(), &SelectionManager::selectionChanged, this, &MainWindow2::selectionChanged);
+    connect(editor, &Editor::canCopyChanged, this, [=](bool canCopy) {
+        ui->actionCopy->setEnabled(canCopy);
+        ui->actionCut->setEnabled(canCopy);
+    });
+    connect(editor, &Editor::canPasteChanged, ui->actionPaste, &QAction::setEnabled);
+    
+    connect(editor->preference(), &PreferenceManager::optionChanged, this, &MainWindow2::onColorPreferenceChanged);
+}
+
+void MainWindow2::makeConnections(Editor* editor, ColorBox* colorBox)
+{
+    connect(editor->color(), &ColorManager::colorChanged, colorBox, &ColorBox::setColor);
+    
+    // Connect ColorSlidersDock to editor's color manager
+    if (mColorSlidersDock) {
+        connect(mColorSlidersDock, &ColorSlidersDock::colorChanged, [this](const QColor& color) {
+            mEditor->color()->setFrontColor(color);
+        });
+        connect(editor, &Editor::objectLoaded, mColorSlidersDock, &ColorSlidersDock::updateUI);
+    }
+}
+
+void MainWindow2::makeConnections(Editor* editor, ColorInspector* colorInspector)
+{
+    connect(colorInspector, &ColorInspector::colorChanged, editor->color(), &ColorManager::setFrontColor);
+    connect(editor->color(), &ColorManager::colorChanged, colorInspector, &ColorInspector::setColor);
+}
+
+void MainWindow2::makeConnections(Editor* editor, ScribbleArea* scribbleArea)
+{
+    connect(editor->tools(), &ToolManager::toolChanged, scribbleArea, &ScribbleArea::updateToolCursor);
+    connect(editor->tools(), &ToolManager::toolChanged, mToolBox, &ToolBoxDockWidget::setActiveTool);
+    connect(editor->tools(), &ToolManager::toolPropertyChanged, scribbleArea, &ScribbleArea::updateToolCursor);
+
+
+    connect(editor->layers(), &LayerManager::currentLayerChanged, scribbleArea, &ScribbleArea::onLayerChanged);
+    connect(editor->layers(), &LayerManager::layerDeleted, scribbleArea, &ScribbleArea::onLayerChanged);
+    connect(editor, &Editor::scrubbed, scribbleArea, &ScribbleArea::onScrubbed);
+    connect(editor, &Editor::frameModified, scribbleArea, &ScribbleArea::onFrameModified);
+    connect(editor, &Editor::framesModified, scribbleArea, &ScribbleArea::onFramesModified);
+    connect(editor, &Editor::objectLoaded, scribbleArea, &ScribbleArea::onObjectLoaded);
+    connect(editor->view(), &ViewManager::viewChanged, scribbleArea, &ScribbleArea::onViewChanged);
+}
+
+void MainWindow2::makeConnections(Editor* pEditor, TimeLine* pTimeline)
+{
+    PlaybackManager* pPlaybackManager = pEditor->playback();
+    connect(pTimeline, &TimeLine::soundClick, pPlaybackManager, &PlaybackManager::enableSound);
+    connect(pTimeline, &TimeLine::fpsChanged, pPlaybackManager, &PlaybackManager::setFps);
+    connect(pTimeline, &TimeLine::fpsChanged, pEditor, &Editor::setFps);
+
+    connect(pTimeline, &TimeLine::insertKeyClick, mCommands, &ActionCommands::insertKeyFrameAtCurrentPosition);
+    connect(pTimeline, &TimeLine::removeKeyClick, mCommands, &ActionCommands::removeKey);
+
+    connect(pTimeline, &TimeLine::newBitmapLayer, mCommands, &ActionCommands::addNewBitmapLayer);
+    // Removed: newSoundLayer connection
+    connect(mTimeLine, &TimeLine::playButtonTriggered, this, &MainWindow2::onPlayTriggered);
+    connect(pTimeline, &TimeLine::deleteCurrentLayerClick, mCommands, &ActionCommands::deleteCurrentLayer);
+
+    // Clipboard state handling
+    connect(QApplication::clipboard(), &QClipboard::dataChanged, mEditor, &Editor::clipboardChanged);
+    connect(pTimeline, &TimeLine::selectionChanged, this, &MainWindow2::updateCopyCutPasteEnabled);
+    connect(this, &MainWindow2::windowActivated, this, &MainWindow2::updateCopyCutPasteEnabled);
+    connect(mEditor->select(), &SelectionManager::selectionChanged, this, &MainWindow2::updateCopyCutPasteEnabled);
+
+    connect(pEditor->layers(), &LayerManager::currentLayerChanged, pTimeline, &TimeLine::updateUI);
+    connect(pEditor->layers(), &LayerManager::animationLengthChanged, pTimeline, &TimeLine::extendLength);
+    connect(pEditor->sound(), &SoundManager::soundClipDurationChanged, pTimeline, &TimeLine::updateUI);
+
+    // Menu UI changes
+    connect(ui->menuEdit, &QMenu::aboutToShow, this, &MainWindow2::updateCopyCutPasteEnabled);
+
+    connect(pEditor, &Editor::objectLoaded, pTimeline, &TimeLine::onObjectLoaded);
+    connect(pEditor, &Editor::updateTimeLine, pTimeline, &TimeLine::updateUI);
+    connect(pEditor, &Editor::updateTimeLineCached, pTimeline, &TimeLine::updateUICached);
+
+    connect(pEditor->layers(), &LayerManager::currentLayerChanged, this, &MainWindow2::updateLayerMenu);
+    connect(pEditor->layers(), &LayerManager::currentLayerChanged, mToolOptions, &ToolOptionWidget::updateUI);
+}
+
+void MainWindow2::makeConnections(Editor*, OnionSkinWidget*)
+{
+}
+
+void MainWindow2::makeConnections(Editor* editor, ToolOptionWidget* toolOptions)
+{
+    toolOptions->makeConnectionToEditor(editor);
+}
+
+void MainWindow2::makeConnections(Editor* pEditor, ColorPaletteWidget* pColorPalette)
+{
+    connect(pEditor, &Editor::objectLoaded, pColorPalette, &ColorPaletteWidget::updateUI);
+
+    ColorManager* pColorManager = pEditor->color();
+    ScribbleArea* pScribbleArea = pEditor->getScribbleArea();
+
+    connect(pColorPalette, &ColorPaletteWidget::colorNumberChanged, pColorManager, &ColorManager::setColorNumber);
+    connect(pColorManager, &ColorManager::colorNumberChanged, pScribbleArea, &ScribbleArea::paletteColorChanged);
+    connect(pColorManager, &ColorManager::colorNumberChanged, pColorPalette, &ColorPaletteWidget::selectColorNumber);
+}
+
+void MainWindow2::makeConnections(Editor* editor, StatusBar *statusBar)
+{
+    connect(editor->tools(), &ToolManager::toolChanged, statusBar, &StatusBar::updateToolStatus);
+    connect(editor->tools()->getTool(POLYLINE), &BaseTool::isActiveChanged, statusBar, &StatusBar::updateToolStatus);
+
+    connect(editor->view(), &ViewManager::viewChanged, statusBar, &StatusBar::updateZoomStatus);
+    connect(statusBar, &StatusBar::zoomChanged, editor->view(), &ViewManager::scale);
+}
+
+void MainWindow2::updateCopyCutPasteEnabled()
+{
+    bool canCopy = mEditor->canCopy();
+    bool canPaste = mEditor->canPaste();
+
+    ui->actionCopy->setEnabled(canCopy);
+    ui->actionCut->setEnabled(canCopy);
+    ui->actionPaste->setEnabled(canPaste);
+}
+
+void MainWindow2::onColorPreferenceChanged(SETTING setting)
+{
+    switch (setting) {
+    case SETTING::ACCENT_COLOR:
+        // Update global Qt palette highlight color from fixed accent
+        if (mEditor && mEditor->preference()) {
+            const QColor accent = BlenderStyleSlider::getAccentColor();
+
+            QPalette pal = qApp->palette();
+            pal.setColor(QPalette::Highlight, accent);
+            pal.setColor(QPalette::HighlightedText,
+                         accent.lightness() > 140 ? QColor("#111111") : QColor("#ffffff"));
+            qApp->setPalette(pal);
+        }
+
+        // Update all BlenderStyleSliders throughout the app
+        updateAllBlenderStyleSliders();
+        // Update menu styles to use new accent color
+        updateMenuStyles();
+        // Update all Blender-style components throughout the app
+        {
+            const QColor accent = BlenderStyleSlider::getAccentColor();
+            const QList<BlenderStyleDropDown*> dds = findChildren<BlenderStyleDropDown*>();
+            for (BlenderStyleDropDown* dd : dds) {
+                if (dd) dd->setAccentColor(accent);
+            }
+            const QList<CosmicDropDown*> cosmicDds = findChildren<CosmicDropDown*>();
+            for (CosmicDropDown* cdd : cosmicDds) {
+                if (cdd) cdd->setAccentColor(accent);
+            }
+            const QList<BlenderStyleToggle*> toggles = findChildren<BlenderStyleToggle*>();
+            for (BlenderStyleToggle* toggle : toggles) {
+                if (toggle) toggle->setAccentColor(accent);
+            }
+            const QList<BlenderStyleComboBox*> combos = findChildren<BlenderStyleComboBox*>();
+            for (BlenderStyleComboBox* combo : combos) {
+                if (combo) combo->setAccentColor(accent);
+            }
+            // Tab bar visuals are controlled by the global stylesheet.
+        }
+        break;
+    case SETTING::TOOLBOX_SELECTION_COLOR:
+        // Update toolbox styles - the ToolBoxDockWidget contains a ToolBoxWidget
+        if (mToolBox && mToolBox->getToolBoxWidget()) {
+            mToolBox->getToolBoxWidget()->onColorPreferenceChanged(setting);
+        }
+
+        // Treat toolbox selection color as the app's effective accent/highlight.
+        // This keeps Cosmic widgets (and any palette-highlight driven UI) in sync
+        // with the Tools dock active highlight.
+        if (mEditor && mEditor->preference()) {
+            const int toolboxRgba = mEditor->preference()->getInt(SETTING::TOOLBOX_SELECTION_COLOR);
+            const QColor toolboxColor = QColor::fromRgba(toolboxRgba);
+            if (toolboxColor.isValid()) {
+                QPalette pal = qApp->palette();
+                pal.setColor(QPalette::Highlight, toolboxColor);
+                pal.setColor(QPalette::HighlightedText,
+                             toolboxColor.lightness() > 140 ? QColor("#111111") : QColor("#ffffff"));
+                qApp->setPalette(pal);
+            }
+        }
+
+        // Update all toolbar buttons with new toolbox selection color
+        applyAccentColorToToolbars();
+        break;
+    case SETTING::TOOL_PALETTE_SELECTION_COLOR:
+        // Update canvas palette overlay
+        if (mCanvasPaletteOverlay && mCanvasPaletteOverlay->getPalette()) {
+            mCanvasPaletteOverlay->getPalette()->onColorPreferenceChanged(setting);
+        }
+        break;
+    case SETTING::UI_TITLE_BAR_COLOR:
+    case SETTING::UI_DOCK_CONTENT_COLOR:
+    case SETTING::UI_SCROLLBAR_COLOR:
+        // Update UI theme colors
+        updateUIThemeColors();
+        break;
+    default:
+        break;
+    }
+}
+
+void MainWindow2::updateAllBlenderStyleSliders()
+{
+    // Find and update all BlenderStyleSliders in the application
+    QList<BlenderStyleSlider*> sliders = findChildren<BlenderStyleSlider*>();
+    for (BlenderStyleSlider* slider : sliders) {
+        slider->updateAccentColor();
+    }
+}
+
+void MainWindow2::applyAccentColorToToolbars()
+{
+    // Apply toolbox selection color to all toolbar buttons
+    if (!mEditor || !mEditor->preference()) return;
+    
+    const int toolboxColorRgba = mEditor->preference()->getInt(SETTING::TOOLBOX_SELECTION_COLOR);
+    const QColor toolboxColor = QColor::fromRgba(toolboxColorRgba);
+    
+    const QString colorHexAlpha = QString("rgba(%1, %2, %3, %4)")
+                                 .arg(toolboxColor.red()).arg(toolboxColor.green()).arg(toolboxColor.blue()).arg(0.12);
+    const QString colorHexAlphaHover = QString("rgba(%1, %2, %3, %4)")
+                                      .arg(toolboxColor.red()).arg(toolboxColor.green()).arg(toolboxColor.blue()).arg(0.28);
+    const QString colorHexAlphaChecked = QString("rgba(%1, %2, %3, %4)")
+                                        .arg(toolboxColor.red()).arg(toolboxColor.green()).arg(toolboxColor.blue()).arg(0.45);
+    const QString colorHexBorder = QString("rgba(%1, %2, %3, %4)")
+                                  .arg(toolboxColor.red()).arg(toolboxColor.green()).arg(toolboxColor.blue()).arg(0.35);
+    const QString colorHexBorderChecked = QString("rgba(%1, %2, %3, %4)")
+                                         .arg(toolboxColor.red()).arg(toolboxColor.green()).arg(toolboxColor.blue()).arg(0.85);
+    const QString colorHexBorderCheckedHover = QString("rgba(%1, %2, %3, %4)")
+                                              .arg(toolboxColor.red()).arg(toolboxColor.green()).arg(toolboxColor.blue()).arg(1.0);
+    
+    QList<QToolBar*> toolbars = findChildren<QToolBar*>();
+    for (QToolBar* toolbar : toolbars) {
+        if (toolbar) {
+            QString toolbarStyle = QString(
+                "QToolButton:hover { background: %1; border-color: %2; }"
+                "QToolButton:checked { background: qradialgradient(cx:0.5, cy:0.5, radius:0.6, fx:0.5, fy:0.5, stop:0 %3, stop:0.55 %4, stop:1 rgba(0,0,0,0.0)); border-color: %5; }"
+                "QToolButton:checked:hover { background: %6; border-color: %7; }"
+            ).arg(colorHexAlpha, colorHexBorder, colorHexAlphaChecked, colorHexAlphaChecked, 
+                  colorHexBorderChecked, colorHexAlphaHover, colorHexBorderCheckedHover);
+            toolbar->setStyleSheet(toolbarStyle);
+        }
+    }
+}
+
+void MainWindow2::updateUIThemeColors()
+{
+    if (!mEditor || !mEditor->preference()) return;
+    
+    // Get colors from preferences
+    const int titleBarRgba = mEditor->preference()->getInt(SETTING::UI_TITLE_BAR_COLOR);
+    const int dockContentRgba = mEditor->preference()->getInt(SETTING::UI_DOCK_CONTENT_COLOR);
+    const int scrollbarRgba = mEditor->preference()->getInt(SETTING::UI_SCROLLBAR_COLOR);
+    
+    const QColor titleBarColor = QColor::fromRgba(titleBarRgba);
+    const QColor dockContentColor = QColor::fromRgba(dockContentRgba);
+    const QColor scrollbarColor = QColor::fromRgba(scrollbarRgba);
+    
+    // Update QPalette colors
+    QPalette pal = qApp->palette();
+    pal.setColor(QPalette::Base, dockContentColor);
+    pal.setColor(QPalette::AlternateBase, dockContentColor);
+    pal.setColor(QPalette::Button, dockContentColor);
+    qApp->setPalette(pal);
+    
+    // Build dynamic stylesheet for UI theme colors
+    QString dynamicStyles = QString(
+        "QMainWindow#MainWindow2 QDockWidget { background: %1; }\n"
+        "QMainWindow#MainWindow2 QDockWidget > QWidget { background: %1; }\n"
+        "QMainWindow#MainWindow2 QScrollArea,\n"
+        "QMainWindow#MainWindow2 QScrollArea > QWidget,\n"
+        "QMainWindow#MainWindow2 QScrollArea > QWidget > QWidget { background: %1; }\n"
+        "QMainWindow#MainWindow2 QFrame { background: %1; border-color: #1f1f1f; }\n"
+        "QMainWindow#MainWindow2 QGroupBox { background: %1; color: #e6e6e6; border: 1px solid #3a3a3a; margin-top: 8px; }\n"
+        "QMainWindow#MainWindow2 QAbstractItemView { background: #2f2f2f; color: #e6e6e6; alternate-background-color: %1; }\n"
+        "QMainWindow#MainWindow2 QTabWidget::pane { border: 1px solid #3a3a3a; background: %1; }\n"
+        "QMainWindow#MainWindow2 QDockWidget::title { background: %2; color: #e6e6e6; padding-left: 6px; }\n"
+        "QMainWindow#MainWindow2 QWidget#TitleBarWidget,\n"
+        "QMainWindow#MainWindow2 QWidget[objectName^=\"TitleBar\"] { background: %2; }\n"
+        "QMainWindow#MainWindow2 QScrollBar::handle:vertical,\n"
+        "QMainWindow#MainWindow2 QScrollBar::handle:horizontal { background: %3; }\n"
+    ).arg(dockContentColor.name(), titleBarColor.name(), scrollbarColor.name());
+    
+    // Don't reload the stylesheet here - instead just append the dynamic styles
+    // This preserves any accent color menu styles that were already applied
+    QString currentQss = this->styleSheet();
+    
+    // Remove any previous UI theme color overrides (lines starting with our markers)
+    QStringList lines = currentQss.split('\n');
+    QStringList filteredLines;
+    bool inUIThemeBlock = false;
+    for (const QString& line : lines) {
+        if (line.contains("/* UI_THEME_COLORS_START */")) {
+            inUIThemeBlock = true;
+            continue;
+        }
+        if (line.contains("/* UI_THEME_COLORS_END */")) {
+            inUIThemeBlock = false;
+            continue;
+        }
+        if (!inUIThemeBlock) {
+            filteredLines.append(line);
+        }
+    }
+    
+    // Add new UI theme color overrides with markers
+    QString newQss = filteredLines.join('\n');
+    newQss += "\n/* UI_THEME_COLORS_START */\n";
+    newQss += dynamicStyles;
+    newQss += "/* UI_THEME_COLORS_END */\n";
+    
+    this->setStyleSheet(newQss);
+    
+    // Update timeline-specific widgets
+    if (mTimeLine) {
+        // Update layers area
+        if (mTimeLine->findChild<QWidget*>("mLayerList")) {
+            mTimeLine->findChild<QWidget*>("mLayerList")->setStyleSheet(
+                QString("TimeLineCells { background-color: %1; }").arg(titleBarColor.name())
+            );
+        }
+        // Update splitter
+        QList<QSplitter*> splitters = mTimeLine->findChildren<QSplitter*>();
+        for (QSplitter* splitter : splitters) {
+            splitter->setStyleSheet(
+                QString("QSplitter::handle { background-color: %1; }").arg(titleBarColor.name())
+            );
+        }
+        // Update toolbar areas
+        QList<QWidget*> toolbars = mTimeLine->findChildren<QWidget*>();
+        for (QWidget* widget : toolbars) {
+            QString objName = widget->objectName();
+            if (objName.contains("ToolBar", Qt::CaseInsensitive)) {
+                widget->setStyleSheet(QString("QWidget { background-color: %1; }").arg(titleBarColor.name()));
+            }
+        }
+    }
+}
+
+void MainWindow2::updateMenuStyles()
+{
+    if (!mEditor || !mEditor->preference()) return;
+    
+    const QColor accentColor = BlenderStyleSlider::getAccentColor();
+    const QString accentHex = accentColor.name(QColor::HexRgb);
+    const QString textColor = QStringLiteral("#ffffff");
+    
+    // Load the base stylesheet
+    QFile darkQss(":/styles/dark_theme.qss");
+    if (darkQss.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QString qss = QString::fromUtf8(darkQss.readAll());
+        
+        // Replace hardcoded menu selection colors with dynamic accent color
+        qss.replace("#ffaa40", accentHex);
+        
+        // Create rgba color strings for toolbar buttons with different alpha values
+        const QString colorHexAlpha = QString("rgba(%1, %2, %3, %4)")
+                                     .arg(accentColor.red())
+                                     .arg(accentColor.green())
+                                     .arg(accentColor.blue())
+                                     .arg(0.12);
+        const QString colorHexAlphaHover = QString("rgba(%1, %2, %3, %4)")
+                                          .arg(accentColor.red())
+                                          .arg(accentColor.green())
+                                          .arg(accentColor.blue())
+                                          .arg(0.28);
+        const QString colorHexAlphaChecked = QString("rgba(%1, %2, %3, %4)")
+                                            .arg(accentColor.red())
+                                            .arg(accentColor.green())
+                                            .arg(accentColor.blue())
+                                            .arg(0.45);
+        const QString colorHexAlphaCheckedHover = QString("rgba(%1, %2, %3, %4)")
+                                                 .arg(accentColor.red())
+                                                 .arg(accentColor.green())
+                                                 .arg(accentColor.blue())
+                                                 .arg(0.22);
+        const QString colorHexBorder = QString("rgba(%1, %2, %3, %4)")
+                                      .arg(accentColor.red())
+                                      .arg(accentColor.green())
+                                      .arg(accentColor.blue())
+                                      .arg(0.35);
+        const QString colorHexBorderChecked = QString("rgba(%1, %2, %3, %4)")
+                                             .arg(accentColor.red())
+                                             .arg(accentColor.green())
+                                             .arg(accentColor.blue())
+                                             .arg(0.85);
+        const QString colorHexBorderCheckedHover = QString("rgba(%1, %2, %3, %4)")
+                                                  .arg(accentColor.red())
+                                                  .arg(accentColor.green())
+                                                  .arg(accentColor.blue())
+                                                  .arg(1.0);
+        
+        // Add dynamic menu and toolbar styling
+        QString dynamicMenuStyles = QString(
+            "QMainWindow#MainWindow2 QMenu::item:selected { background: %1; color: %2; }"
+            "QMainWindow#MainWindow2 QComboBox QAbstractItemView::item:selected { background: %1; color: %2; }"
+            "QMainWindow#MainWindow2 QTreeView::item:selected, QMainWindow#MainWindow2 QListView::item:selected, QMainWindow#MainWindow2 QTableView::item:selected { background: %1; color: %2; }"
+            "QMenu::item:selected { background: %1; color: %2; }"
+            "QAbstractItemView::item:selected { background: %1; color: %2; }"
+            "QComboBox QAbstractItemView::item:selected { background: %1; color: %2; }"
+            "QMainWindow#MainWindow2 QToolBar QToolButton:hover { background: %3; border-color: %4; }"
+            "QMainWindow#MainWindow2 QToolBar QToolButton:checked { background: qradialgradient(cx:0.5, cy:0.5, radius:0.6, fx:0.5, fy:0.5, stop:0 %5, stop:0.55 %6, stop:1 rgba(0,0,0,0.0)); border-color: %7; }"
+            "QMainWindow#MainWindow2 QToolBar QToolButton:checked:hover { background: %8; border-color: %9; }"
+        ).arg(accentHex, textColor, colorHexAlpha, colorHexBorder, colorHexAlphaChecked, 
+              colorHexAlphaCheckedHover, colorHexBorderChecked, colorHexAlphaHover, colorHexBorderCheckedHover);
+        
+        qss += dynamicMenuStyles;
+        this->setStyleSheet(qss);
+    }
+}
+
+void MainWindow2::updateLayerMenu()
+{
+    ui->actionDelete_Current_Layer->setEnabled(mEditor->layers()->canDeleteLayer(mEditor->currentLayerIndex()));
+}
+
+void MainWindow2::changePlayState(bool isPlaying)
+{
+    if (isPlaying)
+    {
+        ui->actionPlay->setText(tr("Stop"));
+        ui->actionPlay->setIcon(mStopIcon);
+    }
+    else
+    {
+        ui->actionPlay->setText(tr("Play"));
+        ui->actionPlay->setIcon(mStartIcon);
+    }
+    update();
+}
+
+void MainWindow2::onPlayTriggered()
+{
+    if (!mEditor || !mEditor->playback()) {
+        return;
+    }
+
+    PlaybackManager* playback = mEditor->playback();
+    if (playback->isPlaying())
+    {
+        playback->stop();
+        return;
+    }
+
+    // Scenes/Shots timeline tab should always start from the first frame.
+    if (mTimeLine && mTimeLine->isScenesAndShotsTabActive())
+    {
+        mEditor->scrubTo(1);
+    }
+
+    playback->play();
+}
+
+void MainWindow2::importMovieVideo()
+{
+    // Flag this so we don't prompt the user about auto-save in the middle of the import.
+    mSuppressAutoSaveDialog = true;
+
+    mCommands->importMovieVideo();
+
+    mSuppressAutoSaveDialog = false;
+}
+
+bool MainWindow2::event(QEvent* event)
+{
+    if(event->type() == QEvent::WindowActivate) {
+        emit windowActivated();
+    }
+    if (event->type() == QEvent::Resize || event->type() == QEvent::LayoutRequest) {
+        updateCanvasPalettePosition();
+    }
+    return QMainWindow::event(event);
+}
+
+void MainWindow2::displayMessageBox(const QString& title, const QString& body)
+{
+    QMessageBox::information(this, tr(qPrintable(title)), tr(qPrintable(body)), QMessageBox::Ok);
+}
+
+void MainWindow2::displayMessageBoxNoTitle(const QString& body)
+{
+    QMessageBox::information(this, nullptr, tr(qPrintable(body)), QMessageBox::Ok);
+}
+
+void MainWindow2::updateCanvasPalettePosition()
+{
+    if (!mCanvasPaletteOverlay) {
+        return;
+    }
+    if (!ui->background) {
+        qWarning() << "MainWindow2: ui->background is null";
+        return;
+    }
+    try {
+        mCanvasPaletteOverlay->updatePosition();
+        // Enforce z-order invariants: the control center is always the top-most canvas UI.
+        if (mCosmicControlCenter) {
+            mCosmicControlCenter->raise();
+        }
+    } catch (const std::exception& e) {
+        qCritical() << "MainWindow2: Exception updating canvas palette position:" << e.what();
+    }
+}
+
+void MainWindow2::updateCosmicToolsBarsPosition()
+{
+    if (!ui || !ui->background) {
+        return;
+    }
+    QWidget* parent = ui->background;
+    if (parent->width() <= 0 || parent->height() <= 0) {
+        return;
+    }
+
+    const int pad = 2;
+    const int barW = 22;
+    const int headerH = (mCosmicControlCenter ? mCosmicControlCenter->height() : 0);
+    const int yInset = pad + headerH;
+    const int leftXInset = 0;
+    const int rightXInset = 0;
+
+    const int h = qMax(0, parent->height() - yInset * 2);
+
+    if (mCosmicControlCenter) {
+        mCosmicControlCenter->setGeometry(0, 0, parent->width(), headerH);
+        mCosmicControlCenter->raise();
+        parent->setProperty("CosmicTopReserved", headerH);
+
+        // Reserve the header region so the canvas (ScribbleArea) and anything in the
+        // background layout can never overlap this dedicated space.
+        if (ui->layout) {
+            ui->layout->setContentsMargins(0, headerH, 0, 0);
+        }
+    }
+
+    if (mCosmicLeftToolsBar) {
+        int w = barW;
+        if (auto* p = qobject_cast<CosmicLeftToolPanel*>(mCosmicLeftToolsBar)) {
+            w = qMax(barW, p->reservedWidth());
+        }
+        mCosmicLeftToolsBar->setGeometry(leftXInset, yInset, w, h);
+        mCosmicLeftToolsBar->raise();
+        mCosmicLeftToolsBar->update();
+
+        // Expose left reserved inset to other overlays (e.g. CanvasPaletteOverlay)
+        parent->setProperty("CosmicLeftReserved", w + leftXInset);
+    }
+    if (mCosmicRightToolsBar) {
+        int w = barW;
+        if (auto* p = qobject_cast<CosmicRightToolPanel*>(mCosmicRightToolsBar)) {
+            w = qMax(barW, p->reservedWidth());
+        }
+        mCosmicRightToolsBar->setGeometry(parent->width() - w - rightXInset, yInset, w, h);
+        mCosmicRightToolsBar->raise();
+        mCosmicRightToolsBar->update();
+
+        parent->setProperty("CosmicRightReserved", w + rightXInset);
+    }
+
+    // Keep palette above background but below bars so bars remain visible.
+    if (mCanvasPaletteOverlay) {
+        mCanvasPaletteOverlay->raise();
+    }
+    if (mCosmicLeftToolsBar) mCosmicLeftToolsBar->raise();
+    if (mCosmicRightToolsBar) mCosmicRightToolsBar->raise();
+    if (mCosmicControlCenter) mCosmicControlCenter->raise();
+}
+
+void MainWindow2::onCanvasPaletteColorChanged(const QColor& color)
+{
+    if (!mEditor) return;
+    // Mirror prior ToolOptionWidget PenColorPalette behavior:
+    // - If selecting a preset color button, set a temporary stroke override
+    // - If selecting the first (custom) button, clear override and set front color
+    if (mEditor->tools() && mEditor->color()) {
+        // Determine if the chosen color corresponds to one of the palette preset colors
+        // via control center helper (delegates to PenColorPalette)
+        bool isPreset = mCosmicControlCenter ? mCosmicControlCenter->isPresetColor(color) : false;
+        if (isPreset) {
+            mEditor->tools()->setStrokeColorOverride(color);
+        } else {
+            mEditor->tools()->clearStrokeColorOverride();
+            mEditor->color()->setFrontColor(color);
+        }
+    }
+}
+
+bool MainWindow2::tryRecoverUnsavedProject()
+{
+    const QString appDataRoot = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    if (appDataRoot.isEmpty()) {
+        return false;
+    }
+
+    const QString workspacesRoot = QDir(appDataRoot).filePath(QStringLiteral("workspaces"));
+    QDir wsDir(workspacesRoot);
+    if (!wsDir.exists()) {
+        return false;
+    }
+
+    QString newestAutosave;
+    QDateTime newestTime;
+
+    const QStringList candidates = wsDir.entryList(QStringList() << QStringLiteral("untitled_*") , QDir::Dirs | QDir::NoDotAndDotDot);
+    for (const QString& d : candidates)
+    {
+        const QString autosave = QDir(wsDir.absoluteFilePath(d)).filePath(QStringLiteral("autosave.n2d"));
+        QFileInfo fi(autosave);
+        if (!fi.exists() || !fi.isFile()) {
+            continue;
+        }
+        if (!newestTime.isValid() || fi.lastModified() > newestTime) {
+            newestTime = fi.lastModified();
+            newestAutosave = autosave;
+        }
+    }
+
+    if (newestAutosave.isEmpty()) {
+        return false;
+    }
+
+    const int ret = QMessageBox::question(this,
+                                         tr("Recover Unsaved Project"),
+                                         tr("An unsaved project was found. Do you want to recover it?"),
+                                         QMessageBox::Yes | QMessageBox::No);
+    if (ret != QMessageBox::Yes) {
+        return false;
+    }
+
+    QProgressDialog progress(tr("Recovering project..."), tr("Abort"), 0, 100, this);
+    hideQuestionMark(progress);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.show();
+
+    const N2DProjectIO::ProgressCallbacks cb{
+        [&progress](int p) {
+            progress.setValue(p);
+            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+        },
+        [&progress](int max) {
+            progress.setRange(0, max);
+        }
+    };
+
+    SceneSequenceManager* ssm = (mTimeLine) ? mTimeLine->sceneSequenceManager() : nullptr;
+    Status s = N2DProjectIO::loadProject(newestAutosave, mEditor, ssm, cb);
+    if (!s.ok()) {
+        return false;
+    }
+
+    // Avoid re-prompting on every startup. The recovered session will continue autosaving
+    // into its current transient workspace.
+    QFile::remove(newestAutosave);
+
+    if (ssm) {
+        ssm->setProjectFilePath(QString());
+        ssm->setWorkspaceTransient(true);
+    }
+    if (mEditor && mEditor->object()) {
+        mEditor->object()->setFilePath(QString());
+    }
+
+    setWindowTitle(PENCIL_WINDOW_TITLE);
+    updateSaveState();
+    updateBackupActionState();
+    progress.setValue(progress.maximum());
+    return true;
+}
+
+void MainWindow2::startProjectRecovery(int result)
+{
+    Q_UNUSED(result);
+}
+
+void MainWindow2::createToolbars()
+{
+    mMainToolbar = addToolBar(tr("Main Toolbar"));
+    mMainToolbar->setObjectName("mMainToolbar");
+    mMainToolbar->addAction(ui->actionNew);
+    mMainToolbar->addAction(ui->actionOpen);
+    mMainToolbar->addAction(ui->actionSave);
+    mMainToolbar->addAction(ui->actionPaste);
+    mMainToolbar->addAction(ui->actionClearFrame);
+
+    // Tools toolbar pinned left
+    mToolsToolbar = nullptr;
+
+    // Create extra actions if not yet created
+    if (!mActionPencil)     mActionPencil = new QAction(QIcon(":/icons/themes/playful/tools/tool-pencil.svg"), tr("Pencil"), this);
+    if (!mActionCurve)      mActionCurve = new QAction(QIcon(":/CustomToolIcons/Curve.svg"), tr("Curve"), this);
+    if (!mActionBSpline)    mActionBSpline = new QAction(QIcon(":/CustomToolIcons/Spline.svg"), tr("B-Spline"), this);
+    if (!mActionRectGapFill) mActionRectGapFill = new QAction(QIcon(":/CustomToolIcons/RectangleFill.svg"), tr("Rect Gap Fill"), this);
+    if (!mActionLassoGapFill) mActionLassoGapFill = new QAction(QIcon(":/CustomToolIcons/LassoFill.svg"), tr("Lasso Gap Fill"), this);
+    if (!mActionDplate)     mActionDplate = new QAction(QIcon(":/CustomToolIcons/Dplate.svg"), tr("Dplate"), this);
+    // Lasso Select action
+    if (!mActionLassoSelect) mActionLassoSelect = new QAction(QIcon(":/CustomToolIcons/LassoSelect.svg"), tr("Lasso Select"), this);
+    for (QAction* a : {mActionPencil, mActionCurve, mActionBSpline, mActionRectGapFill, mActionLassoGapFill}) a->setCheckable(true);
+    mActionDplate->setCheckable(true);
+    if (mActionLassoSelect) mActionLassoSelect->setCheckable(true);
+
+    // Add extra tool actions to the global tools action group for mutual exclusivity
+    if (mToolsActionGroup) {
+        if (mActionPencil) mToolsActionGroup->addAction(mActionPencil);
+        if (mActionCurve) mToolsActionGroup->addAction(mActionCurve);
+        if (mActionBSpline) mToolsActionGroup->addAction(mActionBSpline);
+        if (mActionRectGapFill) mToolsActionGroup->addAction(mActionRectGapFill);
+        if (mActionLassoGapFill) mToolsActionGroup->addAction(mActionLassoGapFill);
+        if (mActionDplate) mToolsActionGroup->addAction(mActionDplate);
+        if (mActionLassoSelect) mToolsActionGroup->addAction(mActionLassoSelect);
+        // Hide legacy Select/Move tool actions from the tools toolbar and
+        // menus; Lasso Select replaces them as the primary selection tool.
+        if (ui->actionMove) ui->actionMove->setVisible(false);
+        if (ui->actionSelect) ui->actionSelect->setVisible(false);
+    }
+
+    // Place Lasso Select at the very top of the tools toolbar
+
+    // Make the actions checkable to reflect the active tool
+    // Order: LassoSelect, Select, Move, Pen, Pencil, Curve, Polyline, BSpline, Bucket, RectGapFill, LassoGapFill, Eraser, Hand, Eyedropper, Dplate
+    const QList<QAction*> toolActions = {
+        mActionLassoSelect,
+        ui->actionPen,
+        mActionPencil,
+        mActionCurve,
+        ui->actionPolyline,
+        mActionBSpline,
+        ui->actionBucket,
+        mActionRectGapFill,
+        mActionLassoGapFill,
+        // Unspecified tools retain presence after the ordered list
+        ui->actionEraser,
+        ui->actionHand,
+        ui->actionEyedropper,
+        /* ui->actionSmudge, */
+        mActionDplate
+    };
+    for (QAction* a : toolActions) { a->setCheckable(true); }
+    if (mToolsToolbar) {
+        mToolsToolbar->clear();
+        for (QAction* a : toolActions) { if (a) mToolsToolbar->addAction(a); }
+    }
+
+    // Wire actions to set the corresponding tool via ToolBox logic
+    connect(mActionPencil, &QAction::triggered, this, [this]{ mToolBox->setActiveTool(PENCIL); });
+    connect(mActionCurve, &QAction::triggered, this, [this]{ mToolBox->setActiveTool(CURVE); });
+    connect(mActionBSpline, &QAction::triggered, this, [this]{ mToolBox->setActiveTool(BSPLINE); });
+    connect(mActionRectGapFill, &QAction::triggered, this, [this]{ mToolBox->setActiveTool(RECT_GAP_FILL); });
+    connect(mActionLassoGapFill, &QAction::triggered, this, [this]{ mToolBox->setActiveTool(LASSO_GAP_FILL); });
+    connect(mActionDplate, &QAction::triggered, this, [this]{ mToolBox->setActiveTool(DPLATE); });
+    if (mActionLassoSelect) connect(mActionLassoSelect, &QAction::triggered, this, [this]{ mEditor->tools()->setCurrentTool(LASSO_SELECT); });
+
+    // Sync checked state for ALL tool actions so only the active tool remains highlighted
+    connect(mEditor->tools(), &ToolManager::toolChanged, this, [this](ToolType t){
+        if (ui->actionSelect) ui->actionSelect->setChecked(t == SELECT);
+        if (ui->actionMove) ui->actionMove->setChecked(t == MOVE || t == CAMERA);
+        if (ui->actionPen) ui->actionPen->setChecked(t == PEN);
+        if (mActionPencil) mActionPencil->setChecked(t == PENCIL);
+        if (ui->actionPolyline) ui->actionPolyline->setChecked(t == POLYLINE);
+        if (ui->actionBucket) ui->actionBucket->setChecked(t == BUCKET);
+        if (ui->actionEraser) ui->actionEraser->setChecked(t == ERASER);
+        if (ui->actionHand) ui->actionHand->setChecked(t == HAND);
+        if (ui->actionEyedropper) ui->actionEyedropper->setChecked(t == EYEDROPPER);
+        if (mActionCurve) mActionCurve->setChecked(t == CURVE);
+        if (mActionBSpline) mActionBSpline->setChecked(t == BSPLINE);
+        if (mActionRectGapFill) mActionRectGapFill->setChecked(t == RECT_GAP_FILL);
+        if (mActionLassoGapFill) mActionLassoGapFill->setChecked(t == LASSO_GAP_FILL);
+        if (mActionDplate) mActionDplate->setChecked(t == DPLATE);
+        if (mActionLassoSelect) mActionLassoSelect->setChecked(t == LASSO_SELECT);
+    });
+
+    // Tools toolbar is now enabled by default
+    // if (mToolsToolbar) { mToolsToolbar->hide(); }
+
+    mViewToolbar = addToolBar(tr("View Toolbar"));
+    mViewToolbar->setObjectName("mViewToolbar");
+    mViewToolbar->addAction(ui->actionZoom_In);
+    mViewToolbar->addAction(ui->actionZoom_Out);
+    mViewToolbar->addAction(ui->actionReset_View);
+    mViewToolbar->addSeparator();
+    mViewToolbar->addAction(ui->actionHorizontal_Flip);
+    mViewToolbar->addAction(ui->actionVertical_Flip);
+    mViewToolbar->addSeparator();
+    mViewToolbar->addAction(ui->actionShowInvisibleLines);
+    mViewToolbar->addAction(ui->actionShowOutlinesOnly);
+
+    mOverlayToolbar = addToolBar(tr("Overlay Toolbar"));
+    mOverlayToolbar->setObjectName("mOverlayToolbar");
+    mOverlayToolbar->addAction(ui->actionGrid);
+    mOverlayToolbar->addAction(ui->actionCenter);
+    mOverlayToolbar->addAction(ui->actionThirds);
+    mOverlayToolbar->addAction(ui->actionGoldenRatio);
+    mOverlayToolbar->addAction(ui->actionSafeAreas);
+    mOverlayToolbar->addAction(ui->actionOnePointPerspective);
+    mOverlayToolbar->addAction(ui->actionTwoPointPerspective);
+    mOverlayToolbar->addAction(ui->actionThreePointPerspective);
+    mOverlayToolbar->setIconSize(QSize(22,22));
+    mViewToolbar->setIconSize(QSize(22,22));
+    mMainToolbar->setIconSize(QSize(22,22));
+
+    QToolButton* perspectiveLinesAngleButton = new QToolButton(this);
+    perspectiveLinesAngleButton->setDefaultAction(ui->menuPerspectiveLinesAngle->menuAction());
+    perspectiveLinesAngleButton->setPopupMode(QToolButton::InstantPopup);
+    mOverlayToolbar->addWidget(perspectiveLinesAngleButton);
+
+    mToolbars = { mMainToolbar, mViewToolbar, mOverlayToolbar };
+
+    for (QToolBar* tb : mToolbars)
+    {
+        ui->menuToolbars->addAction(tb->toggleViewAction());
+    }
+
+    if (mCosmicControlCenter) {
+        mCosmicControlCenter->setToolbars(mMainToolbar, mViewToolbar, mOverlayToolbar);
+    }
+}
+
+void MainWindow2::openCanvasSizeDialog()
+{
+    // Find the last-used/nearest camera layer. Fallback to first camera layer.
+    Layer* layer = mEditor->layers()->getLastCameraLayer();
+    if (!layer) {
+        // No camera layer found, nothing to do
+        return;
+    }
+    auto cameraLayer = dynamic_cast<LayerCamera*>(layer);
+    Q_ASSERT(cameraLayer);
+
+    CameraPropertiesDialog dialog(cameraLayer->name(), cameraLayer->getViewRect().width(), cameraLayer->getViewRect().height());
+    if (dialog.exec() != QDialog::Accepted)
+    {
+        return;
+    }
+
+    // Apply the new size to the camera layer, mimicking existing behavior
+    if (mEditor && mEditor->preference()) {
+        mEditor->preference()->set(SETTING::FIELD_W, dialog.getWidth());
+        mEditor->preference()->set(SETTING::FIELD_H, dialog.getHeight());
+    } else {
+        QSettings settings(PENCIL2D, PENCIL2D);
+        settings.setValue(SETTING_FIELD_W, dialog.getWidth());
+        settings.setValue(SETTING_FIELD_H, dialog.getHeight());
+    }
+    cameraLayer->setViewRect(QRect(-dialog.getWidth() / 2, -dialog.getHeight() / 2, dialog.getWidth(), dialog.getHeight()));
+    mEditor->view()->forceUpdateViewTransform();
+}
+
+void MainWindow2::ensureMenubarUnobstructed()
+{
+    if (!ui || !ui->menuBar) return;
+    // Elevate menubar in stacking order
+    ui->menuBar->raise();
+    // Make sure no floating dock starts at y==0 over the menubar region after restore
+    const int menuHeight = ui->menuBar->height();
+    for (BaseDockWidget* d : mDockWidgets)
+    {
+        if (d->isFloating())
+        {
+            QRect g = d->geometry();
+            if (g.top() <= menuHeight) {
+                g.moveTop(menuHeight + 8);
+                d->setGeometry(g);
+            }
+        }
+    }
+}
+
+void MainWindow2::toggleDocksVisibility()
+{
+    QSettings settings("Pencil2D", "Pencil2D");
+    
+    // Ignore visibility changes during programmatic toggle
+    mIgnoreDockVisibilityChanges = true;
+    
+    if (!mDocksHidden)
+    {
+        // Hiding docks - capture current visible state
+        mPreviouslyVisibleDocks.clear();
+        
+        // Default Toggle Taps states (must be kept in sync with ToggleTapsPage::updateValues)
+        const QMap<QString, bool> defaultStates = {
+            { QStringLiteral("CellStack"),       false },
+            { QStringLiteral("ColorWheel"),      false },
+            { QStringLiteral("Color Inspector"), false },
+            { QStringLiteral("colorSlidersDock"), false },
+            { QStringLiteral("ColorPalette"),    false },
+            { QStringLiteral("Onion Skin"),      false },
+            { QStringLiteral("Reference Window"), false },
+            { QStringLiteral("Shift & Trace"),   false },
+            { QStringLiteral("TimeLine"),        true  },
+            { QStringLiteral("ToolBox"),         false },
+            { QStringLiteral("ToolOption"),      false }
+        };
+        
+        for (BaseDockWidget* dock : mDockWidgets)
+        {
+            if (dock && dock->isVisible() && dock != mColorInspector)
+            {
+                // Check if this dock should stay visible based on Toggle Taps preferences
+                QString dockName = dock->objectName();
+                const QString key = "ToggleTaps/" + dockName;
+                QVariant stored = settings.value(key);
+                bool keepVisible;
+
+                if (!stored.isValid()) {
+                    // First run or new dock: use default state and persist it
+                    keepVisible = defaultStates.value(dockName, false);
+                    settings.setValue(key, keepVisible);
+                } else {
+                    keepVisible = stored.toBool();
+                }
+                
+                // If keepVisible is false, the dock should be hidden when toggling all docks
+                if (!keepVisible)
+                {
+                    mPreviouslyVisibleDocks.append(dock);
+                    dock->hide();
+                }
+            }
+        }
+        mDocksHidden = true;
+        
+        // Save state immediately so it persists across app restarts
+        QStringList dockNames;
+        for (BaseDockWidget* dock : mPreviouslyVisibleDocks) {
+            if (dock) {
+                dockNames.append(dock->objectName());
+            }
+        }
+        settings.setValue("ToggleDocks/Hidden", true);
+        settings.setValue("ToggleDocks/PreviouslyVisible", dockNames);
+        settings.sync();
+    }
+    else
+    {
+        // Showing docks - restore previous state
+        for (BaseDockWidget* dock : mPreviouslyVisibleDocks)
+        {
+            if (dock)
+            {
+                dock->show();
+                dock->raise();
+            }
+        }
+        mPreviouslyVisibleDocks.clear();
+        mDocksHidden = false;
+        
+        // Clear saved state
+        settings.setValue("ToggleDocks/Hidden", false);
+        settings.remove("ToggleDocks/PreviouslyVisible");
+        settings.sync();
+    }
+    
+    // Re-enable visibility change detection
+    mIgnoreDockVisibilityChanges = false;
+}
+
+void MainWindow2::onDockVisibilityChanged(bool visible)
+{
+    Q_UNUSED(visible);
+    
+    // Ignore visibility changes during initialization or programmatic toggles
+    if (mIgnoreDockVisibilityChanges) {
+        return;
+    }
+    
+    // If docks are currently in "hidden" state and user manually shows/hides a dock,
+    // treat the current layout as the new "unhidden" state (override safeguard)
+    if (mDocksHidden)
+    {
+        QSettings settings("Pencil2D", "Pencil2D");
+        
+        // User manually changed dock visibility while in "hidden" mode
+        // This means they want to override the toggle state
+        // Clear the hidden state and treat current layout as the new baseline
+        mPreviouslyVisibleDocks.clear();
+        mDocksHidden = false;
+        
+        settings.setValue("ToggleDocks/Hidden", false);
+        settings.remove("ToggleDocks/PreviouslyVisible");
+        settings.sync();
+        
+        qDebug() << "Dock visibility manually changed - clearing toggle state (override safeguard)";
+    }
+}
+
+void MainWindow2::restoreDockState()
+{
+    QSettings settings(PENCIL2D, PENCIL2D);
+
+    // Detect if this is the first run (no saved window layout yet) so we can
+    // apply safer defaults for optional panels like the Brush Factory.
+    bool hasWindowState = settings.contains(SETTING_WINDOW_STATE);
+    QVariant winState = settings.value(SETTING_WINDOW_STATE);
+    restoreState(winState.toByteArray());
+
+    // Restore per-dock floating lock state after layout has been restored
+    for (BaseDockWidget* dock : mDockWidgets)
+    {
+        if (!dock) {
+            continue;
+        }
+        const QString key = QString("DockFloatingLock/%1").arg(dock->objectName());
+        bool locked = settings.value(key, false).toBool();
+        dock->setFloatingLock(locked);
+    }
+
+    // On a true first run (no saved window state), force the Brush Factory
+    // dock to start disabled so new users are not overwhelmed by an extra
+    // floating panel. Users can enable it explicitly via the toggle.
+    if (!hasWindowState) {
+        if (mBrushFactoryDock) {
+            mBrushFactoryDock->hide();
+        }
+        if (mToolOptions) {
+            mToolOptions->setBrushFactoryToggleState(false);
+        }
+        mBrushFactoryLockActive = false;
+    }
+
+    // Restore toggle docks state AFTER restoring window state
+    // This ensures docks are hidden if they were hidden when app closed
+    mDocksHidden = settings.value("ToggleDocks/Hidden", false).toBool();
+    if (mDocksHidden) {
+        // Restore the list of previously visible docks by name
+        QStringList dockNames = settings.value("ToggleDocks/PreviouslyVisible").toStringList();
+        mPreviouslyVisibleDocks.clear();
+        for (const QString& name : dockNames) {
+            for (BaseDockWidget* dock : mDockWidgets) {
+                if (dock && dock->objectName() == name) {
+                    mPreviouslyVisibleDocks.append(dock);
+                    break;
+                }
+            }
+        }
+        
+        // Now hide the docks that should be hidden
+        for (BaseDockWidget* dock : mPreviouslyVisibleDocks) {
+            if (dock) {
+                dock->hide();
+            }
+        }
+        
+        qDebug() << "Restored toggle state: mDocksHidden=" << mDocksHidden 
+                 << "previouslyVisible count=" << mPreviouslyVisibleDocks.count()
+                 << "- docks hidden";
+    }
+
+    // As a final safeguard after layout restoration, ensure the Brush Factory
+    // dock is not visible while its toggle is OFF. This prevents a mismatch
+    // where the dock appears active even though the controlling toggle is
+    // disabled (e.g. on first launch or after layout changes).
+    if (mBrushFactoryDock && mToolOptions) {
+        QAbstractButton* bfToggle = mToolOptions->getBrushFactoryToggle();
+        const bool toggleOn = bfToggle && bfToggle->isChecked();
+        if (!toggleOn && mBrushFactoryDock->isVisible()) {
+            mBrushFactoryDock->hide();
+            mBrushFactoryLockActive = false;
+        }
+    }
+
+    // Restore geometry AFTER dock state is restored.
+    // This prevents the window from expanding due to dock changes before the main window is ready.
+    QVariant winGeometry = settings.value(SETTING_WINDOW_GEOMETRY);
+    restoreGeometry(winGeometry.toByteArray());
+
+    // Validate restored geometry: if it's off-screen or too small, reset to a sensible default
+    QRect geom = geometry();
+    bool geometryValid = true;
+    if (geom.width() < 200 || geom.height() < 200) geometryValid = false;
+    if (geometryValid) {
+        const auto screens = QGuiApplication::screens();
+        bool intersects = false;
+        for (QScreen* s : screens) {
+            if (s->availableGeometry().intersects(geom)) { intersects = true; break; }
+        }
+        if (!intersects) geometryValid = false;
+    }
+    if (!geometryValid) {
+        // Clear bad saved geometry so next run has a clean state
+        settings.remove(SETTING_WINDOW_GEOMETRY);
+        settings.remove(SETTING_WINDOW_STATE);
+        // Apply a reasonable default size and center on primary screen
+        QSize defaultSize(1200, 800);
+        resize(defaultSize);
+        if (QScreen* ps = QGuiApplication::primaryScreen()) {
+            QRect av = ps->availableGeometry();
+            move(av.x() + (av.width() - width())/2, av.y() + (av.height() - height())/2);
+        }
+    }
+
+    // Re-enable dock visibility change detection after the event loop processes pending events.
+    // This prevents any queued visibilityChanged() emissions triggered by restoreState() from
+    // incorrectly tripping the override safeguard.
+    QTimer::singleShot(0, this, [this]() {
+        mIgnoreDockVisibilityChanges = false;
+        qDebug() << "Dock visibility change detection re-enabled (restoreDockState)";
+    });
+}

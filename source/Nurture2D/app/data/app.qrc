@@ -1,0 +1,318 @@
+<RCC>
+    <qresource prefix="/">
+        <file>background/checkerboard.png</file>
+        <file>icons/logo.png</file>
+        <file>icons/icon.png</file>
+        <file>Splash.png</file>
+        <file>background/weave.jpg</file>
+        <file>background/dots.png</file>
+        <file>background/grid.jpg</file>
+        <file>icons/themes/playful/timeline/frame-add.svg</file>
+        <file>icons/themes/playful/timeline/frame-duplicate.svg</file>
+        <file>icons/themes/playful/timeline/frame-remove.svg</file>
+        <file>icons/themes/playful/timeline/layer-add.svg</file>
+        <file>icons/themes/playful/timeline/layer-remove.svg</file>
+        <file>icons/themes/playful/dialog-error.svg</file>
+        <file>icons/themes/playful/display/perspective-angle.svg</file>
+        <file>icons/themes/playful/display/perspective-onepoint.svg</file>
+        <file>icons/themes/playful/display/perspective-threepoints.svg</file>
+        <file>icons/themes/playful/display/perspective-twopoints.svg</file>
+        <file>icons/themes/playful/display/lines-invisible.svg</file>
+        <file>icons/themes/playful/display/lines-outline.svg</file>
+        <file>icons/themes/playful/display/mirror-horizontal.svg</file>
+        <file>icons/themes/playful/display/mirror-vertical.svg</file>
+        <file>icons/themes/playful/display/overlay-center.svg</file>
+        <file>icons/themes/playful/display/overlay-thirds.svg</file>
+        <file>icons/themes/playful/menubar/copy.svg</file>
+        <file>icons/themes/playful/menubar/cut.svg</file>
+        <file>icons/themes/playful/menubar/new.svg</file>
+        <file>icons/themes/playful/menubar/open.svg</file>
+        <file>icons/themes/playful/menubar/paste.svg</file>
+        <file>icons/themes/playful/menubar/redo.svg</file>
+        <file>icons/themes/playful/menubar/save.svg</file>
+        <file>icons/themes/playful/menubar/undo.svg</file>
+        <file>icons/themes/playful/preferences/preferences-general.svg</file>
+        <file>icons/themes/playful/preferences/preferences-timeline.svg</file>
+        <file>icons/themes/playful/preferences/preferences-files.svg</file>
+        <file>icons/themes/playful/preferences/preferences-shortcuts.svg</file>
+        <file>icons/themes/playful/preferences/preferences-tools.svg</file>
+        <file>icons/general/checkerboard_smaller.png</file>
+        <file>icons/general/cross.png</file>
+        <file>icons/themes/playful/display/overlay-grid.svg</file>
+        <file>icons/general/cursor-diagonal-left.svg</file>
+        <file>icons/general/cursor-diagonal-right.svg</file>
+        <file>icons/general/cursor-horizontal.svg</file>
+        <file>icons/general/cursor-move.svg</file>
+        <file>icons/general/cursor-rotate.svg</file>
+        <file>icons/general/cursor-vertical.svg</file>
+        <file>icons/themes/playful/menubar/zoom-in.svg</file>
+        <file>icons/themes/playful/menubar/zoom-out.svg</file>
+        <file>icons/themes/playful/menubar/zoom-select.svg</file>
+        <file>icons/themes/playful/menubar/view-reset.svg</file>
+        <file>icons/themes/playful/misc/color-dialog.svg</file>
+        <file>icons/themes/playful/misc/add-color.svg</file>
+        <file>icons/themes/playful/misc/remove-color.svg</file>
+        <file>icons/themes/playful/controls/control-play.svg</file>
+        <file>icons/themes/playful/controls/control-stop.svg</file>
+        <file>icons/themes/playful/controls/control-loop.svg</file>
+        <file>icons/themes/playful/controls/control-sound-enable.svg</file>
+        <file>icons/themes/playful/controls/control-sound-scrub.svg</file>
+        <file>icons/themes/playful/timeline/cell-bitmap.svg</file>
+        <file>icons/themes/playful/timeline/cell-camera.svg</file>
+        <file>icons/themes/playful/timeline/cell-sound.svg</file>
+        <file>icons/themes/playful/timeline/cell-vector.svg</file>
+        <file>icons/themes/playful/menubar/clear-canvas.svg</file>
+        <file>icons/general/cursor-bucket.svg</file>
+        <file>icons/general/cursor-eyedropper.svg</file>
+        <file>icons/general/cursor-smudge.svg</file>
+        <file>icons/general/cursor-pen.svg</file>
+        <file>icons/general/cursor-brush.svg</file>
+        <file>icons/general/cursor-pencil.svg</file>
+        <file>icons/general/cursor-smudge-liquify.svg</file>
+        <file>icons/themes/playful/display/overlay-golden-ratio.svg</file>
+        <file>icons/themes/playful/display/overlay-safe.svg</file>
+        <file>icons/themes/playful/controls/control-play-start.svg</file>
+        <file>icons/themes/playful/controls/control-play-end.svg</file>
+        <file>icons/themes/playful/misc/more-options.svg</file>
+        <file>icons/themes/playful/onion/onionskin-blue.svg</file>
+        <file>icons/themes/playful/onion/onionskin-red.svg</file>
+        <file>icons/themes/playful/onion/onionskin-enable.svg</file>
+        <file>icons/themes/playful/tools/tool-smudge.svg</file>
+        <file>icons/themes/playful/tools/tool-pencil.svg</file>
+        <file>icons/themes/playful/tools/tool-bucket.svg</file>
+        <file>icons/themes/playful/tools/tool-hand.svg</file>
+        <file>icons/themes/playful/tools/tool-move.svg</file>
+        <file>icons/themes/playful/tools/tool-brush.svg</file>
+        <file>icons/themes/playful/tools/tool-eraser.svg</file>
+        <file>icons/themes/playful/tools/tool-eyedropper.svg</file>
+        <file>icons/themes/playful/tools/tool-polyline.svg</file>
+        <file>icons/themes/playful/tools/tool-pen.svg</file>
+        <file>icons/themes/playful/tools/tool-select.svg</file>
+        <file>icons/themes/playful/tools/tool-camera-rotate.svg</file>
+        <file>icons/themes/playful/tools/tool-camera-scale.svg</file>
+        <file>icons/themes/playful/tools/tool-camera-move.svg</file>
+        <file>icons/themes/playful/timeline/layer-duplicate.svg</file>
+        <file>icons/blue.png</file>
+        <file>icons/green.png</file>
+        <file>icons/red.png</file>
+        <file>icons/themes/playful/window/window-float-button-active.svg</file>
+        <file>icons/themes/playful/window/window-close-button-active.svg</file>
+        <file>icons/themes/playful/window/window-close-button-normal-darkm.svg</file>
+        <file>icons/themes/playful/window/window-float-button-normal-darkm.svg</file>
+        <file>icons/themes/playful/window/window-float-button-normal.svg</file>
+        <file>icons/themes/playful/window/window-close-button-normal.svg</file>
+        <!-- Custom tool icons -->
+        <file alias="CustomToolIcons/Curve.svg">../../CustomToolIcons/Curve.svg</file>
+        <file alias="CustomToolIcons/Spline.svg">../../CustomToolIcons/Spline.svg</file>
+        <file alias="CustomToolIcons/RectangleFill.svg">../../CustomToolIcons/RectangleFill.svg</file>
+        <file alias="CustomToolIcons/LassoFill.svg">../../CustomToolIcons/LassoFill.svg</file>
+        <file alias="CustomToolIcons/Dplate.svg">../../CustomToolIcons/Dplate.svg</file>
+        <!-- Lasso Select icon alias (uses Lasso.svg asset) -->
+        <file alias="CustomToolIcons/LassoSelect.svg">../../CustomToolIcons/Lasso.svg</file>
+        <!-- Pencil Tool Texture -->
+        <file alias="BrushFiles/P1.png">../../BrushFiles/P1.png</file>
+        <file alias="BrushFiles/PlainWhite.png">../../BrushFiles/PlainWhite.png</file>
+        <!-- CosmicDefaultTip shape masks (generated at compile time by tools/generate_brush_tips) -->
+        <file alias="BrushTips/CosmicDefaultTip_Hardest.png">../../BrushTips/CosmicDefaultTip_Hardest.png</file>
+        <file alias="BrushTips/CosmicDefaultTip_Hard.png">../../BrushTips/CosmicDefaultTip_Hard.png</file>
+        <file alias="BrushTips/CosmicDefaultTip_Medium.png">../../BrushTips/CosmicDefaultTip_Medium.png</file>
+        <file alias="BrushTips/CosmicDefaultTip_Soft.png">../../BrushTips/CosmicDefaultTip_Soft.png</file>
+        <!-- Pencil Tool Brush Textures (core presets) -->
+        <file alias="BrushTextures/BlotcherMixed.jpeg">../../BrushTextures/BlotcherMixed.jpeg</file>
+        <file alias="BrushTextures/BlotcherSolo.jpeg">../../BrushTextures/BlotcherSolo.jpeg</file>
+        <file alias="BrushTextures/Breakance.png">../../BrushTextures/Breakance.png</file>
+        <file alias="BrushTextures/ChalkFlow.jpeg">../../BrushTextures/ChalkFlow.jpeg</file>
+        <file alias="BrushTextures/ChalkFlow.png">../../BrushTextures/ChalkFlow.png</file>
+        <file alias="BrushTextures/ClawingCore.jpeg">../../BrushTextures/ClawingCore.jpeg</file>
+        <file alias="BrushTextures/CrackedMason.jpeg">../../BrushTextures/CrackedMason.jpeg</file>
+        <file alias="BrushTextures/GalvinSteps.jpeg">../../BrushTextures/GalvinSteps.jpeg</file>
+        <file alias="BrushTextures/Graysole.jpeg">../../BrushTextures/Graysole.jpeg</file>
+        <file alias="BrushTextures/GraysoleFury.jpeg">../../BrushTextures/GraysoleFury.jpeg</file>
+        <file alias="BrushTextures/MoldyCloud.jpeg">../../BrushTextures/MoldyCloud.jpeg</file>
+        <file alias="BrushTextures/NightNudge.jpeg">../../BrushTextures/NightNudge.jpeg</file>
+        <file alias="BrushTextures/Paper1.png">../../BrushTextures/Paper1.png</file>
+        <file alias="BrushTextures/Paper3.png">../../BrushTextures/Paper3.png</file>
+        <file alias="BrushTextures/PencilNoise1.png">../../BrushTextures/PencilNoise1.png</file>
+        <file alias="BrushTextures/Sandey.png">../../BrushTextures/Sandey.png</file>
+        <file alias="BrushTextures/StormyStream.jpeg">../../BrushTextures/StormyStream.jpeg</file>
+        <file alias="BrushTextures/TearingFlow.jpeg">../../BrushTextures/TearingFlow.jpeg</file>
+        <file alias="BrushTextures/WayWeave.png">../../BrushTextures/WayWeave.png</file>
+        <file alias="BrushTextures/WeepingBoy.jpeg">../../BrushTextures/WeepingBoy.jpeg</file>
+        <file alias="BrushTextures/WeepingFather.jpeg">../../BrushTextures/WeepingFather.jpeg</file>
+        <file alias="BrushTextures/WeepingGirl.jpeg">../../BrushTextures/WeepingGirl.jpeg</file>
+        <file alias="BrushTextures/WeepingMother.jpeg">../../BrushTextures/WeepingMother.jpeg</file>
+        <file alias="BrushTextures/Zichs.png">../../BrushTextures/Zichs.png</file>
+        <!-- Custom Cursor Icons for Pen/Pencil Tools -->
+        <file alias="CustomCursor/Cross.svg">../../CustomCursor/Cross.svg</file>
+        <file alias="CustomCursor/triUp.svg">../../CustomCursor/triUp.svg</file>
+        <file alias="CustomCursor/triDown.svg">../../CustomCursor/triDown.svg</file>
+        <file alias="CustomCursor/triLeft.svg">../../CustomCursor/triLeft.svg</file>
+        <file alias="CustomCursor/triRight.svg">../../CustomCursor/triRight.svg</file>
+        <file alias="CustomCursor/triLeftUp.svg">../../CustomCursor/triLeftUp.svg</file>
+        <file alias="CustomCursor/triLeftDown.svg">../../CustomCursor/triLeftDown.svg</file>
+        <file alias="CustomCursor/triRightUp.svg">../../CustomCursor/triRightUp.svg</file>
+        <file alias="CustomCursor/triRightDown.svg">../../CustomCursor/triRightDown.svg</file>
+        <!-- Interaction icons -->
+        <file alias="Interaction/CloseWindow.svg">../../Interaction/CloseWindow.svg</file>
+        <file alias="Interaction/Warning.svg">../../FileBrowser/Warning.svg</file>
+        <file alias="Interaction/Question.svg">../../FileBrowser/Question.svg</file>
+        <file alias="Interaction/undockWindow.svg">../../Interaction/undockWindow.svg</file>
+        <file alias="Interaction/CheckboxEmpty.svg">../../Interaction/CheckboxEmpty.svg</file>
+        <file alias="Interaction/CheckboxChecked.svg">../../Interaction/CheckboxChecked.svg</file>
+        <file alias="Interaction/SwitchSquare.svg">../../Interaction/SwitchSquare.svg</file>
+        <file alias="Interaction/SwitchTri.svg">../../Interaction/SwitchTri.svg</file>
+        <file alias="Interaction/rgbSliders.svg">../../Interaction/rgbSliders.svg</file>
+        <file alias="Interaction/settings.svg">../../Interaction/settings.svg</file>
+        <file alias="Interaction/PalletReplaceColor.svg">../../Interaction/PalletReplaceColor.svg</file>
+        <file alias="Interaction/Pressure.svg">../../Interaction/Pressure.svg</file>
+        <file alias="Interaction/LockFloatingState.svg">../../Interaction/LockFloatingState.svg</file>
+        <file alias="Interaction/UnlockFloatingState.svg">../../Interaction/UnlockFloatingState.svg</file>
+        <file alias="Interaction/ArrowDown.svg">../../Interaction/ArrowDown.svg</file>
+        <file alias="Interaction/ArrowLeft.svg">../../Interaction/ArrowLeft.svg</file>
+        <file alias="Interaction/ArrowRight.svg">../../Interaction/ArrowRight.svg</file>
+        <file alias="Interaction/ArrowUp.svg">../../Interaction/ArrowUp.svg</file>
+        <file alias="Interaction/DropDownIcon.svg">../../Interaction/DropDownIcon.svg</file>
+        <file alias="Interaction/ShiftAndTrace.svg">../../Interaction/ShiftAndTrace.svg</file>
+        <file alias="Interaction/Add.svg">../../Interaction/Add.svg</file>
+        <file alias="Interaction/Remove.svg">../../Interaction/Remove.svg</file>
+        <file alias="Interaction/Collapse.svg">../../Interaction/Collapse.svg</file>
+        <file alias="Interaction/Expand.svg">../../Interaction/Expand.svg</file>
+        <file alias="Interaction/ColorPicker.svg">../../Interaction/ColorPicker.svg</file>
+        <file alias="Interaction/Duplicate.svg">../../Interaction/Duplicate.svg</file>
+        <file alias="Interaction/FlipHorizontal.svg">../../Interaction/FlipHorizontal.svg</file>
+        <file alias="Interaction/FlipVertical.svg">../../Interaction/FlipVertical.svg</file>
+        <file alias="Interaction/Hide.svg">../../Interaction/Hide.svg</file>
+        <file alias="Interaction/Import.svg">../../Interaction/Import.svg</file>
+        <file alias="Interaction/Show.svg">../../Interaction/Show.svg</file>
+        <file alias="Interaction/ResetView.svg">../../Interaction/ResetView.svg</file>
+        <file alias="Interaction/ReffWindowImport.svg">../../Interaction/ReffWindowImport.svg</file>
+        <file alias="Interaction/ReffWindowSnapShot.svg">../../Interaction/ReffWindowSnapShot.svg</file>
+        <file alias="Interaction/ReffWindowResetView.svg">../../Interaction/ReffWindowResetView.svg</file>
+        <file alias="Interaction/ReffWindowGallery.svg">../../Interaction/ReffWindowGallery.svg</file>
+        <file alias="Interaction/FrameFirst.svg">../../Interaction/FrameFirst.svg</file>
+        <file alias="Interaction/FrameBackward.svg">../../Interaction/FrameBackward.svg</file>
+        <file alias="Interaction/FrameForward.svg">../../Interaction/FrameForward.svg</file>
+        <file alias="Interaction/FrameLast.svg">../../Interaction/FrameLast.svg</file>
+        <file alias="Interaction/Frame_InbetweenPeg.svg">../../Interaction/Frame_InbetweenPeg.svg</file>
+        <file alias="Interaction/PlaybackPlay.svg">../../Interaction/PlaybackPlay.svg</file>
+        <file alias="Interaction/PlaybackStop.svg">../../Interaction/PlaybackStop.svg</file>
+        <file alias="Interaction/PlaybackLoop.svg">../../Interaction/PlaybackLoop.svg</file>
+        <file alias="Interaction/ResetShift.svg">../../Interaction/ResetShift.svg</file>
+        <file alias="Interaction/IntensityHigh.svg">../../Interaction/IntensityHigh.svg</file>
+        <file alias="Interaction/IntensityMedium.svg">../../Interaction/IntensityMedium.svg</file>
+        <file alias="Interaction/IntensityLow.svg">../../Interaction/IntensityLow.svg</file>
+        <file alias="Interaction/IntensityOff.svg">../../Interaction/IntensityOff.svg</file>
+        <file alias="Interaction/KeyframeAdd.svg">../../Interaction/KeyframeAdd.svg</file>
+        <file alias="Interaction/KeyframeRemove.svg">../../Interaction/KeyframeRemove.svg</file>
+        <file alias="Interaction/LayerAdd.svg">../../Interaction/LayerAdd.svg</file>
+        <file alias="Interaction/LayerRemove.svg">../../Interaction/LayerRemove.svg</file>
+        <file alias="Interaction/Scene.svg">../../Interaction/Scene.svg</file>
+        <file alias="Interaction/Sequence.svg">../../Interaction/Sequence.svg</file>
+        <file alias="Interaction/LayerTag.svg">../../Interaction/LayerTag.svg</file>
+        <file alias="Interaction/LayerTint.svg">../../Interaction/LayerTint.svg</file>
+        <file alias="Interaction/LayerUntagged.svg">../../Interaction/LayerUntagged.svg</file>
+        <file alias="Interaction/Tag.svg">../../Interaction/Tag.svg</file>
+        <file alias="Interaction/Tag_unused.svg">../../Interaction/Tag_unused.svg</file>
+        <file alias="Interaction/Tint.svg">../../Interaction/Tint.svg</file>
+        <file alias="Interaction/Xsheet.svg">../../Interaction/Xsheet.svg</file>
+        <!-- Interaction tool icons for Tools dock -->
+        <file alias="Interaction/Bucket.svg">../../Interaction/Bucket.svg</file>
+        <file alias="Interaction/BItmapLayer.svg">../../Interaction/BItmapLayer.svg</file>
+        <file alias="Interaction/BucketClosed.svg">../../Interaction/BucketClosed.svg</file>
+        <file alias="Interaction/EyeDropper.svg">../../Interaction/EyeDropper.svg</file>
+        <file alias="Interaction/Hand.svg">../../Interaction/Hand.svg</file>
+        <file alias="Interaction/Tool_Pen.svg">../../Interaction/Tool_Pen.svg</file>
+        <file alias="Interaction/Tool_Pencil.svg">../../Interaction/Tool_Pencil.svg</file>
+        <file alias="Interaction/Tool_Eraser.svg">../../Interaction/Tool_Eraser.svg</file>
+        <file alias="Interaction/Tool_Select.svg">../../Interaction/Tool_Select.svg</file>
+        <file alias="Interaction/Tool_Polyline.svg">../../Interaction/Tool_Polyline.svg</file>
+        <file alias="Interaction/Tool_Curve.svg">../../Interaction/Tool_Curve.svg</file>
+        <file alias="Interaction/Tool_Bspline.svg">../../Interaction/Tool_Bspline.svg</file>
+        <file alias="Interaction/Tool_RecFill.svg">../../Interaction/Tool_RecFill.svg</file>
+        <file alias="Interaction/Tool_LassoFill.svg">../../Interaction/Tool_LassoFill.svg</file>
+        <file alias="Interaction/Tool_Dplate.svg">../../Interaction/Tool_Dplate.svg</file>
+        <file alias="Interaction/ChainOpacity.svg">../../Interaction/ChainOpacity.svg</file>
+        <file alias="Interaction/DragPeg.svg">../../Interaction/DragPeg.svg</file>
+        <file alias="Interaction/TabBrushPresets.svg">../../Interaction/TabBrushPresets.svg</file>
+        <file alias="Interaction/TabColorWheel.svg">../../Interaction/TabColorWheel.svg</file>
+        <file alias="Interaction/TabPallets.svg">../../Interaction/TabPallets.svg</file>
+        <file alias="Interaction/TabRefferenceWindow.svg">../../Interaction/TabRefferenceWindow.svg</file>
+        <file alias="Interaction/TabTools.svg">../../Interaction/TabTools.svg</file>
+        <file alias="Interaction/TabToolsOptions.svg">../../Interaction/TabToolsOptions.svg</file>
+        <file alias="Interaction/moreOptions.svg">../../Interaction/moreOptions.svg</file>
+        <file alias="Interaction/unavailable.svg">../../Interaction/unavailable.svg</file>
+        <file alias="Interaction/trash.svg">../../Interaction/trash.svg</file>
+        <file alias="Interaction/ZoomIn.svg">../../Interaction/ZoomIn.svg</file>
+        <file alias="Interaction/ZoomOut.svg">../../Interaction/ZoomOut.svg</file>
+        <file alias="Interaction/1s.svg">../../Interaction/1s.svg</file>
+        <file alias="Interaction/2s.svg">../../Interaction/2s.svg</file>
+        <file alias="Interaction/3s.svg">../../Interaction/3s.svg</file>
+        <file alias="Interaction/CellStack.svg">../../Interaction/CellStack.svg</file>
+        <file alias="Interaction/DimInactive.svg">../../Interaction/DimInactive.svg</file>
+        <file alias="Interaction/MakeUnique.svg">../../Interaction/MakeUnique.svg</file>
+        <file alias="Interaction/TabPapers.svg">../../Interaction/TabPapers.svg</file>
+        <file alias="Interaction/TimelineLayerAdd.svg">../../Interaction/TimelineLayerAdd.svg</file>
+        <file alias="Interaction/TimelineLayerRemove.svg">../../Interaction/TimelineLayerRemove.svg</file>
+        <!-- Windows & App Icons -->
+        <file alias="Windows&amp;AppIcons/Accent 1.svg">../../Windows&amp;AppIcons/Accent 1.svg</file>
+        <file alias="Windows&amp;AppIcons/Accent 2.svg">../../Windows&amp;AppIcons/Accent 2.svg</file>
+        <file alias="Windows&amp;AppIcons/Accent 3.svg">../../Windows&amp;AppIcons/Accent 3.svg</file>
+        <file alias="Windows&amp;AppIcons/Accent 4.svg">../../Windows&amp;AppIcons/Accent 4.svg</file>
+        <file alias="Windows&amp;AppIcons/MenubarIcon 1.svg">../../Windows&amp;AppIcons/MenubarIcon 1.svg</file>
+        <file alias="Windows&amp;AppIcons/MenubarIcon 2.svg">../../Windows&amp;AppIcons/MenubarIcon 2.svg</file>
+        <file alias="Windows&amp;AppIcons/MenubarIcon 3.svg">../../Windows&amp;AppIcons/MenubarIcon 3.svg</file>
+        <file alias="Windows&amp;AppIcons/MenubarIcon 4.svg">../../Windows&amp;AppIcons/MenubarIcon 4.svg</file>
+        <file alias="Windows&amp;AppIcons/ScrollbarBottom.svg">../../Windows&amp;AppIcons/ScrollbarBottom.svg</file>
+        <file alias="Windows&amp;AppIcons/ScrollbarLeft.svg">../../Windows&amp;AppIcons/ScrollbarLeft.svg</file>
+        <file alias="Windows&amp;AppIcons/ScrollbarLeft+Right.svg">../../Windows&amp;AppIcons/ScrollbarLeft+Right.svg</file>
+        <file alias="Windows&amp;AppIcons/ScrollbarRight.svg">../../Windows&amp;AppIcons/ScrollbarRight.svg</file>
+        <file alias="Windows&amp;AppIcons/ScrollbarTop.svg">../../Windows&amp;AppIcons/ScrollbarTop.svg</file>
+        <file alias="Windows&amp;AppIcons/ScrollbarTop+Bottom.svg">../../Windows&amp;AppIcons/ScrollbarTop+Bottom.svg</file>
+        <file alias="Windows&amp;AppIcons/WindowButtonLocationLeft.svg">../../Windows&amp;AppIcons/WindowButtonLocationLeft.svg</file>
+        <file alias="Windows&amp;AppIcons/WindowButtonLocationRight.svg">../../Windows&amp;AppIcons/WindowButtonLocationRight.svg</file>
+        <file alias="Windows&amp;AppIcons/WindowButtonStyleDefault.svg">../../Windows&amp;AppIcons/WindowButtonStyleDefault.svg</file>
+        <file alias="Windows&amp;AppIcons/WindowButtonStyleMac.svg">../../Windows&amp;AppIcons/WindowButtonStyleMac.svg</file>
+        <file alias="Windows&amp;AppIcons/MacCloseButton.svg">../../Windows&amp;AppIcons/MacCloseButton.svg</file>
+        <!-- File browser icons -->
+        <file alias="FileBrowser/Folder.svg">../../FileBrowser/Folder.svg</file>
+        <file alias="FileBrowser/Image.svg">../../FileBrowser/Image.svg</file>
+        <file alias="FileBrowser/Audio.svg">../../FileBrowser/Audio.svg</file>
+        <file alias="FileBrowser/ListView.svg">../../FileBrowser/ListView.svg</file>
+        <file alias="FileBrowser/GridView.svg">../../FileBrowser/GridView.svg</file>
+        <file alias="FileBrowser/Search.svg">../../FileBrowser/Search.svg</file>
+        <!-- Reference window icons (from RefWinIcons) -->
+        <file alias="icons/themes/playful/reference/load.svg">../../RefWinIcons/load.svg</file>
+        <file alias="icons/themes/playful/reference/canvasLoad.svg">../../RefWinIcons/canvasLoad.svg</file>
+        <file alias="icons/themes/playful/reference/show.svg">../../RefWinIcons/show.svg</file>
+        <file alias="icons/themes/playful/reference/hide.svg">../../RefWinIcons/hide.svg</file>
+        <file alias="icons/themes/playful/reference/previous.svg">../../RefWinIcons/previous.svg</file>
+        <file alias="icons/themes/playful/reference/resetZoom.svg">../../RefWinIcons/resetZoom.svg</file>
+        <file alias="icons/themes/playful/reference/next.svg">../../RefWinIcons/next.svg</file>
+        <file>styles/dark_theme.qss</file>
+        <!-- Inter font family -->
+        <file alias="fonts/Inter-Regular.otf">../../Font/inter/Inter-Regular.otf</file>
+        <file alias="fonts/Inter-Medium.otf">../../Font/inter/Inter-Medium.otf</file>
+        <file alias="fonts/Inter-SemiBold.otf">../../Font/inter/Inter-SemiBold.otf</file>
+        <file alias="fonts/Inter-Bold.otf">../../Font/inter/Inter-Bold.otf</file>
+        <file alias="fonts/Inter-Light-BETA.otf">../../Font/inter/Inter-Light-BETA.otf</file>
+        <file alias="fonts/Inter-ExtraLight-BETA.otf">../../Font/inter/Inter-ExtraLight-BETA.otf</file>
+        <file alias="fonts/Inter-Thin-BETA.otf">../../Font/inter/Inter-Thin-BETA.otf</file>
+        <file alias="fonts/Inter-ExtraBold.otf">../../Font/inter/Inter-ExtraBold.otf</file>
+        <file alias="fonts/Inter-Black.otf">../../Font/inter/Inter-Black.otf</file>
+        <file alias="fonts/Inter-Italic.otf">../../Font/inter/Inter-Italic.otf</file>
+        <file alias="fonts/Inter-MediumItalic.otf">../../Font/inter/Inter-MediumItalic.otf</file>
+        <file alias="fonts/Inter-SemiBoldItalic.otf">../../Font/inter/Inter-SemiBoldItalic.otf</file>
+        <file alias="fonts/Inter-BoldItalic.otf">../../Font/inter/Inter-BoldItalic.otf</file>
+        <file alias="fonts/Inter-LightItalic-BETA.otf">../../Font/inter/Inter-LightItalic-BETA.otf</file>
+        <file alias="fonts/Inter-ExtraLightItalic-BETA.otf">../../Font/inter/Inter-ExtraLightItalic-BETA.otf</file>
+        <file alias="fonts/Inter-ThinItalic-BETA.otf">../../Font/inter/Inter-ThinItalic-BETA.otf</file>
+        <file alias="fonts/Inter-ExtraBoldItalic.otf">../../Font/inter/Inter-ExtraBoldItalic.otf</file>
+        <file alias="fonts/Inter-BlackItalic.otf">../../Font/inter/Inter-BlackItalic.otf</file>
+        <!-- App icon -->
+        <file>pencil2d.ico</file>
+        <file alias="org.nurture2d.Nurture2D.ico">pencil2d.ico</file>
+    </qresource>
+    <qresource prefix="/app">
+        <file>pencil2d_quick_guide.pdf</file>
+    </qresource>
+</RCC>

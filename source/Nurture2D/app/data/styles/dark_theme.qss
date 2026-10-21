@@ -1,0 +1,436 @@
+/* Dark theme inspired by TVPaint 12; scoped to QMainWindow#MainWindow2 to avoid custom widgets. */
+
+/* ===== UI SIZE ADJUSTMENT LANDMARKS ===== */
+/* 
+ * GLOBAL FONT SIZE CONTROLS - All UI text sizing is controlled here:
+ * - Line 8: Global font-size override (9pt) - affects ALL text elements
+ * - Lines 12-34: Explicit 9pt font-size for specific UI widgets 
+ * - Lines 37-43: 9pt font-size for cosmic pane headers and custom widgets
+ * - Lines 97-133: Menu font sizes (QMenuBar, QMenu, QMenu::item) set to 9pt
+ * 
+ * TO ADJUST UI FONT SIZES: Modify the 9pt values in the sections above.
+ * This is the single source of truth for all font sizing in the application.
+ * 
+ * OTHER SIZE ADJUSTMENTS:
+ * - cosmictoolspane.cpp: Cosmic pane header layout and icon button sizes
+ * - toolboxwidget.cpp: Tools pane drawing tool icon sizes (77.74% of original)
+ */
+
+/* ===== AGGRESSIVE GLOBAL FONT OVERRIDE ===== */
+/* Applies Inter 9pt to every widget in the entire application, including
+ * top-level popups, floating windows, dialogs, tooltips, and all custom
+ * widgets — regardless of nesting depth or parent window.
+ * cosmicTextSize = 9 is the single source of truth for all text sizes.
+ */
+
+/* Universal catch-all: every QWidget anywhere in the app */
+* {
+  font-family: "Inter";
+  font-size: 9pt;
+}
+
+/* ===== UI FONT SIZE CONFIGURATION ===== */
+/* Single source of truth for all font sizes - modify here for global UI scaling */
+
+/* Global font size override - applies to all text elements */
+QMainWindow#MainWindow2 * {
+  font-family: "Inter";
+  font-size: 9pt;
+}
+
+/* Ensure specific UI elements use 9pt font */
+QMainWindow#MainWindow2 QLabel,
+QMainWindow#MainWindow2 QPushButton,
+QMainWindow#MainWindow2 QToolButton,
+QMainWindow#MainWindow2 QLineEdit,
+QMainWindow#MainWindow2 QTextEdit,
+QMainWindow#MainWindow2 QPlainTextEdit,
+QMainWindow#MainWindow2 QComboBox,
+QMainWindow#MainWindow2 QSpinBox,
+QMainWindow#MainWindow2 QDoubleSpinBox,
+QMainWindow#MainWindow2 QCheckBox,
+QMainWindow#MainWindow2 QRadioButton,
+QMainWindow#MainWindow2 QGroupBox,
+QMainWindow#MainWindow2 QTabWidget,
+QMainWindow#MainWindow2 QTabBar,
+QMainWindow#MainWindow2 QDockWidget,
+QMainWindow#MainWindow2 QStatusBar,
+QMainWindow#MainWindow2 QHeaderView,
+QMainWindow#MainWindow2 QAbstractItemView,
+QMainWindow#MainWindow2 QListView,
+QMainWindow#MainWindow2 QTreeView,
+QMainWindow#MainWindow2 QTableView {
+  font-family: "Inter";
+  font-size: 9pt;
+}
+
+/* Cosmic pane headers and custom widgets */
+QMainWindow#MainWindow2 QWidget[objectName^="TitleBar"],
+QMainWindow#MainWindow2 QWidget#TitleBarWidget,
+QMainWindow#MainWindow2 .cosmic-pane,
+QMainWindow#MainWindow2 .cosmic-header,
+QMainWindow#MainWindow2 .cosmic-title {
+  font-size: 9pt;
+}
+
+/* Top-level floating windows, popups, and dialogs — not children of MainWindow2 */
+QWidget, QDialog, QMessageBox, QInputDialog, QMenu, QMenuBar,
+QToolTip, QAbstractItemView, QComboBox QAbstractItemView,
+QLabel, QPushButton, QToolButton, QLineEdit, QTextEdit, QPlainTextEdit,
+QSpinBox, QDoubleSpinBox, QCheckBox, QRadioButton, QGroupBox,
+QTabWidget, QTabBar, QDockWidget, QStatusBar, QHeaderView,
+QListView, QTreeView, QTableView, QScrollBar {
+  font-family: "Inter";
+  font-size: 9pt;
+}
+QDialog, QMessageBox, QInputDialog {
+  background-color: #2f2f2f;
+  color: #b3b3b3;
+  font-family: "Inter";
+}
+QDialog QPushButton, QMessageBox QPushButton, QInputDialog QPushButton {
+  background: #404040;
+  color: #b3b3b3;
+  border: 1px solid #3a3a3a;
+  padding: 4px 8px;
+  font-family: "Inter";
+}
+QDialog QPushButton:hover, QMessageBox QPushButton:hover, QInputDialog QPushButton:hover {
+  background: #3a3a3a;
+}
+QDialog QLineEdit, QDialog QListView, QDialog QTreeView, QDialog QTextEdit,
+QMessageBox QLineEdit, QInputDialog QLineEdit {
+  background: #404040;
+  color: #b3b3b3;
+  border: 1px solid #3a3a3a;
+}
+
+/* Dialog group boxes */
+QDialog QGroupBox, QMessageBox QGroupBox {
+  background: #404040;
+  color: #b3b3b3;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  margin-top: 16px; /* extra space for title rendering */
+  padding-top: 8px; /* keep content clear of title */
+}
+QDialog QGroupBox::title, QMessageBox QGroupBox::title {
+  subcontrol-origin: margin;
+  subcontrol-position: top left;
+  left: 8px;
+  padding: 3px 5px 3px 5px; /* vertical padding to avoid clipping */
+  background: #404040;
+  border-radius: 3px;
+}
+
+/* Root surfaces */
+QMainWindow#MainWindow2,
+QMainWindow#MainWindow2 QWidget#background {
+  background-color: #2f2f2f;
+  color: #b3b3b3;
+}
+
+/* Menubar & Menus */
+QMainWindow#MainWindow2 QMenuBar {
+  background: #404040;
+  color: #b3b3b3;
+  font-family: "Inter";
+  font-size: 9pt;
+  font-weight: 400;      /* normal weight to keep text light and unobtrusive */
+}
+
+/* Top-level menu items: rounded hit area, text-only hover, accent pressed */
+QMainWindow#MainWindow2 QMenuBar::item {
+  padding: 3px 6px;      /* tighter horizontal padding for closer spacing */
+  margin: 0 1px;
+  border-radius: 8px;    /* rounded background when pressed */
+  background: transparent;
+}
+
+/* Hover / prelight: dimmed white pill with normal text */
+QMainWindow#MainWindow2 QMenuBar::item:selected {
+  background: rgba(255, 255, 255, 38);  /* dimmed white with transparency */
+  color: #b3b3b3;        /* normal text color - no change on hover */
+}
+
+/* Active / pressed (menu open): accent pill with white text */
+QMainWindow#MainWindow2 QMenuBar::item:pressed {
+  background: #ffaa40;
+  color: #ffffff;        /* white text for contrast on accent */
+}
+
+QMainWindow#MainWindow2 QMenu {
+  background: #2f2f2f;
+  color: #b3b3b3;
+  border: 1px solid #3a3a3a;
+  border-radius: 0px;   /* rectangular menus; corners handled per-widget if needed */
+  font-family: "Inter";
+  font-size: 9pt;
+}
+QMainWindow#MainWindow2 QMenu::item {
+  font-family: "Inter";
+  font-size: 9pt;
+}
+QMainWindow#MainWindow2 QMenu::item:selected { background: #3d3d3d; }
+
+/* Toolbars */
+QMainWindow#MainWindow2 QToolBar { background: #2f2f2f; border: 1px solid #3a3a3a; }
+QMainWindow#MainWindow2 QToolBar QToolButton {
+  background: transparent; color: #e6e6e6; border: 1px solid transparent; padding: 6px; border-radius: 14px;
+}
+QMainWindow#MainWindow2 QToolBar QToolButton:hover {
+  background: rgba(255, 170, 64, 31);
+  border-color: rgba(255, 170, 64, 89);
+}
+QMainWindow#MainWindow2 QToolBar QToolButton:checked {
+  /* Radial gradient to simulate a soft glow matching toolbox dock */
+  background: qradialgradient(cx:0.5, cy:0.5, radius:0.6,
+                              fx:0.5, fy:0.5,
+                              stop:0 rgba(255,170,64,115),
+                              stop:0.55 rgba(255,170,64,56),
+                              stop:1 rgba(255,170,64,0));
+  border-color: rgba(255, 170, 64, 217);
+}
+QMainWindow#MainWindow2 QToolBar QToolButton:checked:hover {
+  background: rgba(255, 170, 64, 71);
+  border-color: rgba(255, 170, 64, 255);
+}
+
+/* Tool dock buttons: make active tool a glowing yellow circle (blender slider yellow) */
+QMainWindow#MainWindow2 QWidget#ToolBoxWidget QToolButton {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 6px;
+  border-radius: 14px; /* circular background for ~28px icon buttons */
+}
+QMainWindow#MainWindow2 QWidget#ToolBoxWidget QToolButton:hover {
+  background: rgba(255, 170, 64, 31);
+  border-color: rgba(255, 170, 64, 89);
+}
+QMainWindow#MainWindow2 QWidget#ToolBoxWidget QToolButton:checked {
+  /* Radial gradient to simulate a soft glow */
+  background: qradialgradient(cx:0.5, cy:0.5, radius:0.6,
+                              fx:0.5, fy:0.5,
+                              stop:0 rgba(255,170,64,115),
+                              stop:0.55 rgba(255,170,64,56),
+                              stop:1 rgba(255,170,64,0));
+  border-color: rgba(255, 170, 64, 217);
+}
+QMainWindow#MainWindow2 QWidget#ToolBoxWidget QToolButton:checked:hover {
+  background: rgba(255, 170, 64, 71);
+  border-color: rgba(255, 170, 64, 255);
+}
+
+/* Dock widgets body (custom title bars are handled elsewhere).
+ * Use the unified dock master container color 2f2f2f so all dock panels
+ * share the same background instead of 404040.
+ */
+QMainWindow#MainWindow2 QDockWidget { background: #2f2f2f; }
+QMainWindow#MainWindow2 QDockWidget > QWidget { background: #2f2f2f; }
+
+/* Scroll areas and frames: align with dock master container (2f2f2f) so
+ * scrollable dock contents and simple frames don't introduce a darker 404040
+ * patch inside the panels.
+ */
+QMainWindow#MainWindow2 QScrollArea { background: #2f2f2f; }
+QMainWindow#MainWindow2 QScrollArea QWidget { background: #2f2f2f; }
+QMainWindow#MainWindow2 QFrame { background: #2f2f2f; border-color: #1f1f1f; }
+
+/* Group boxes */
+QMainWindow#MainWindow2 QGroupBox { background: #404040; color: #e6e6e6; border: 1px solid #3a3a3a; margin-top: 8px; }
+QMainWindow#MainWindow2 QGroupBox { background: #404040; color: #b3b3b3; border: 1px solid #3a3a3a; margin-top: 8px; }
+QMainWindow#MainWindow2 QGroupBox::title { subcontrol-origin: margin; left: 8px; padding: 0 3px; }
+
+/* Labels */
+QMainWindow#MainWindow2 QLabel { color: #b3b3b3; }
+
+/* Buttons */
+QMainWindow#MainWindow2 QPushButton,
+QMainWindow#MainWindow2 QToolButton {
+  background: #404040; color: #b3b3b3; border: 1px solid #3a3a3a; padding: 4px 8px;
+}
+QMainWindow#MainWindow2 QPushButton:hover,
+QMainWindow#MainWindow2 QToolButton:hover { background: #3a3a3a; }
+QMainWindow#MainWindow2 QPushButton:pressed,
+QMainWindow#MainWindow2 QToolButton:pressed { background: #3d3d3d; }
+QMainWindow#MainWindow2 QPushButton:disabled,
+QMainWindow#MainWindow2 QToolButton:disabled { color: #bdbdbd; border-color: #3a3a3a; }
+
+/* Line edits */
+QMainWindow#MainWindow2 QLineEdit,
+QMainWindow#MainWindow2 QTextEdit,
+QMainWindow#MainWindow2 QPlainTextEdit {
+  background: #2f2f2f; color: #b3b3b3; border: 1px solid #3a3a3a;
+}
+
+/* ComboBoxes */
+QMainWindow#MainWindow2 QComboBox { background: #2f2f2f; border: 1px solid #3a3a3a; color: #e6e6e6; }
+QMainWindow#MainWindow2 QComboBox QAbstractItemView { background: #2f2f2f; color: #b3b3b3; selection-background-color: #3d3d3d; }
+QMainWindow#MainWindow2 QComboBox::drop-down { border-left: 1px solid #3a3a3a; }
+QMainWindow#MainWindow2 QComboBox::down-arrow { image: none; width: 0; height: 0; }
+
+/* Spinboxes */
+QMainWindow#MainWindow2 QSpinBox,
+QMainWindow#MainWindow2 QDoubleSpinBox {
+  background: #2f2f2f; color: #b3b3b3; border: 1px solid #3a3a3a;
+}
+QMainWindow#MainWindow2 QAbstractSpinBox::up-button,
+QMainWindow#MainWindow2 QAbstractSpinBox::down-button { background: #404040; border-left: 1px solid #3a3a3a; }
+
+/* Sliders */
+QMainWindow#MainWindow2 QSlider::groove:horizontal { height: 6px; background: #404040; border: 1px solid #1f1f1f; }
+QMainWindow#MainWindow2 QSlider::handle:horizontal { background: #8a8a8a; width: 12px; margin: -4px 0; border-radius: 3px; }
+QMainWindow#MainWindow2 QSlider::groove:vertical { width: 6px; background: #404040; border: 1px solid #1f1f1f; }
+QMainWindow#MainWindow2 QSlider::handle:vertical { background: #8a8a8a; height: 12px; margin: 0 -4px; border-radius: 3px; }
+
+/* Blender-like slider fallback styles */
+QMainWindow#MainWindow2 QSlider::groove:horizontal { height: 18px; background: #282828; border: 1px solid #1f1f1f; border-radius: 4px; }
+QMainWindow#MainWindow2 QSlider::handle:horizontal { width: 0px; background: transparent; }
+QMainWindow#MainWindow2 QSlider::add-page:horizontal { background: #003366; border-radius: 4px; } /* active filled (navy) */
+QMainWindow#MainWindow2 QSlider::sub-page:horizontal { background: #282828; border-radius: 4px; }
+
+/* Checkboxes & Radios */
+QMainWindow#MainWindow2 QCheckBox, QMainWindow#MainWindow2 QRadioButton { color: #b3b3b3; }
+QMainWindow#MainWindow2 QCheckBox::indicator, QMainWindow#MainWindow2 QRadioButton::indicator { background: #2f2f2f; border: 1px solid #3a3a3a; width: 13px; height: 13px; }
+QMainWindow#MainWindow2 QCheckBox::indicator:checked { background: transparent; }
+QMainWindow#MainWindow2 QCheckBox::indicator:unchecked { background: transparent; }
+QMainWindow#MainWindow2 QRadioButton::indicator:checked { background: #00a7ff; border-radius: 7px; }
+
+/* Lists, Trees, Tables */
+QMainWindow#MainWindow2 QAbstractItemView { background: #2f2f2f; color: #b3b3b3; alternate-background-color: #404040; }
+QMainWindow#MainWindow2 QAbstractItemView::item:selected { background: #3d3d3d; color: #b3b3b3; }
+QMainWindow#MainWindow2 QHeaderView::section { background: #404040; color: #b3b3b3; border: 1px solid #3a3a3a; }
+
+/* Tabs */
+QMainWindow#MainWindow2 QTabWidget::pane {
+  /* Content pane: use a subtle top border; active tab itself draws no bottom line for a seamless header */
+  border: 1px solid #3a3a3a;
+  background: #404040;
+}
+QMainWindow#MainWindow2 QTabBar::tab:top {
+  /* Inactive tab: ~40% darker than dock title and dimmer text */
+  background: #1a1a1a;
+  color: #8a8a8a;
+  padding: 4px 12px;
+  border: 1px solid #3a3a3a;
+  border-bottom: none;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  margin-right: 2px;
+  min-width: 60px;
+}
+QMainWindow#MainWindow2 QTabBar::tab:top:selected {
+  /* Active tab: same color as dock title so it blends with the dock area */
+  background: #2b2b2b;
+  color: #ffffff;
+  border-color: #3a3a3a;
+}
+QMainWindow#MainWindow2 QTabBar::tab:top:hover {
+  /* Hover should not visibly change appearance */
+  background: #1a1a1a;
+  color: #8a8a8a;
+}
+QMainWindow#MainWindow2 QTabBar::tab:top:selected:hover {
+  background: #2b2b2b;
+  color: #ffffff;
+}
+
+/* Splitters: make dock resize bars match the dock base color (1f1f1f)
+ * so they visually merge with the inner frame while remaining draggable.
+ */
+QMainWindow#MainWindow2 QSplitter::handle {
+  background: #1f1f1f;
+  border: 0px solid #1f1f1f;
+}
+
+/* Scrollbars */
+QMainWindow#MainWindow2 QScrollBar:vertical, QMainWindow#MainWindow2 QScrollBar:horizontal { background: #2f2f2f; }
+QMainWindow#MainWindow2 QScrollBar::handle:vertical, QMainWindow#MainWindow2 QScrollBar::handle:horizontal { background: #606060; }
+QMainWindow#MainWindow2 QScrollBar::add-line, QMainWindow#MainWindow2 QScrollBar::sub-line { background: #404040; }
+
+/* Status bar */
+QMainWindow#MainWindow2 QStatusBar { background: #2f2f2f; color: #ffffff; }
+
+/* Tooltips */
+QMainWindow#MainWindow2 QToolTip { background: #404040; color: #e6e6e6; border: 1px solid #3a3a3a; }
+QMainWindow#MainWindow2 QToolTip { background: #404040; color: #b3b3b3; border: 1px solid #3a3a3a; }
+
+/* Progress bar */
+QMainWindow#MainWindow2 QProgressBar { background: #2f2f2f; color: #e6e6e6; border: 1px solid #3a3a3a; }
+QMainWindow#MainWindow2 QProgressBar { background: #2f2f2f; color: #b3b3b3; border: 1px solid #3a3a3a; }
+
+/* Docking highlight / rubber band
+ * When dragging docks, Qt shows a QRubberBand over the target area.
+ * Make it fully transparent so the reserved dock space is the only
+ * indicator, keeping the background at the normal panel color (303030)
+ * instead of adding an extra highlight.
+ *
+ * Scope this to MainWindow2 because the dark theme QSS is applied to
+ * that window rather than application-wide.
+ */
+QMainWindow#MainWindow2 QRubberBand {
+  background: transparent;
+  border: 0px solid transparent;
+}
+QMainWindow#MainWindow2 QProgressBar::chunk { background: #00a7ff; }
+
+/* Avoid styling custom classes: SpinSlider, BackgroundWidget, ScribbleArea, ColorBox, PenColorPalette, TimeLine, etc. */ 
+
+/* Title areas */
+QMainWindow#MainWindow2 QDockWidget::title {
+  background: #2b2b2b;
+  color: #b3b3b3;
+  padding-left: 6px;
+}
+/* Our custom titlebar uses palette Midlight/Mid; ensure darker values */
+QMainWindow#MainWindow2 QWidget#TitleBarWidget {
+  background: #2b2b2b;
+}
+QMainWindow#MainWindow2 QWidget[objectName^="TitleBar"] {
+  background: #2b2b2b;
+} 
+
+/* Custom checkbox icons */
+QMainWindow#MainWindow2 QCheckBox::indicator {
+  width: 16px; height: 16px;
+}
+QMainWindow#MainWindow2 QCheckBox::indicator:unchecked {
+  image: url(:/Interaction/CheckboxEmpty.svg);
+}
+QMainWindow#MainWindow2 QCheckBox::indicator:checked {
+  image: url(:/Interaction/CheckboxChecked.svg);
+} 
+
+/* Vertical fallback styles mirroring horizontal */
+QMainWindow#MainWindow2 QSlider::groove:vertical { width: 18px; background: #282828; border: 1px solid #1f1f1f; border-radius: 4px; }
+QMainWindow#MainWindow2 QSlider::handle:vertical { height: 0px; background: transparent; }
+QMainWindow#MainWindow2 QSlider::add-page:vertical { background: #003366; border-radius: 4px; }
+QMainWindow#MainWindow2 QSlider::sub-page:vertical { background: #282828; border-radius: 4px; } 
+
+/* Selection highlights (menus, combo popups) use slider yellow */
+QMainWindow#MainWindow2 QMenu::item {
+  /* Give items their own radius and insets so the bottom-most
+     selection visually follows the rounded popup corners. */
+  padding: 4px 24px;
+  margin: 2px 8px;
+  border-radius: 8px;
+}
+QMainWindow#MainWindow2 QMenu::item:selected {
+  background: #ffaa40;
+  color: #1a1a1a;
+}
+QMainWindow#MainWindow2 QComboBox QAbstractItemView::item:selected {
+  background: #ffaa40;
+  color: #1a1a1a;
+}
+QMainWindow#MainWindow2 QTreeView::item:selected,
+QMainWindow#MainWindow2 QListView::item:selected,
+QMainWindow#MainWindow2 QTableView::item:selected {
+  background: #ffaa40;
+  color: #1a1a1a;
+} 
+
+/* Fallback: when popups are top-level (not under MainWindow2), keep same selection color */
+QMenu::item:selected { background: #ffaa40; color: #1a1a1a; }
+QAbstractItemView::item:selected { background: #ffaa40; color: #1a1a1a; }
+QComboBox QAbstractItemView::item:selected { background: #ffaa40; color: #1a1a1a; } 

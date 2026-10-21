@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="96"
+   height="96"
+   viewBox="0 0 25.399999 25.4"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="Question.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#2c2c2c"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#101010"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="5.8704594"
+     inkscape:cx="40.116111"
+     inkscape:cy="50.677465"
+     inkscape:window-width="1920"
+     inkscape:window-height="1020"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       aria-label="?"
+       id="text65637"
+       style="font-weight:bold;font-size:8.61445px;font-family:Inter;-inkscape-font-specification:'Inter Bold';display:inline;fill:#62cc29;fill-opacity:1;stroke-width:9.76758;stroke-linecap:round;stroke-linejoin:round;stroke-dashoffset:12.3364;paint-order:stroke fill markers"
+       transform="matrix(4.0773787,0,0,4.0773787,-188.47511,-952.45817)">
+      <path
+         d="m 47.318222,235.35393 h 1.139901 c 0.02524,-0.47531 0.344914,-0.78236 0.828636,-0.78236 0.479515,0 0.799192,0.29023 0.799192,0.68983 0,0.39959 -0.164045,0.6057 -0.706654,0.92958 -0.580466,0.34071 -0.811811,0.71928 -0.75713,1.37966 l 0.0084,0.24396 h 1.114663 v -0.22293 c 0,-0.41221 0.155632,-0.61832 0.715067,-0.9422 0.593084,-0.34912 0.900142,-0.79078 0.900142,-1.42593 0,-0.95903 -0.794986,-1.62783 -1.99798,-1.62783 -1.291326,0 -2.023218,0.72348 -2.04425,1.75822 z m 1.884411,4.47127 c 0.382771,0 0.689829,-0.29023 0.689829,-0.66038 0,-0.37015 -0.307058,-0.66039 -0.689829,-0.66039 -0.378564,0 -0.685622,0.29024 -0.685622,0.66039 0,0.37015 0.307058,0.66038 0.685622,0.66038 z"
+         style="font-family:'SF Pro Display';-inkscape-font-specification:'SF Pro Display Bold';fill:#62cc29;fill-opacity:1"
+         id="path65797" />
+    </g>
+  </g>
+</svg>

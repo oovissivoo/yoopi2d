@@ -1,0 +1,105 @@
+
+# C++ objects and libs
+
+*.slo
+*.lo
+*.o
+*.a
+*.la
+*.lai
+*.so
+*.dll
+*.dylib
+.obj
+
+# Qt-es
+
+.qmake.cache
+.qmake.stash
+*.pro.user
+*.pro.user.*
+*.moc
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+Makefile*
+*-build-*
+.moc
+moc_predefs.h
+*-pch.h.cpp
+
+# Build outputs
+*.gch
+nurture2d.gch/
+app/build/nurture2d
+app/nurture2d
+app/app/
+app/build/
+app/build/generate_brush_tips
+app/core_lib
+Makefile
+Makefile.Debug
+Makefile.Release
+qrc_pencil.cpp
+pencil-buildroot.amd64
+pencil-buildroot.i386
+Pencil2D.app
+*.zip
+*.pid
+
+# QtCreator
+
+*.autosave
+build-pencil-Desktop-Debug/*
+
+# Mac stuff
+
+.DS_Store
+*.pbproj
+*.xcodeproj
+*.xcworkspace
+xcshareddata
+*.pbxproj
+*.mak
+*.app
+
+# Visual Studio
+
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.sdf
+*.opensdf
+*.suo
+*.pdb
+release
+debug
+ipch
+*.VC.db
+*.opendb
+.vs
+*.rc
+*.tlog
+
+/tests/tests
+/bin/*
+/tests/bin
+
+# Visual Studio Code
+.vscode
+
+# Build directory
+build
+build-release/
+build-core/
+build-tests/
+build_*.log
+.qtc_clangd
+app/resources.pri
+
+# AppImage packaging
+Nurture2D.AppDir/
+*.AppImage
+linuxdeploy*.AppImage
+linuxdeploy-plugin-qt*.AppImage

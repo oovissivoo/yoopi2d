@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.1
+Type=Application
+Name=Nurture2D
+GenericName=Animation Software
+Comment=Create traditional hand-drawn animation using both bitmap and vector graphics
+Icon=nurture2d
+Exec=nurture2d %f
+MimeType=application/x-pencil2d-pcl;application/x-pencil2d-pclx;
+Categories=Graphics;2DGraphics;VectorGraphics;RasterGraphics;Qt;
+Keywords=picture;drawing;vector;bitmap;cartoon;animation;
+StartupWMClass=Nurture2D

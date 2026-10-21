@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="96"
+   height="96"
+   viewBox="0 0 25.399999 25.4"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="ShiftAndTrace.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#2c2c2c"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#101010"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="4.3802083"
+     inkscape:cx="54.449465"
+     inkscape:cy="46.002378"
+     inkscape:window-width="1920"
+     inkscape:window-height="1025"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path12708"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:2.31706;stroke-dasharray:none;stroke-dashoffset:64.2217;stroke-opacity:1"
+       d="M 12.700019,1.1632616 A 7.1304607,7.1304607 0 0 0 5.5696441,8.2936448 7.1304607,7.1304607 0 0 0 8.9282845,14.340383 v 4.657797 c 0,0.06024 0.047384,0.113536 0.1077435,0.113536 h 7.321955 c 0.06036,0 0.107743,-0.05329 0.107743,-0.113536 V 14.340383 A 7.1304607,7.1304607 0 0 0 19.830356,8.2936448 7.1304607,7.1304607 0 0 0 12.699978,1.1632616 Z M 10.017897,21.177402 c -0.6110217,0.03128 -1.0896113,0.530608 -1.0896113,1.149496 v 0.75432 c 0,0.638931 0.5105767,1.15552 1.1494843,1.15552 h 5.238521 c 0.638896,0 1.149484,-0.516589 1.149484,-1.15552 v -0.75432 c 0,-0.638931 -0.510577,-1.149496 -1.149484,-1.149496 H 10.07777 c -0.01993,0 -0.0402,-9.84e-4 -0.0599,0 z" />
+  </g>
+</svg>

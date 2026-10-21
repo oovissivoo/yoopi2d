@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="64"
+   height="64"
+   viewBox="0 0 16.933333 16.933333"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="hide.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="8.778679"
+     inkscape:cx="13.783395"
+     inkscape:cy="37.98977"
+     inkscape:window-width="1920"
+     inkscape:window-height="1048"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect501"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0.60478089,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0.60478089,0,1 @ F,0,0,1,0,0.60478089,0,1 @ F,0,0,1,0,0.60478089,0,1 @ F,0,0,1,0,0.48977391,0,1 @ F,0,0,1,0,0.3481937,0,1"
+       unit="px"
+       method="auto"
+       mode="F"
+       radius="0"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="rect1964"
+       style="fill:#ffffff;stroke:none;stroke-width:1.12459;stroke-miterlimit:2.2;stroke-dasharray:none"
+       d="m 8.4595289,13.096336 c -0.0956,10e-7 -0.191166,-0.03658 -0.264423,-0.109838 L 0.75232287,5.5437162 c -0.1465134,-0.146514 -0.1465137,-0.382332 -7e-7,-0.528845 L 1.3572994,4.4098942 8.1951049,11.247118 c 0.146514,0.146515 0.382334,0.146513 0.528847,0 l 6.8372251,-6.8372238 0.604977,0.604976 c 0.146514,0.146514 0.146514,0.382332 0,0.528846 L 8.7239509,12.986499 c -0.07326,0.07326 -0.168818,0.109837 -0.264422,0.109837 z" />
+  </g>
+</svg>

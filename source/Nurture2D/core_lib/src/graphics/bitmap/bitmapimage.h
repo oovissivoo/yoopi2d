@@ -1,0 +1,230 @@
+/*
+
+Pencil2D - Traditional Animation Software
+Copyright (C) 2005-2007 Patrick Corrieri & Pascal Naidon
+Copyright (C) 2012-2020 Matthew Chiawen Chang
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; version 2 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+*/
+#ifndef BITMAP_IMAGE_H
+#define BITMAP_IMAGE_H
+
+#include <QPainter>
+#include "keyframe.h"
+#include <QtMath>
+#include <QHash>
+#include <QVector>
+
+class TiledBuffer;
+
+class BitmapImage : public KeyFrame
+{
+public:
+    const QRgb transp = qRgba(0, 0, 0, 0);
+    const QRgb blackline = qRgba(1, 1, 1, 255);
+    const QRgb redline = qRgba(254,0,0,255);
+    const QRgb greenline = qRgba(0,254,0,255);
+    const QRgb blueline = qRgba(0,0,254,255);
+
+    BitmapImage();
+    BitmapImage(const BitmapImage&);
+    BitmapImage(const QRect &rectangle, const QColor& color);
+    BitmapImage(const QPoint& topLeft, const QImage& image);
+    BitmapImage(const QPoint& topLeft, const QString& path);
+    BitmapImage(const QPoint& topLeft, const QString& path, bool loadNow);
+
+    ~BitmapImage() override;
+    BitmapImage& operator=(const BitmapImage& a);
+
+    BitmapImage* clone() const override;
+    void loadFile() override;
+    void unloadFile() override;
+    bool isLoaded() const override;
+    quint64 memoryUsage() override;
+
+    static bool ensureFileExtractedFromWorkspace(const QString& absFilePath);
+
+    void paintImage(QPainter& painter);
+    void paintImage(QPainter &painter, QImage &image, QRect sourceRect, QRect destRect);
+
+    QImage* image();
+    void    setImage(QImage* pImg);
+
+    BitmapImage copy();
+    BitmapImage copy(QRect rectangle);
+    void paste(BitmapImage*, QPainter::CompositionMode cm = QPainter::CompositionMode_SourceOver);
+    void paste(const TiledBuffer* tiledBuffer, QPainter::CompositionMode cm = QPainter::CompositionMode_SourceOver);
+
+    void moveTopLeft(QPoint point);
+    void moveTopLeft(QPointF point) { moveTopLeft(point.toPoint()); }
+    void transform(QRect rectangle, bool smoothTransform);
+    void transform(QRectF rectangle, bool smoothTransform) { transform(rectangle.toRect(), smoothTransform); }
+    BitmapImage transformed(QRect selection, QTransform transform, bool smoothTransform);
+    BitmapImage transformed(QRect rectangle, bool smoothTransform);
+    BitmapImage transformed(QRectF rectangle, bool smoothTransform) { return transformed(rectangle.toRect(), smoothTransform); }
+
+    bool contains(QPoint P) { return mBounds.contains(P); }
+    bool contains(QPointF P) { return contains(P.toPoint()); }
+    void autoCrop();
+
+    QRgb pixel(int x, int y);
+    QRgb pixel(QPoint p);
+    void setPixel(int x, int y, QRgb color);
+    void setPixel(QPoint p, QRgb color);
+    void fillNonAlphaPixels(const QRgb color);
+
+    QRgb constScanLine(int x, int y) const;
+    void scanLine(int x, int y, QRgb color);
+    void clear();
+    void clear(QRect rectangle);
+    void clear(QRectF rectangle) { clear(rectangle.toRect()); }
+
+    static bool floodFill(BitmapImage** replaceImage, const BitmapImage* targetImage, const QRect& cameraRect, const QPoint& point, const QRgb& fillColor, int tolerance, const int expandValue);
+    static bool* floodFillPoints(const BitmapImage* targetImage,
+                                const QRect& searchBounds,
+                                QPoint point,
+                                const int tolerance,
+                                QRect& newBounds);
+    static void expandFill(bool* fillPixels, const QRect& searchBounds, const QRect& maxBounds, int expand);
+
+    void drawLine(QPointF P1, QPointF P2, QPen pen, QPainter::CompositionMode cm, bool antialiasing);
+    void drawRect(QRectF rectangle, QPen pen, QBrush brush, QPainter::CompositionMode cm, bool antialiasing);
+    void drawEllipse(QRectF rectangle, QPen pen, QBrush brush, QPainter::CompositionMode cm, bool antialiasing);
+    void drawPath(QPainterPath path, QPen pen, QBrush brush, QPainter::CompositionMode cm, bool antialiasing);
+
+    QPoint topLeft() { autoCrop(); return mBounds.topLeft(); }
+    QPoint topRight() { autoCrop(); return mBounds.topRight(); }
+    QPoint bottomLeft() { autoCrop(); return mBounds.bottomLeft(); }
+    QPoint bottomRight() { autoCrop(); return mBounds.bottomRight(); }
+    int left() { autoCrop(); return mBounds.left(); }
+    int right() { autoCrop(); return mBounds.right(); }
+    int top() { autoCrop(); return mBounds.top(); }
+    int bottom() { autoCrop(); return mBounds.bottom(); }
+    int width() { autoCrop(); return mBounds.width(); }
+    int height() { autoCrop(); return mBounds.height(); }
+    QSize size() { autoCrop(); return mBounds.size(); }
+
+    BitmapImage* scanToTransparent(BitmapImage* img, int threshold, bool redEnabled, bool greenEnabled, bool blueEnabled);
+
+    QRect& bounds() { autoCrop(); return mBounds; }
+
+    /** Determines if the BitmapImage is minimally bounded.
+     *
+     *  A BitmapImage is minimally bounded if all edges contain
+     *  at least 1 non-transparent pixel (alpha > 0). In other words,
+     *  the size of the image cannot be decreased without
+     *  cropping visible data.
+     *
+     *  @return True only if bounds() is the minimal bounding box
+     *          for the contained image.
+     */
+    bool isMinimallyBounded() const { return mMinBound; }
+    void enableAutoCrop(bool b) { mEnableAutoCrop = b; }
+    void setOpacity(qreal opacity) { mOpacity = opacity; }
+    qreal getOpacity() const { return mOpacity; }
+
+    Status writeFile(const QString& filename);
+
+    /** Compare colors for the purposes of flood filling
+     *
+     *  Calculates the Eulcidian difference of the RGB channels
+     *  of the image and compares it to the tolerance
+     *
+     *  @param[in] newColor The first color to compare
+     *  @param[in] oldColor The second color to compare
+     *  @param[in] tolerance The threshold limit between a matching and non-matching color
+     *  @param[in,out] cache Contains a mapping of previous results of compareColor with rule that
+     *                 cache[someColor] = compareColor(someColor, oldColor, tolerance)
+     *
+     *  @return Returns true if the colors have a similarity below the tolerance level
+     *          (i.e. if Eulcidian distance squared is <= tolerance)
+     */
+    static inline bool compareColor(QRgb newColor, QRgb oldColor, int tolerance, QHash<QRgb, bool> *cache)
+    {
+        // Handle trivial case
+        if (newColor == oldColor) return true;
+
+        if(cache && cache->contains(newColor)) return cache->value(newColor);
+
+        // Get Eulcidian distance between colors
+        // Not an accurate representation of human perception,
+        // but it's the best any image editing program ever does
+        int diffRed = static_cast<int>(qPow(qRed(oldColor) - qRed(newColor), 2));
+        int diffGreen = static_cast<int>(qPow(qGreen(oldColor) - qGreen(newColor), 2));
+        int diffBlue = static_cast<int>(qPow(qBlue(oldColor) - qBlue(newColor), 2));
+        // This may not be the best way to handle alpha since the other channels become less relevant as
+        // the alpha is reduces (ex. QColor(0,0,0,0) is the same as QColor(255,255,255,0))
+        int diffAlpha = static_cast<int>(qPow(qAlpha(oldColor) - qAlpha(newColor), 2));
+
+        bool isSimilar = (diffRed + diffGreen + diffBlue + diffAlpha) <= tolerance;
+
+        if(cache)
+        {
+            Q_ASSERT(cache->contains(isSimilar) ? isSimilar == (*cache)[newColor] : true);
+            (*cache)[newColor] = isSimilar;
+        }
+
+        return isSimilar;
+    }
+
+    // Grow image bounds (without resampling) to include the given canvas-space rect
+    void growToInclude(const QRect& canvasRect) { updateBounds(mBounds.united(canvasRect).normalized()); }
+    
+    // LOD (Level of Detail) support for performance
+    const QImage* getLODImage(qreal scale) const;
+    void invalidateLOD();
+    void buildLODPyramid() const;
+
+    struct HybridVectorStroke {
+        QVector<QPointF> points;
+        qreal baseWidth = 0.0;
+        QRectF bounds;
+        QVector<QPointF> intersectionPoints;
+    };
+
+    const QVector<HybridVectorStroke>& hybridStrokes() const { return mHybridStrokes; }
+    void clearHybridStrokes();
+    void addHybridStroke(const QVector<QPointF>& points, qreal baseWidth);
+    void pruneHybridStrokesInRect(const QRectF& canvasRect);
+    void eraseHybridStrokesWithBrush(const QVector<QPointF>& eraseSamples, const QVector<qreal>& sampleRadii);
+    void collectHybridStrokesWithMask(const QImage& mask, const QPointF& origin, QVector<HybridVectorStroke>* outInsideSegments) const;
+    void clipHybridStrokesWithMask(const QImage& mask, const QPointF& origin, QVector<HybridVectorStroke>* outInsideSegments = nullptr);
+
+protected:
+    void updateBounds(QRect rectangle);
+    void extend(const QPoint& p);
+    void extend(QRect rectangle);
+
+    void setCompositionModeBounds(BitmapImage *source, QPainter::CompositionMode cm);
+    void setCompositionModeBounds(QRect sourceBounds, bool isSourceMinBounds, QPainter::CompositionMode cm);
+
+private:
+    QImage mImage;
+    QRect mBounds{0, 0, 0, 0};
+
+    /** @see isMinimallyBounded() */
+    bool mMinBound = true;
+    bool mEnableAutoCrop = false;
+
+    const int LOW_THRESHOLD = 30; // threshold for images to be given transparency
+    const int COLORDIFF = 5;      // difference in color values to decide color
+    const int GRAYSCALEDIFF = 15; // difference in grasycale values to decide color
+
+    qreal mOpacity = 1.0;
+    
+    // LOD pyramid cache (mutable for lazy building)
+    mutable QHash<int, QImage> mLODPyramid; // key = level (0=full, 1=0.5x, 2=0.25x, etc)
+    mutable bool mLODValid = false;
+
+    QVector<HybridVectorStroke> mHybridStrokes;
+};
+
+#endif

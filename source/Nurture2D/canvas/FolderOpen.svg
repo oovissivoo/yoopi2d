@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="48"
+   height="48"
+   viewBox="0 0 48 48"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="FolderOpen.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:lockguides="true"
+     inkscape:zoom="6.3050355"
+     inkscape:cx="50.277274"
+     inkscape:cy="38.937132"
+     inkscape:window-width="1920"
+     inkscape:window-height="1048"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="perspective-envelope"
+       up_left_point="1.0886428,18.027638"
+       up_right_point="47.651496,18.027638"
+       down_left_point="7.2437725,42.888388"
+       down_right_point="43.199114,42.888388"
+       id="path-effect1113"
+       is_visible="true"
+       lpeversion="1"
+       deform_type="perspective"
+       horizontal_mirror="false"
+       vertical_mirror="false"
+       overflow_perspective="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect1111"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,1.5312289,0,1 @ F,0,0,1,0,0.9201188,0,1 @ F,0,0,1,0,0.80626133,0,1 @ F,0,0,1,0,3.7462316,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1"
+       unit="px"
+       method="auto"
+       mode="F"
+       radius="0"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect1103"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,1.5312289,0,1 @ F,0,0,1,0,0.9201188,0,1 @ F,0,0,1,0,0.80626133,0,1 @ F,0,0,1,0,3.7462316,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1"
+       unit="px"
+       method="auto"
+       mode="F"
+       radius="0"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="rect900"
+       style="fill:#808080;stroke-width:0;stroke-linecap:square;paint-order:stroke fill markers;fill-opacity:1"
+       d="m 8.7750014,9.4194405 h 5.9935576 a 1.8381208,1.8381208 26.591438 0 1 1.471512,0.7366035 l 1.875617,2.505628 a 1.6106678,1.6106678 26.591438 0 0 1.289424,0.645454 h 20.047766 a 3.7462316,3.7462316 45 0 1 3.746232,3.746232 V 29.23134 H 7.2437725 V 10.950669 A 1.5312289,1.5312289 135 0 1 8.7750014,9.4194405 Z"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:path-effect="#path-effect1103"
+       inkscape:original-d="m 7.2437725,9.4194405 h 8.4449055 l 2.910173,3.8876855 H 43.19911 V 29.23134 H 7.2437725 Z" />
+    <path
+       style="fill:#ffffff;stroke-width:0;stroke-linecap:square;paint-order:stroke fill markers"
+       id="rect788"
+       width="35.955341"
+       height="24.86075"
+       x="7.2437725"
+       y="18.027637"
+       ry="3.1791456"
+       inkscape:path-effect="#path-effect1113"
+       d="m 5.205697,18.027638 38.328745,0 c 2.280848,0 3.793644,1.805821 3.406525,3.967379 l -3.289005,18.364806 c -0.25418,1.419266 -1.870747,2.528565 -3.631994,2.528565 l -29.59705,0 c -1.7612466,0 -3.4537906,-1.109299 -3.8051782,-2.528565 L 2.0709033,21.995017 C 1.5357357,19.833459 2.924849,18.027638 5.205697,18.027638 Z"
+       sodipodi:type="rect" />
+  </g>
+</svg>

@@ -1,0 +1,5 @@
+Starting Paintly application
+QApplication created
+Canvas constructor called
+Initializing brush engine
+Canvas constructor complete

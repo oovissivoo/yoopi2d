@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/brush.svg</file>
+        <file>icons/eraser.svg</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,662 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ToolOptions</class>
+ <widget class="QWidget" name="ToolOptions">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>140</width>
+    <height>355</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>140</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_3">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" name="penColorPaletteLayout">
+     <property name="spacing">
+      <number>4</number>
+     </property>
+     <property name="bottomMargin">
+      <number>4</number>
+     </property>
+    </layout>
+   </item>
+   <item>
+    <widget class="QWidget" name="cosmicPenOptionsWidget">
+     <layout class="QVBoxLayout" name="cosmicPenRootLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="cosmicPenRowsArea">
+        <layout class="QVBoxLayout" name="cosmicPenRowsLayout">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="cosmicPenBottomArea">
+        <layout class="QHBoxLayout" name="cosmicPenBottomLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <spacer name="cosmicPenBottomSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- Cosmic split layout for the Pencil tool (bitmap-only pencil options) -->
+   <item>
+    <widget class="QWidget" name="cosmicPencilOptionsWidget">
+     <layout class="QVBoxLayout" name="cosmicPencilRootLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="cosmicPencilRowsArea">
+        <layout class="QVBoxLayout" name="cosmicPencilRowsLayout">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="cosmicPencilBottomArea">
+        <layout class="QHBoxLayout" name="cosmicPencilBottomLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="cosmicGapFillOptionsWidget">
+     <layout class="QVBoxLayout" name="cosmicGapFillRootLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="cosmicGapFillRowsArea">
+        <layout class="QVBoxLayout" name="cosmicGapFillRowsLayout">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="cosmicEyedropperOptionsWidget">
+     <layout class="QVBoxLayout" name="cosmicEyedropperRootLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="cosmicEyedropperRowsArea">
+        <layout class="QVBoxLayout" name="cosmicEyedropperRowsLayout">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="cosmicEraserOptionsWidget">
+     <layout class="QVBoxLayout" name="cosmicEraserRootLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="cosmicEraserRowsArea">
+        <layout class="QVBoxLayout" name="cosmicEraserRowsLayout">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="cosmicCurveOptionsWidget">
+     <layout class="QVBoxLayout" name="cosmicCurveRootLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="cosmicCurveRowsArea">
+        <layout class="QVBoxLayout" name="cosmicCurveRowsLayout">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="cosmicDplateOptionsWidget">
+     <layout class="QVBoxLayout" name="cosmicDplateRootLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="cosmicDplateRowsArea">
+        <layout class="QVBoxLayout" name="cosmicDplateRowsLayout">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="spacing">
+      <number>4</number>
+     </property>
+    </layout>
+   </item>
+   
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>4</number>
+     </property>
+     <item>
+      <widget class="SpinSlider" name="featherSlider" native="true">
+       <property name="toolTip">
+        <string>Set Stroke Feather &lt;br&gt;&lt;b&gt;[CTRL]+drag&lt;/b&gt;&lt;br&gt;for quick adjustment</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="spacing">
+      <number>4</number>
+     </property>
+     <item>
+      <widget class="QCheckBox" name="useFeatherBox">
+       <property name="toolTip">
+        <string>Enable or disable feathering</string>
+       </property>
+       <property name="text">
+        <string>Use Feather</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="showInfoBox">
+       <property name="text">
+        <string>Show Size and Diff.</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="fillContourBox">
+       <property name="toolTip">
+        <string>Contour will be filled</string>
+       </property>
+       <property name="text">
+        <string>Fill Contour</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="useClosedPathBox">
+       <property name="toolTip">
+        <string>Close Polyline path (hold Ctrl to temporarily invert)</string>
+       </property>
+       <property name="text">
+        <string>Closed Path</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="useBezierBox">
+       <property name="toolTip">
+        <string>Use Bézier curves to create curved lines</string>
+       </property>
+       <property name="text">
+        <string comment="Tool options">Bézier</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="usePressureBox">
+       <property name="toolTip">
+        <string>Vary strokes based on pressure when drawing on a tablet</string>
+       </property>
+       <property name="text">
+        <string comment="Tool options">Pressure</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="useAABox">
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Use anti-aliasing to create smooth edges</string>
+       </property>
+       <property name="text">
+        <string comment="Brush AA">Anti-Aliasing</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="eraserLassoModeBox">
+       <property name="toolTip">
+        <string>When enabled, Eraser selects with a lasso and deletes on release</string>
+       </property>
+       <property name="text">
+        <string>Eraser: Lasso Mode</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="makeInvisibleBox">
+       <property name="toolTip">
+        <string>Make invisible</string>
+       </property>
+       <property name="text">
+        <string comment="Tool options">Invisible</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="preserveAlphaBox">
+       <property name="toolTip">
+        <string>Preserve Alpha</string>
+       </property>
+       <property name="text">
+        <string comment="Tool options">Alpha</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="vectorMergeBox">
+       <property name="toolTip">
+        <string>Merge vector lines when they are close together</string>
+       </property>
+       <property name="text">
+        <string comment="Vector line merge (Tool options)">Merge</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="drawBehindBox">
+       <property name="toolTip">
+        <string>Draw new strokes behind existing strokes</string>
+       </property>
+       <property name="text">
+        <string>Draw Behind</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,1">
+     <property name="spacing">
+      <number>4</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="stabilizerLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="inpolLevelsCombo">
+       <property name="toolTip">
+        <string>Use stabilizer to interpolate strokes</string>
+       </property>
+       <property name="currentText">
+        <string comment="Stablizer level">None</string>
+       </property>
+       <item>
+        <property name="text">
+         <string comment="Stabilizer option">None</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string comment="Stabilizer option">Simple</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string comment="Stabilizer option">Strong</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   
+   <item>
+      <widget class="QGroupBox" name="curveTaperGroup">
+     <property name="title">
+         <string>Stroke Taper</string>
+     </property>
+     <layout class="QHBoxLayout" name="curveTaperGroupLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="SpinSlider" name="curveTaperStartSlider" native="true">
+        <property name="toolTip">
+            <string>Start Taper (pixels)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="SpinSlider" name="curveTaperEndSlider" native="true">
+        <property name="toolTip">
+            <string>End Taper (pixels)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer1">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Expanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SpinSlider</class>
+   <extends>QWidget</extends>
+   <header>spinslider.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

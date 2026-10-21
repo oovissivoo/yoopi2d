@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AboutDialog</class>
+ <widget class="QDialog" name="AboutDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>450</width>
+    <height>450</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>450</width>
+    <height>450</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>450</width>
+    <height>450</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string comment="About Dialog Window Title">About Nurture 2D</string>
+  </property>
+  <layout class="QVBoxLayout" name="lay" stretch="0,0,0,1,0">
+   <item>
+    <widget class="QLabel" name="logo">
+     <property name="pixmap">
+      <pixmap resource="../data/app.qrc">:/pencil2d.ico</pixmap>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="logoText">
+     <property name="text">
+      <string notr="true">&lt;b&gt;Nurture 2D&lt;/b&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+  <item>
+   <widget class="QScrollArea" name="aboutScroll">
+    <property name="widgetResizable">
+     <bool>true</bool>
+    </property>
+    <widget class="QWidget" name="scrollContents">
+     <layout class="QVBoxLayout" name="scrollLayout">
+      <item>
+       <widget class="QLabel" name="aboutText">
+        <property name="text">
+         <string>&lt;p style=&quot;margin:8px 0; line-height:1.5;&quot;&gt;Nurture 2D is a traditional 2D animation software fork focused on giving animators the tools they need to produce professional‑looking work while remaining free and open source.&lt;/p&gt;
+&lt;p style=&quot;margin:8px 0; line-height:1.5;&quot;&gt;N2D is a dream come true—built with animation first, and everything else second. This is a personal fork, so bugs are to be expected; that said, it is more than capable of doing what it is made to do.&lt;/p&gt;
+&lt;p style=&quot;margin:8px 0; line-height:1.5;&quot;&gt;Distributed under the &lt;a href=&quot;http://www.gnu.org/licenses/gpl-2.0.html&quot;&gt;GNU General Public License, version 2&lt;/a&gt;.&lt;/p&gt;</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="openExternalLinks">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextBrowserInteraction</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+  </item>
+   <item>
+    <widget class="QLabel" name="devInfoText">
+     <property name="styleSheet">
+      <string notr="true">QLabel { background-color: palette(base); border-style: solid; border-width: 1px; border-color: palette(mid); }</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::TextSelectableByMouse</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../data/app.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>AboutDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

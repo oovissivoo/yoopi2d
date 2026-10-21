@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="32"
+   height="32"
+   viewBox="0 0 32 32"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="Normal.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#313131"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:lockguides="true"
+     inkscape:zoom="8.84375"
+     inkscape:cx="22.388693"
+     inkscape:cy="20.29682"
+     inkscape:window-width="1368"
+     inkscape:window-height="743"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="SVGRepo_bgCarrier"
+       stroke-width="0"
+       transform="matrix(0.60697188,0,0,0.60697188,9.542754,8.5947553)" />
+    <g
+       id="SVGRepo_tracerCarrier"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       transform="matrix(0.60697188,0,0,0.60697188,9.542754,8.5947553)" />
+    <g
+       id="SVGRepo_bgCarrier-3"
+       stroke-width="0"
+       transform="translate(4.230974,-0.32649159)" />
+    <g
+       id="SVGRepo_tracerCarrier-6"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       transform="translate(4.230974,-0.32649159)" />
+    <g
+       id="SVGRepo_bgCarrier-5"
+       stroke-width="0"
+       transform="matrix(-0.01790195,0,0,0.01790195,29.213806,19.621278)"
+       style="fill:#ececec" />
+    <g
+       id="SVGRepo_tracerCarrier-3"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       transform="matrix(-0.01790195,0,0,0.01790195,29.213806,19.621278)"
+       style="fill:#ececec" />
+    <g
+       id="SVGRepo_iconCarrier-5"
+       transform="matrix(-0.04868665,0,0,0.04868665,30.000917,3.1633835)"
+       style="fill:#ececec">
+      <path
+         d="m 512,320 c 0,0 -64,92.65 -64,128 0,35.35 28.66,64 64,64 35.34,0 64,-28.65 64,-64 0,-35.35 -64,-128 -64,-128 z M 502.63,217.06 294.94,9.37 C 288.69,3.12 280.5,0 272.31,0 264.12,0 255.93,3.12 249.69,9.37 L 168.11,90.95 81.93,4.76 c -6.25,-6.25 -16.38,-6.25 -22.62,0 L 36.69,27.38 c -6.24,6.25 -6.24,16.38 0,22.62 l 86.19,86.18 -94.76,94.76 c -37.49,37.48 -37.49,98.26 0,135.75 l 117.19,117.19 c 18.74,18.74 43.31,28.12 67.87,28.12 24.57,0 49.13,-9.37 67.87,-28.12 L 502.62,262.31 c 12.5,-12.5 12.5,-32.75 0.01,-45.25 z M 386.41,288.03 H 65.93 c 1.36,-3.84 3.57,-7.98 7.43,-11.83 l 13.15,-13.15 81.61,-81.61 58.6,58.6 c 12.49,12.49 32.75,12.49 45.24,0 12.49,-12.49 12.49,-32.75 0,-45.24 l -58.6,-58.6 58.95,-58.95 162.44,162.44 z"
+         id="path394"
+         style="fill:#ececec" />
+    </g>
+  </g>
+</svg>

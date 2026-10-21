@@ -1,0 +1,24 @@
+name: Create Package
+inputs:
+  arch:
+    description: Architecture
+    required: true
+  qt:
+    description: Qt Version
+    required: true
+outputs:
+  output-basename:
+    description: Output basename
+    value: ${{steps.create-package.outputs.output-basename}}
+runs:
+  using: composite
+  steps:
+  - id: create-package
+    run: ${GITHUB_ACTION_PATH}/create-package.sh
+    working-directory: build
+    shell: bash
+    env:
+      RUNNER_OS: ${{runner.os}}
+      INPUT_ARCH: ${{inputs.arch}}
+      INPUT_QT: ${{inputs.qt}}
+      IS_RELEASE: ${{ startsWith(github.ref, 'refs/heads/release/') }}

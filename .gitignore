@@ -1,0 +1,20 @@
+# Local downloads and packaged source archives
+downloads/
+output/Nurture2D-M1-build-kit.zip
+
+# Generated macOS build trees and distributable app bundles
+output/Nurture2D-M1/build-macos-arm64.*/
+output/Nurture2D-M1/dist/
+output/Nurture2D-M1/logs/
+*.app/
+
+# Local machine metadata
+.DS_Store
+**/.DS_Store
+
+# Temporary editor and patch files
+*.swp
+*.swo
+*.orig
+*.rej
+*~

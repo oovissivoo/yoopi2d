@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="96"
+   height="96"
+   viewBox="0 0 25.399999 25.4"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="FrameFirst.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#2c2c2c"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#101010"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="2.953644"
+     inkscape:cx="21.498867"
+     inkscape:cy="40.458498"
+     inkscape:window-width="1920"
+     inkscape:window-height="1020"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       d="M 0,2.2122032 V 23.187797 C 0,24.407892 0.98980026,25.4 2.2111653,25.4 h 3.4967156 c 1.2212397,0 2.2111653,-0.989603 2.2111653,-2.212203 V 14.907694 2.2122032 C 7.9190462,0.99210925 6.9292459,0 5.7078809,0 H 2.2111753 C 0.99003581,0 1.00717e-5,0.98960391 0,2.2122032 Z M 9.7078501,13.996757 23.611324,24.098985 C 24.355804,24.640135 25.4,24.1083 25.4,23.187046 V 2.2114516 C 25.4,1.2894915 24.355804,0.75836225 23.610974,1.2995128 L 9.7081032,11.396729 c -0.8834639,0.641364 -0.8834639,1.956661 -2.406e-4,2.599025 z"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.604246;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:12.3364;stroke-opacity:1;paint-order:stroke fill markers"
+       id="path211978" />
+  </g>
+</svg>

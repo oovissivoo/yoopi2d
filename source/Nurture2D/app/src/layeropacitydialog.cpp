@@ -1,0 +1,412 @@
+#include "layeropacitydialog.h"
+#include "ui_layeropacitydialog.h"
+
+#include "layermanager.h"
+#include "playbackmanager.h"
+#include "layer.h"
+#include "layerbitmap.h"
+#include "bitmapimage.h"
+#include "layervector.h"
+#include "vectorimage.h"
+
+#include "../CUI/cosmicinputfield.h"
+
+
+LayerOpacityDialog::LayerOpacityDialog(QWidget *parent) :
+    QDialog(parent, Qt::Tool),
+    ui(new Ui::LayerOpacityDialog)
+{
+    ui->setupUi(this);
+}
+
+LayerOpacityDialog::~LayerOpacityDialog()
+{
+    delete ui;
+}
+
+void LayerOpacityDialog::setCore(Editor *editor)
+{
+    mEditor = editor;
+    mLayerManager = mEditor->layers();
+    mPlayBack = mEditor->playback();
+}
+
+void LayerOpacityDialog::initUI()
+{
+
+    // Replace legacy QDoubleSpinBox with CosmicInputField (shared numeric template)
+    if (!mOpacityField && ui->chooseOpacitySpinBox) {
+        QDoubleSpinBox* oldSpin = ui->chooseOpacitySpinBox;
+        QHBoxLayout* hbox = ui->hLayoutSlider;
+        if (hbox) {
+            mOpacityField = new CosmicInputField(oldSpin->parentWidget());
+            mOpacityField->setVariant(CosmicInputField::Minimal);
+            mOpacityField->setDecimals(oldSpin->decimals());
+            mOpacityField->setSingleStep(oldSpin->singleStep());
+            mOpacityField->setRange(oldSpin->minimum(), oldSpin->maximum());
+            mOpacityField->setSuffix(oldSpin->suffix());
+            mOpacityField->setFixedHeight(24);
+            mOpacityField->setToolTip(oldSpin->toolTip());
+            mOpacityField->setValue(oldSpin->value());
+
+            const int idx = hbox->indexOf(oldSpin);
+            hbox->removeWidget(oldSpin);
+            oldSpin->hide();
+            if (idx >= 0) {
+                hbox->insertWidget(idx, mOpacityField);
+            } else {
+                hbox->addWidget(mOpacityField);
+            }
+
+            connect(mOpacityField, &CosmicInputField::valueChanged, this, [this](double v) {
+                opacitySpinboxChanged(v);
+            });
+        }
+    }
+
+    connect(ui->chooseOpacitySlider, &QSlider::valueChanged, this, &LayerOpacityDialog::opacitySliderChanged);
+    if (!mOpacityField) {
+        auto spinboxValueChanged = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
+        connect(ui->chooseOpacitySpinBox, spinboxValueChanged, this, &LayerOpacityDialog::opacitySpinboxChanged);
+    }
+    connect(ui->btnFadeIn, &QPushButton::pressed, this, &LayerOpacityDialog::fadeInPressed);
+    connect(ui->btnFadeOut, &QPushButton::pressed, this, &LayerOpacityDialog::fadeOutPressed);
+    connect(ui->btnClose, &QPushButton::pressed, this, &LayerOpacityDialog::close);
+    connect(ui->rbActiveKeyframe, &QRadioButton::toggled, this, &LayerOpacityDialog::updateUI);
+    connect(ui->rbSelectedKeyframes, &QRadioButton::toggled, this, &LayerOpacityDialog::updateUI);
+    connect(ui->rbActiveLayer, &QRadioButton::toggled, this, &LayerOpacityDialog::updateUI);
+
+    connect(this, &QDialog::finished, this, &LayerOpacityDialog::close);
+
+    connect(mEditor, &Editor::objectLoaded, this, &LayerOpacityDialog::onObjectLoaded);
+    connect(mEditor, &Editor::scrubbed, this, &LayerOpacityDialog::onCurrentFrameChanged);
+    connect(mPlayBack, &PlaybackManager::playStateChanged, this, &LayerOpacityDialog::onPlayStateChanged);
+    connect(mLayerManager, &LayerManager::currentLayerChanged, this, &LayerOpacityDialog::onCurrentLayerChanged);
+    connect(mEditor, &Editor::selectedFramesChanged, this, &LayerOpacityDialog::onSelectedFramesChanged);
+
+    onObjectLoaded();
+}
+
+void LayerOpacityDialog::updateUI()
+{
+    Layer* currentLayer = mLayerManager->currentLayer();
+    if (currentLayer == nullptr) { return; }
+
+    ui->labLayerInfo->setText(tr("Layer: %1").arg(currentLayer->name()));
+    if (currentLayer->type() != Layer::BITMAP && currentLayer->type() != Layer::VECTOR) {
+        setCanAdjust(false, false);
+        return;
+    }
+
+    bool canAdjust = false;
+    if (ui->rbActiveKeyframe->isChecked()) {
+        KeyFrame* keyframe = currentLayer->getLastKeyFrameAtPosition(mEditor->currentFrame());
+        canAdjust = keyframe != nullptr;
+    } else if (ui->rbSelectedKeyframes->isChecked()) {
+        canAdjust = !currentLayer->getSelectedFramesByPos().isEmpty();
+    } else if (ui->rbActiveLayer->isChecked()) {
+        canAdjust = true;
+    }
+
+    updateSelectedFramesUI();
+
+    ui->chooseOpacitySlider->setEnabled(canAdjust);
+    ui->chooseOpacitySpinBox->setEnabled(canAdjust);
+}
+
+void LayerOpacityDialog::onObjectLoaded()
+{
+    Layer* currentLayer = mLayerManager->currentLayer();
+    if (currentLayer == nullptr) { return; }
+
+    if (currentLayer->type() != Layer::BITMAP && currentLayer->type() != Layer::VECTOR) { return; }
+
+    KeyFrame* keyframe = currentLayer->getLastKeyFrameAtPosition(mEditor->currentFrame());
+
+    if (keyframe) {
+        updateValues(getOpacityForKeyFrame(currentLayer, keyframe));
+    } else {
+        updateValues(100);
+    }
+
+    updateUI();
+}
+
+qreal LayerOpacityDialog::getOpacityForKeyFrame(Layer* layer, const KeyFrame* keyframe) const
+{
+    if (layer->type() == Layer::BITMAP) {
+        const BitmapImage* bitmap = static_cast<const BitmapImage*>(keyframe);
+        return bitmap->getOpacity();
+    } else if (layer->type() == Layer::VECTOR) {
+        const VectorImage* vector = static_cast<const VectorImage*>(keyframe);
+        return vector->getOpacity();
+    } else {
+        return -1;
+    }
+}
+
+void LayerOpacityDialog::setOpacityForKeyFrame(Layer* layer, KeyFrame* keyframe, qreal opacity)
+{
+    if (layer->type() == Layer::BITMAP) {
+        BitmapImage* bitmap = static_cast<BitmapImage*>(keyframe);
+        bitmap->setOpacity(opacity);
+        layer->markFrameAsDirty(bitmap->pos());
+    } else if (layer->type() == Layer::VECTOR) {
+        VectorImage* vector = static_cast<VectorImage*>(keyframe);
+        vector->setOpacity(opacity);
+        layer->markFrameAsDirty(vector->pos());
+    }
+}
+
+void LayerOpacityDialog::opacitySliderChanged(int value)
+{
+    const double v = value * mSpinBoxMultiplier;
+    if (mOpacityField) {
+        mOpacityField->setValue(v);
+    } else {
+        ui->chooseOpacitySpinBox->setValue(v);
+    }
+    opacityValueChanged();
+}
+
+void LayerOpacityDialog::opacitySpinboxChanged(double value)
+{
+    ui->chooseOpacitySlider->setValue(static_cast<int>(value * 5.0));
+    opacityValueChanged();
+}
+
+void LayerOpacityDialog::fade(OpacityFadeType fadeType)
+{
+    QSignalBlocker b1(ui->chooseOpacitySlider);
+    std::unique_ptr<QSignalBlocker> b2;
+    if (mOpacityField) {
+        b2.reset(new QSignalBlocker(mOpacityField));
+    } else {
+        b2.reset(new QSignalBlocker(ui->chooseOpacitySpinBox));
+    }
+
+    Layer* currentLayer = mLayerManager->currentLayer();
+    if (currentLayer == nullptr) { return; }
+
+    if (currentLayer->type() != Layer::BITMAP && currentLayer->type() != Layer::VECTOR) { return; }
+
+    QList<int> selectedKeys = currentLayer->getSelectedFramesByPos();
+
+    if (selectedKeys.count() < mMinSelectedFrames) { return; }
+
+    int fadeFromPos = selectedKeys.first();
+    KeyFrame* keyframe = currentLayer->getLastKeyFrameAtPosition(fadeFromPos);
+    if (keyframe == nullptr) { return; }
+
+    qreal initialOpacity = getOpacityForKeyFrame(currentLayer, keyframe);
+
+    qreal imageCount = static_cast<qreal>(selectedKeys.count() - 1);
+
+    qreal opacityStepper = 0.0;
+    switch (fadeType) {
+        case OpacityFadeType::IN:
+        {
+            // When the opacity is 100% act as we're doing a full fade in from 0-100%
+            if (initialOpacity >= 1.0) {
+                initialOpacity = 0.0;
+            }
+            opacityStepper = (1.0 - initialOpacity) / imageCount;
+            break;
+        }
+        case OpacityFadeType::OUT:
+        {
+            // When the opacity is 0%, act as we're doing a full fade out from 100-0%
+            if (initialOpacity <= 0) {
+                initialOpacity = 1.0;
+            }
+            opacityStepper = initialOpacity / imageCount;
+            break;
+        }
+    }
+
+    for (int i = 0; i < selectedKeys.count(); i++) {
+        keyframe = currentLayer->getLastKeyFrameAtPosition(selectedKeys.at(i));
+        if (keyframe == nullptr) { continue; }
+
+        qreal newOpacity = 0;
+        switch (fadeType)
+        {
+            case OpacityFadeType::IN: {
+                newOpacity = initialOpacity + (i * opacityStepper);
+                break;
+            }
+            case OpacityFadeType::OUT: {
+                newOpacity = initialOpacity - (i * opacityStepper);
+                break;
+            }
+        }
+        setOpacityForKeyFrame(currentLayer, keyframe, newOpacity);
+    }
+
+    keyframe = currentLayer->getLastKeyFrameAtPosition(mEditor->currentFrame());
+
+    if (keyframe) {
+        qreal imageOpacity = getOpacityForKeyFrame(currentLayer, keyframe);
+        updateValues(imageOpacity);
+    }
+
+    emit mEditor->framesModified();
+}
+
+void LayerOpacityDialog::fadeInPressed()
+{
+    fade(OpacityFadeType::IN);
+}
+
+void LayerOpacityDialog::fadeOutPressed()
+{
+    fade(OpacityFadeType::OUT);
+}
+
+void LayerOpacityDialog::onCurrentLayerChanged(int)
+{
+    onCurrentFrameChanged(mEditor->currentFrame());
+    updateUI();
+}
+
+void LayerOpacityDialog::onCurrentFrameChanged(int frame)
+{
+    if (mPlayerIsPlaying) { return; }
+
+    Layer* currentLayer = mLayerManager->currentLayer();
+    if (currentLayer == nullptr) { return; }
+
+    if (currentLayer->type() != Layer::BITMAP && currentLayer->type() != Layer::VECTOR) {
+        setCanAdjust(false, false);
+        return;
+    }
+
+    KeyFrame* keyframe = currentLayer->getLastKeyFrameAtPosition(frame);
+    if (keyframe) {
+        updateValues(getOpacityForKeyFrame(currentLayer, keyframe));
+    }
+    updateUI();
+}
+
+void LayerOpacityDialog::onSelectedFramesChanged()
+{
+    updateUI();
+}
+
+void LayerOpacityDialog::updateSelectedFramesUI()
+{
+    Layer* currentLayer = mLayerManager->currentLayer();
+    if (currentLayer == nullptr) { return; }
+
+    QList<int> frames = currentLayer->getSelectedFramesByPos();
+
+    int minSelectedFrames = frames.count() >= mMinSelectedFrames;
+    ui->groupBoxFade->setEnabled(minSelectedFrames);
+    ui->rbSelectedKeyframes->setEnabled(minSelectedFrames);
+}
+
+void LayerOpacityDialog::onPlayStateChanged(bool isPlaying)
+{
+    mPlayerIsPlaying = isPlaying;
+
+    if (!mPlayerIsPlaying) {
+        onCurrentFrameChanged(mEditor->currentFrame());
+    }
+    updateUI();
+}
+
+void LayerOpacityDialog::updateValues(qreal opacity)
+{
+    QSignalBlocker b1(ui->chooseOpacitySlider);
+    std::unique_ptr<QSignalBlocker> b2;
+    if (mOpacityField) {
+        b2.reset(new QSignalBlocker(mOpacityField));
+    } else {
+        b2.reset(new QSignalBlocker(ui->chooseOpacitySpinBox));
+    }
+
+    int newOpacity = static_cast<int>(opacity * mMultiplier);
+    ui->chooseOpacitySlider->setValue(newOpacity);
+    const double v = newOpacity * mSpinBoxMultiplier;
+    if (mOpacityField) {
+        mOpacityField->setValue(v);
+    } else {
+        ui->chooseOpacitySpinBox->setValue(v);
+    }
+}
+
+void LayerOpacityDialog::opacityValueChanged()
+{
+    if (ui->rbActiveKeyframe->isChecked()) {
+        setOpacityForCurrentKeyframe();
+    } else if (ui->rbActiveLayer->isChecked()) {
+        setOpacityForLayer();
+    } else if (ui->rbSelectedKeyframes->isChecked()) {
+        setOpacityForSelectedKeyframes();
+    }
+}
+
+void LayerOpacityDialog::setOpacityForCurrentKeyframe()
+{
+    Layer* currentLayer = mLayerManager->currentLayer();
+    if (currentLayer == nullptr) { return; }
+
+    if (currentLayer->type() != Layer::BITMAP && currentLayer->type() != Layer::VECTOR) { return; }
+
+    KeyFrame* keyframe = currentLayer->getLastKeyFrameAtPosition(mEditor->currentFrame());
+    if (keyframe == nullptr) { return; }
+
+    qreal opacity = ui->chooseOpacitySlider->value() / mMultiplier;
+    setOpacityForKeyFrame(currentLayer, keyframe, opacity);
+
+    emit mEditor->framesModified();
+}
+
+void LayerOpacityDialog::setOpacityForSelectedKeyframes()
+{
+    Layer* currentLayer = mLayerManager->currentLayer();
+    if (currentLayer == nullptr) { return; }
+
+    QList<int> frames = currentLayer->getSelectedFramesByPos();
+
+    if (frames.isEmpty()) { return; }
+
+    qreal opacity = static_cast<qreal>(ui->chooseOpacitySlider->value()) / mMultiplier;
+
+    for (int pos : frames)
+    {
+        KeyFrame* keyframe = currentLayer->getKeyFrameAt(pos);
+        Q_ASSERT(keyframe);
+
+        setOpacityForKeyFrame(currentLayer, keyframe, opacity);
+    }
+
+    emit mEditor->framesModified();
+}
+
+void LayerOpacityDialog::setOpacityForLayer()
+{
+    Layer* currentLayer = mLayerManager->currentLayer();
+    if (currentLayer == nullptr) { return; }
+
+    qreal opacity = static_cast<qreal>(ui->chooseOpacitySlider->value()) / mMultiplier;
+
+    currentLayer->foreachKeyFrame([this, currentLayer, opacity](KeyFrame* keyframe) {
+        Q_ASSERT(keyframe);
+
+        setOpacityForKeyFrame(currentLayer, keyframe, opacity);
+    });
+
+    emit mEditor->framesModified();
+}
+
+void LayerOpacityDialog::setCanAdjust(bool opacity, bool fade)
+{
+    ui->groupBoxFade->setEnabled(fade);
+    ui->chooseOpacitySlider->setEnabled(opacity);
+    if (mOpacityField) {
+        mOpacityField->setEnabled(opacity);
+    } else {
+        ui->chooseOpacitySpinBox->setEnabled(opacity);
+    }
+}

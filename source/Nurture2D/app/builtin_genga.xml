@@ -1,0 +1,10 @@
+<!DOCTYPE PencilPalette>
+<palette>
+  <Color name="Vivid Purple" alpha="255" blue="254" red="254" green="127"/>
+  <Color name="Vivid Orange" alpha="255" blue="1" red="254" green="127"/>
+  <Color name="Deep Pink" alpha="255" blue="128" red="255" green="129"/>
+  <Color name="Vivid Greenish Yellow" alpha="255" blue="0" red="255" green="255"/>
+  <Color name="Vivid Violet" alpha="255" blue="255" red="128" green="127"/>
+  <Color name="Brilliant Yellowish Green" alpha="255" blue="191" red="127" green="254"/>
+  <Color name="Very Light Bluish Green" alpha="255" blue="255" red="127" green="255"/>
+</palette>

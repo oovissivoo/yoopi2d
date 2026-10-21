@@ -1,0 +1,36 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="i18n">
+<file alias="pencil_ar.qm">/home/lemuel/Nurture2D/app/.qm/pencil_ar.qm</file>
+<file alias="pencil_bg.qm">/home/lemuel/Nurture2D/app/.qm/pencil_bg.qm</file>
+<file alias="pencil_ca.qm">/home/lemuel/Nurture2D/app/.qm/pencil_ca.qm</file>
+<file alias="pencil_cs.qm">/home/lemuel/Nurture2D/app/.qm/pencil_cs.qm</file>
+<file alias="pencil_da.qm">/home/lemuel/Nurture2D/app/.qm/pencil_da.qm</file>
+<file alias="pencil_de.qm">/home/lemuel/Nurture2D/app/.qm/pencil_de.qm</file>
+<file alias="pencil_el.qm">/home/lemuel/Nurture2D/app/.qm/pencil_el.qm</file>
+<file alias="pencil_en.qm">/home/lemuel/Nurture2D/app/.qm/pencil_en.qm</file>
+<file alias="pencil_es.qm">/home/lemuel/Nurture2D/app/.qm/pencil_es.qm</file>
+<file alias="pencil_et.qm">/home/lemuel/Nurture2D/app/.qm/pencil_et.qm</file>
+<file alias="pencil_fa.qm">/home/lemuel/Nurture2D/app/.qm/pencil_fa.qm</file>
+<file alias="pencil_fr.qm">/home/lemuel/Nurture2D/app/.qm/pencil_fr.qm</file>
+<file alias="pencil_he.qm">/home/lemuel/Nurture2D/app/.qm/pencil_he.qm</file>
+<file alias="pencil_hu_HU.qm">/home/lemuel/Nurture2D/app/.qm/pencil_hu_HU.qm</file>
+<file alias="pencil_id.qm">/home/lemuel/Nurture2D/app/.qm/pencil_id.qm</file>
+<file alias="pencil_it.qm">/home/lemuel/Nurture2D/app/.qm/pencil_it.qm</file>
+<file alias="pencil_ja.qm">/home/lemuel/Nurture2D/app/.qm/pencil_ja.qm</file>
+<file alias="pencil_kab.qm">/home/lemuel/Nurture2D/app/.qm/pencil_kab.qm</file>
+<file alias="pencil_ko.qm">/home/lemuel/Nurture2D/app/.qm/pencil_ko.qm</file>
+<file alias="pencil_nb.qm">/home/lemuel/Nurture2D/app/.qm/pencil_nb.qm</file>
+<file alias="pencil_nl_NL.qm">/home/lemuel/Nurture2D/app/.qm/pencil_nl_NL.qm</file>
+<file alias="pencil_pl.qm">/home/lemuel/Nurture2D/app/.qm/pencil_pl.qm</file>
+<file alias="pencil_pt.qm">/home/lemuel/Nurture2D/app/.qm/pencil_pt.qm</file>
+<file alias="pencil_pt_BR.qm">/home/lemuel/Nurture2D/app/.qm/pencil_pt_BR.qm</file>
+<file alias="pencil_ru.qm">/home/lemuel/Nurture2D/app/.qm/pencil_ru.qm</file>
+<file alias="pencil_sl.qm">/home/lemuel/Nurture2D/app/.qm/pencil_sl.qm</file>
+<file alias="pencil_sv.qm">/home/lemuel/Nurture2D/app/.qm/pencil_sv.qm</file>
+<file alias="pencil_tr.qm">/home/lemuel/Nurture2D/app/.qm/pencil_tr.qm</file>
+<file alias="pencil_vi.qm">/home/lemuel/Nurture2D/app/.qm/pencil_vi.qm</file>
+<file alias="pencil_yue.qm">/home/lemuel/Nurture2D/app/.qm/pencil_yue.qm</file>
+<file alias="pencil_zh_CN.qm">/home/lemuel/Nurture2D/app/.qm/pencil_zh_CN.qm</file>
+<file alias="pencil_zh_TW.qm">/home/lemuel/Nurture2D/app/.qm/pencil_zh_TW.qm</file>
+</qresource>
+</RCC>
