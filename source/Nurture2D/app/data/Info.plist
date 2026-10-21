@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en-US</string>
 	<key>CFBundleDisplayName</key>
-	<string>Nurture2D</string>
+	<string>Yoopi2D</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -54,7 +54,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Nurture2D</string>
+	<string>Yoopi2D</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

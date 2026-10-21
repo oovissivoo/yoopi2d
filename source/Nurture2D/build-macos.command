@@ -23,7 +23,7 @@ LOG="$ROOT/logs/build-$(date +%Y%m%d-%H%M%S).log"
 exec > >(tee "$LOG") 2>&1
 trap 'rc=$?; printf "\nСборка остановилась (код %s, строка %s).\nЖурнал: %s\n" "$rc" "$LINENO" "$LOG"; exit "$rc"' ERR
 
-printf 'Nurture2D 2026 — сборка для Apple Silicon\nmacOS: %s\nЖурнал: %s\n\n' "$MACOS_VERSION" "$LOG"
+printf 'Yoopi2D — сборка для Apple Silicon\nmacOS: %s\nЖурнал: %s\n\n' "$MACOS_VERSION" "$LOG"
 printf 'Будут установлены Qt 5 и FFmpeg через Homebrew, если их ещё нет.\n'
 printf 'Приложение будет создано в папке dist рядом с этим скриптом.\n\n'
 
@@ -107,9 +107,9 @@ EXECUTABLE="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$BUILT_APP
 /opt/homebrew/bin/ffprobe -version
 
 mkdir -p "$ROOT/dist"
-OUTPUT="$ROOT/dist/Nurture2D.app"
+OUTPUT="$ROOT/dist/Yoopi2D.app"
 if [[ -e "$OUTPUT" ]]; then
-    OUTPUT="$ROOT/dist/Nurture2D-$(date +%Y%m%d-%H%M%S).app"
+    OUTPUT="$ROOT/dist/Yoopi2D-$(date +%Y%m%d-%H%M%S).app"
 fi
 [[ ! -e "$OUTPUT" ]] || fail "Выходной файл уже существует: $OUTPUT"
 /usr/bin/ditto "$BUILT_APP" "$OUTPUT"
@@ -117,7 +117,7 @@ fi
 printf '\nСборка готова: %s\nЖурнал: %s\n' "$OUTPUT" "$LOG"
 printf 'Перетащите приложение в «Программы», если хотите установить его.\n'
 printf 'FFmpeg для импорта/экспорта видео должен оставаться установленным через Homebrew.\n'
-if [[ "${NURTURE2D_NO_OPEN:-0}" != 1 ]]; then
+if [[ "${YOOPI2D_NO_OPEN:-0}" != 1 ]]; then
     /usr/bin/open -R "$OUTPUT"
     /usr/bin/open "$OUTPUT"
 fi
