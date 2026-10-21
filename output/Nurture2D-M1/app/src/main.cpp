@@ -56,10 +56,9 @@ int main(int argc, char* argv[])
     }
 
     PlatformHandler::initialise();
+    Pencil2D app(argc, argv);
     initCategoryLogging();
     PencilTool::initTipMasks(); // bake CosmicDefaultTip Hard/Medium/Soft masks once
-
-    Pencil2D app(argc, argv);
 
     // Show splash immediately before any heavy initialization
     QPixmap splashPixmap(":/Splash.png");

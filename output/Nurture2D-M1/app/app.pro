@@ -23,7 +23,7 @@ CONFIG(release, debug|release) {
     !win32: QMAKE_LFLAGS_RELEASE   += -flto
 }
 
-TARGET = nurture2d
+TARGET = yoopi2d
 
 RESOURCES += data/app.qrc
 
@@ -469,8 +469,8 @@ macx {
     FILE_ICONS.path = Contents/Resources
     QMAKE_BUNDLE_DATA += FILE_ICONS
 
-    QMAKE_TARGET_BUNDLE_PREFIX += org.nurture2d
-    QMAKE_APPLICATION_BUNDLE_NAME = Nurture2D
+    QMAKE_TARGET_BUNDLE_PREFIX += org.yoopi2d
+    QMAKE_APPLICATION_BUNDLE_NAME = Yoopi2D
 }
 
 win32 {

@@ -467,21 +467,29 @@ bool UndoRedoManager::isActiveLayerLocked() const
 
 void UndoRedoManager::undo()
 {
+    QUndoStack* stack = activeStack();
+    qInfo() << "[UndoRedoManager] Undo triggered; canUndo=" << stack->canUndo()
+            << "command=" << stack->undoText();
     if (isActiveLayerLocked()) {
+        qWarning() << "[UndoRedoManager] Undo blocked because the active layer is locked";
         emit editor()->getScribbleArea()->lockedLayerAttempted();
         return;
     }
-    activeStack()->undo();
+    stack->undo();
     updateActions(); 
 }
 
 void UndoRedoManager::redo()
 {
+    QUndoStack* stack = activeStack();
+    qInfo() << "[UndoRedoManager] Redo triggered; canRedo=" << stack->canRedo()
+            << "command=" << stack->redoText();
     if (isActiveLayerLocked()) {
+        qWarning() << "[UndoRedoManager] Redo blocked because the active layer is locked";
         emit editor()->getScribbleArea()->lockedLayerAttempted();
         return;
     }
-    activeStack()->redo();
+    stack->redo();
     updateActions();
 }
 

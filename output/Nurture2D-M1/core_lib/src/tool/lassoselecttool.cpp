@@ -4,6 +4,26 @@
 #include <QPixmap>
 #include <QLineF>
 #include <QKeyEvent>
+
+#ifdef Q_OS_MACOS
+namespace {
+constexpr quint32 kMacVirtualKeyZ = 6;
+
+bool isUndoZKey(const QKeyEvent* event)
+{
+    return event && event->nativeVirtualKey() == kMacVirtualKeyZ &&
+           (event->modifiers() & Qt::ControlModifier) &&
+           !(event->modifiers() & (Qt::AltModifier | Qt::MetaModifier));
+}
+}
+#else
+namespace {
+bool isUndoZKey(const QKeyEvent* event)
+{
+    return event && (event->modifiers() & Qt::ControlModifier) && event->key() == Qt::Key_Z;
+}
+}
+#endif
 #include <QPainterPathStroker>
 #include <cmath>
 #include <algorithm>
@@ -610,7 +630,7 @@ bool LassoSelectTool::keyPressEvent(QKeyEvent* event)
         return true;
     }
     // Intercept Undo during drag to cancel the move and restore cut content without popping undo stack
-    if ((event->modifiers() & Qt::ControlModifier) && event->key() == Qt::Key_Z) {
+    if (isUndoZKey(event)) {
         qDebug() << "[Lasso] Ctrl+Z pressed. dragging=" << m_isDraggingMove << " hasFloat=" << hasFloat;
         if (m_isDraggingMove || hasFloat) {
             // Cancel current drag preview

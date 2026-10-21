@@ -20,10 +20,10 @@ MACOS_VERSION="$(sw_vers -productVersion)"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$ROOT/logs"
 LOG="$ROOT/logs/build-$(date +%Y%m%d-%H%M%S).log"
-exec >>"$LOG" 2>&1
+exec > >(tee "$LOG") 2>&1
 trap 'rc=$?; printf "\nСборка остановилась (код %s, строка %s).\nЖурнал: %s\n" "$rc" "$LINENO" "$LOG"; exit "$rc"' ERR
 
-printf 'Nurture2D 2026 — сборка для Apple Silicon\nmacOS: %s\nЖурнал: %s\n\n' "$MACOS_VERSION" "$LOG"
+printf 'Yoopi2D — сборка для Apple Silicon\nmacOS: %s\nЖурнал: %s\n\n' "$MACOS_VERSION" "$LOG"
 printf 'Будут установлены Qt 5 и FFmpeg через Homebrew, если их ещё нет.\n'
 printf 'Приложение будет создано в папке dist рядом с этим скриптом.\n\n'
 
@@ -95,16 +95,12 @@ EXECUTABLE="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$BUILT_APP
 
 # Bundle Qt; FFmpeg remains managed by Homebrew on this Mac.
 "$QT_PREFIX/bin/macdeployqt" "$BUILT_APP" -always-overwrite
-FRAMEWORKS="$BUILT_APP/Contents/Frameworks"
-# Homebrew's Qt 5 plugins link to these transitive libraries through @rpath.
-# macdeployqt copies their direct dependencies but may omit these two leaves.
+FRAMEWORKS_DIR="$BUILT_APP/Contents/Frameworks"
 for dependency in \
-    "/opt/homebrew/opt/brotli/lib/libbrotlicommon.1.dylib" \
-    "/opt/homebrew/opt/webp/lib/libsharpyuv.0.dylib"; do
-    library="${dependency##*/}"
-    if [[ ! -e "$FRAMEWORKS/$library" && -f "$dependency" ]]; then
-        /bin/cp -L "$dependency" "$FRAMEWORKS/$library"
-    fi
+    "$("$BREW" --prefix brotli)/lib/libbrotlicommon.1.dylib" \
+    "$("$BREW" --prefix webp)/lib/libsharpyuv.0.dylib"; do
+    [[ -f "$dependency" ]] || fail "Не найдена библиотека, нужная Qt: $dependency"
+    /bin/cp -L "$dependency" "$FRAMEWORKS_DIR/$(basename "$dependency")"
 done
 /usr/bin/plutil -lint "$BUILT_APP/Contents/Info.plist"
 [[ -f "$BUILT_APP/Contents/PlugIns/platforms/libqcocoa.dylib" ]] ||
@@ -118,9 +114,9 @@ done
 /opt/homebrew/bin/ffprobe -version
 
 mkdir -p "$ROOT/dist"
-OUTPUT="$ROOT/dist/Nurture2D.app"
+OUTPUT="$ROOT/dist/Yoopi2D.app"
 if [[ -e "$OUTPUT" ]]; then
-    OUTPUT="$ROOT/dist/Nurture2D-$(date +%Y%m%d-%H%M%S).app"
+    OUTPUT="$ROOT/dist/Yoopi2D-$(date +%Y%m%d-%H%M%S).app"
 fi
 [[ ! -e "$OUTPUT" ]] || fail "Выходной файл уже существует: $OUTPUT"
 /usr/bin/ditto "$BUILT_APP" "$OUTPUT"
@@ -128,7 +124,7 @@ fi
 printf '\nСборка готова: %s\nЖурнал: %s\n' "$OUTPUT" "$LOG"
 printf 'Перетащите приложение в «Программы», если хотите установить его.\n'
 printf 'FFmpeg для импорта/экспорта видео должен оставаться установленным через Homebrew.\n'
-if [[ "${NURTURE2D_NO_OPEN:-0}" != 1 ]]; then
+if [[ "${YOOPI2D_NO_OPEN:-0}" != 1 ]]; then
     /usr/bin/open -R "$OUTPUT"
     /usr/bin/open "$OUTPUT"
 fi

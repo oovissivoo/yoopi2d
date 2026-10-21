@@ -48,7 +48,7 @@ QT_PREFIX="$("$BREW" --prefix qt@5)"
 QMAKE="$QT_PREFIX/bin/qmake"
 [[ -x "$QMAKE" ]] || fail "Не найден qmake из Qt 5."
 [[ "$("$QMAKE" -query QT_VERSION)" == 5.* ]] || fail "Для этой версии форка нужен Qt 5."
-/usr/bin/lipo -verify_arch arm64 "$QMAKE"
+/usr/bin/lipo "$QMAKE" -verify_arch arm64
 "$QMAKE" -query QT_VERSION
 "$BREW" --prefix ffmpeg
 
@@ -91,10 +91,17 @@ for candidate in "$BUILD/application/app/"*.app; do
 done
 [[ -n "$BUILT_APP" ]] || fail "Сборка не создала пакет .app."
 EXECUTABLE="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$BUILT_APP/Contents/Info.plist")"
-/usr/bin/lipo -verify_arch arm64 "$BUILT_APP/Contents/MacOS/$EXECUTABLE"
+/usr/bin/lipo "$BUILT_APP/Contents/MacOS/$EXECUTABLE" -verify_arch arm64
 
 # Bundle Qt; FFmpeg remains managed by Homebrew on this Mac.
 "$QT_PREFIX/bin/macdeployqt" "$BUILT_APP" -always-overwrite
+FRAMEWORKS_DIR="$BUILT_APP/Contents/Frameworks"
+for dependency in \
+    "$("$BREW" --prefix brotli)/lib/libbrotlicommon.1.dylib" \
+    "$("$BREW" --prefix webp)/lib/libsharpyuv.0.dylib"; do
+    [[ -f "$dependency" ]] || fail "Не найдена библиотека, нужная Qt: $dependency"
+    /bin/cp -L "$dependency" "$FRAMEWORKS_DIR/$(basename "$dependency")"
+done
 /usr/bin/plutil -lint "$BUILT_APP/Contents/Info.plist"
 [[ -f "$BUILT_APP/Contents/PlugIns/platforms/libqcocoa.dylib" ]] ||
     fail "В пакет не попал модуль интерфейса macOS (libqcocoa)."

@@ -55,6 +55,26 @@ GNU General Public License for more details.
 #include "util/pencilsettings.h"
 #include "stroketool.h"
 
+#ifdef Q_OS_MACOS
+namespace {
+constexpr quint32 kMacVirtualKeyZ = 6;
+
+bool isUndoRedoZKey(const QKeyEvent* event)
+{
+    return event && event->nativeVirtualKey() == kMacVirtualKeyZ &&
+           (event->modifiers() & Qt::ControlModifier) &&
+           !(event->modifiers() & (Qt::AltModifier | Qt::MetaModifier));
+}
+}
+#else
+namespace {
+bool isUndoRedoZKey(const QKeyEvent* event)
+{
+    return event && (event->modifiers() & Qt::ControlModifier) && event->key() == Qt::Key_Z;
+}
+}
+#endif
+
 static bool eventMatchesShortcut(const QKeyEvent* event, const QString& commandId)
 {
     // commandId is like CMD_TEMP_PAN_HOLD (macro value string, e.g. "CmdTempPanHold")
@@ -858,7 +878,7 @@ bool ScribbleArea::event(QEvent *event)
     if (event->type() == QEvent::ShortcutOverride)
     {
         QKeyEvent* ke = static_cast<QKeyEvent*>(event);
-        if ((ke->modifiers() & Qt::ControlModifier) && ke->key() == Qt::Key_Z) {
+        if (isUndoRedoZKey(ke)) {
             // If pointer is in use or lasso has floating selection active, let the tool handle this immediately
             if (isPointerInUse()) {
                 if (mEditor && mEditor->tools() && mEditor->tools()->currentTool()) {
@@ -927,9 +947,9 @@ void ScribbleArea::keyPressEvent(QKeyEvent *event)
 
     if (mCanvasInteractionLocked)
     {
-        const bool isUndo = (event->modifiers() & Qt::ControlModifier) && event->key() == Qt::Key_Z;
+        const bool isUndo = isUndoRedoZKey(event) && !(event->modifiers() & Qt::ShiftModifier);
         const bool isRedo = (event->modifiers() & Qt::ControlModifier) && (event->key() == Qt::Key_Y);
-        const bool isRedoAlt = (event->modifiers() & Qt::ControlModifier) && (event->modifiers() & Qt::ShiftModifier) && event->key() == Qt::Key_Z;
+        const bool isRedoAlt = isUndoRedoZKey(event) && (event->modifiers() & Qt::ShiftModifier);
 
         if (isUndo || isRedo || isRedoAlt) {
             QWidget::keyPressEvent(event);
@@ -972,8 +992,8 @@ void ScribbleArea::keyPressEvent(QKeyEvent *event)
         if (currentTool() && currentTool()->type() == ToolType::LASSO_SELECT) {
             const bool ctrl = (event->modifiers() & Qt::ControlModifier);
             const bool shift = (event->modifiers() & Qt::ShiftModifier);
-            const bool isUndo = ctrl && event->key() == Qt::Key_Z && !shift;
-            const bool isRedo = ctrl && ((shift && event->key() == Qt::Key_Z) || event->key() == Qt::Key_Y);
+            const bool isUndo = isUndoRedoZKey(event) && !shift;
+            const bool isRedo = (isUndoRedoZKey(event) && shift) || (ctrl && event->key() == Qt::Key_Y);
             if (isUndo || isRedo) {
                 // If the lasso tool consumes the shortcut (e.g. drag-cancel on
                 // Ctrl+Z), stop here. Otherwise, fall through so the global

@@ -66,7 +66,26 @@ GNU General Public License for more details.
 #include <QRubberBand>
 #include <QPushButton>
 #include <QButtonGroup>
+#include <QLineEdit>
+#include <QPlainTextEdit>
+#include <QTextEdit>
 #include <algorithm>
+
+#ifdef Q_OS_MACOS
+namespace {
+// macOS virtual key code for the physical ANSI Z key. Unlike QKeyEvent::key(),
+// this remains stable when the active input source changes to Cyrillic or another layout.
+constexpr quint32 kMacVirtualKeyZ = 6;
+
+bool isMacCommandZ(const QKeyEvent* event)
+{
+    if (!event || event->nativeVirtualKey() != kMacVirtualKeyZ) return false;
+    const Qt::KeyboardModifiers modifiers = event->modifiers();
+    return (modifiers & Qt::ControlModifier) &&
+           !(modifiers & (Qt::AltModifier | Qt::MetaModifier));
+}
+}
+#endif
 
 // core_lib headers
 #include "pencildef.h"
@@ -3294,8 +3313,23 @@ void MainWindow2::setupKeyboardShortcuts()
 
     auto cmdKeySeq = [](QString strCommandName) -> QKeySequence
     {
-        strCommandName = QString("shortcuts/") + strCommandName;
-        QKeySequence keySequence(pencilSettings().value(strCommandName).toString());
+        const QString keyPath = QString("shortcuts/") + strCommandName;
+        const QString configuredSequence = pencilSettings().value(keyPath).toString();
+        QKeySequence keySequence(configuredSequence);
+        if (!configuredSequence.trimmed().isEmpty() && keySequence.isEmpty()) {
+            qWarning() << "[KeyboardShortcuts] Invalid key sequence in settings:"
+                       << keyPath << configuredSequence;
+        }
+
+#ifdef Q_OS_MACOS
+        // Qt intentionally maps portable Ctrl shortcuts to Command on macOS.
+        // Keep the portable sequence intact; Meta would mean the physical Control key.
+        if (strCommandName == QLatin1String(CMD_UNDO) || strCommandName == QLatin1String(CMD_REDO)) {
+            qInfo() << "[KeyboardShortcuts] Registered macOS undo/redo shortcut:"
+                    << strCommandName << configuredSequence
+                    << "->" << keySequence.toString(QKeySequence::NativeText);
+        }
+#endif
         return keySequence;
     };
 
@@ -4034,6 +4068,38 @@ QMenu* MainWindow2::createPopupMenu()
 
 bool MainWindow2::eventFilter(QObject* obj, QEvent* event)
 {
+#ifdef Q_OS_MACOS
+    // Qt's logical key changes with the active input layout (for example Z becomes
+    // Cyrillic Я). Route Command+physical-Z directly so Undo/Redo remains layout-independent.
+    if (event && event->type() == QEvent::KeyPress) {
+        auto* keyEvent = static_cast<QKeyEvent*>(event);
+        QWidget* target = qobject_cast<QWidget*>(obj);
+        const bool belongsToThisWindow = target && target->window() == this;
+        QWidget* focus = QApplication::focusWidget();
+        const bool editingText = qobject_cast<QLineEdit*>(focus) ||
+                                 qobject_cast<QPlainTextEdit*>(focus) ||
+                                 qobject_cast<QTextEdit*>(focus);
+        if (belongsToThisWindow && !editingText && isMacCommandZ(keyEvent)) {
+            // Let the canvas retain its in-progress stroke/lasso cancellation behavior.
+            if (ui && (!ui->scribbleArea || !ui->scribbleArea->isPointerInUse())) {
+                const bool redo = keyEvent->modifiers().testFlag(Qt::ShiftModifier);
+                QAction* action = redo ? ui->actionRedo : ui->actionUndo;
+                if (action && action->isEnabled()) {
+                    qInfo() << "[KeyboardShortcuts] macOS layout-independent"
+                            << (redo ? "Redo" : "Undo")
+                            << "triggered; nativeVirtualKey=" << keyEvent->nativeVirtualKey()
+                            << "logicalKey=" << keyEvent->key();
+                    action->trigger();
+                } else {
+                    qWarning() << "[KeyboardShortcuts] Command+Z shortcut matched, but action is unavailable"
+                               << (redo ? "Redo" : "Undo");
+                }
+                keyEvent->accept();
+                return true;
+            }
+        }
+    }
+#endif
     // Neutralise any phantom QMainWindow toolbar-area widgets that appear
     // after startup and overlap CosmicMenuBar. We catch them on first
     // MouseButtonPress so the very click that would have been swallowed
