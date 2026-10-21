@@ -53,6 +53,25 @@ GNU General Public License for more details.
 #include "clipboardmanager.h"
 #include "undoredomanager.h"
 
+namespace {
+bool hasNavigableKeyframeContent(const Layer* layer, const KeyFrame* keyframe)
+{
+    if (!layer || !keyframe) {
+        return false;
+    }
+
+    // Bitmap timeline cells are the numbered drawings. Empty bitmap exposures
+    // can still have a keyframe entry, so only navigate to cells that exist.
+    if (layer->type() == Layer::BITMAP) {
+        const auto* bitmapLayer = dynamic_cast<const LayerBitmap*>(layer);
+        const auto* bitmapKeyframe = dynamic_cast<const BitmapKeyFrame*>(keyframe);
+        return bitmapLayer && bitmapKeyframe && bitmapKeyframe->cellId() > 0;
+    }
+
+    return true;
+}
+}
+
 #include "scribblearea.h"
 #include <QColor>
 #include <QSettings>
@@ -1326,20 +1345,71 @@ void Editor::removeKey()
 
 void Editor::scrubNextKeyFrame()
 {
-    Layer* currentLayer = layers()->currentLayer();
-    Q_ASSERT(currentLayer);
+    LayerManager* layerManager = layers();
+    Layer* currentLayer = layerManager ? layerManager->currentLayer() : nullptr;
+    if (!currentLayer) {
+        qWarning() << "[KeyframeNavigation] Cannot move forward: no active layer";
+        return;
+    }
 
-    int nextPosition = currentLayer->getNextKeyFramePosition(currentFrame());
-    if (currentFrame() >= currentLayer->getMaxKeyFramePosition()) nextPosition = currentFrame() + 1;
+    const int currentPosition = currentFrame();
+    int nextPosition = -1;
+    currentLayer->foreachKeyFrame([&](KeyFrame* keyframe) {
+        if (keyframe->pos() <= currentPosition) {
+            return;
+        }
+        if (!hasNavigableKeyframeContent(currentLayer, keyframe)) {
+            qInfo() << "[KeyframeNavigation] Skipping unnumbered/empty keyframe"
+                    << currentLayer->id() << "at frame" << keyframe->pos();
+            return;
+        }
+        if (nextPosition < 0 || keyframe->pos() < nextPosition) {
+            nextPosition = keyframe->pos();
+        }
+    });
+    if (nextPosition < 0) {
+        qInfo() << "[KeyframeNavigation] No later keyframe on active layer"
+                << currentLayer->id() << "at frame" << currentPosition;
+        return;
+    }
+
+    qInfo() << "[KeyframeNavigation] Next keyframe on active layer"
+            << currentLayer->id() << currentPosition << "->" << nextPosition;
     scrubTo(nextPosition);
 }
 
 void Editor::scrubPreviousKeyFrame()
 {
-    Layer* layer = mObject->getLayer(layers()->currentLayerIndex());
-    Q_ASSERT(layer);
+    LayerManager* layerManager = layers();
+    Layer* layer = layerManager ? layerManager->currentLayer() : nullptr;
+    if (!layer) {
+        qWarning() << "[KeyframeNavigation] Cannot move backward: no active layer";
+        return;
+    }
 
-    int prevPosition = layer->getPreviousKeyFramePosition(currentFrame());
+    const int currentPosition = currentFrame();
+    int prevPosition = -1;
+    layer->foreachKeyFrame([&](KeyFrame* keyframe) {
+        if (keyframe->pos() >= currentPosition) {
+            return;
+        }
+        if (!hasNavigableKeyframeContent(layer, keyframe)) {
+            qInfo() << "[KeyframeNavigation] Skipping unnumbered/empty keyframe"
+                    << layer->id() << "at frame" << keyframe->pos();
+            return;
+        }
+        if (prevPosition < 0 || keyframe->pos() > prevPosition) {
+            prevPosition = keyframe->pos();
+        }
+    });
+    if (prevPosition < 0) {
+        qInfo() << "[KeyframeNavigation] No earlier keyframe on active layer"
+                << layer->id() << "at frame" << currentPosition;
+        return;
+    }
+
+    qInfo() << "[KeyframeNavigation] Previous keyframe on active layer"
+            << layer->id() << currentPosition << "->" << prevPosition;
     scrubTo(prevPosition);
 }
 

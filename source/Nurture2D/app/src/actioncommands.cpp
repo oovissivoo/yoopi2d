@@ -1130,12 +1130,12 @@ void ActionCommands::PlayStop()
 
 void ActionCommands::GotoNextFrame()
 {
-    mEditor->scrubForward();
+    mEditor->scrubNextKeyFrame();
 }
 
 void ActionCommands::GotoPrevFrame()
 {
-    mEditor->scrubBackward();
+    mEditor->scrubPreviousKeyFrame();
 }
 
 void ActionCommands::GotoNextKeyFrame()

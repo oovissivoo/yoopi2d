@@ -2835,6 +2835,7 @@ void TimeLine::initUI()
     mFirstFrameButton->setToolTip(tr("Jump to first frame"));
 
     mPrevKeyframeButton = new CosmicButton(transportWidget);
+    mPrevKeyframeButton->setObjectName(QStringLiteral("previousDrawingButton"));
     configureCosmicButton(mPrevKeyframeButton);
     mPrevKeyframeButton->setIcon(loadSvgIcon(":/Interaction/FrameBackward.svg", QSize(18, 18)));
     mPrevKeyframeButton->setToolTip(tr("Previous keyframe"));
@@ -2845,6 +2846,7 @@ void TimeLine::initUI()
     mPlayToggle->setToolTip(tr("Play"));
 
     mNextKeyframeButton = new CosmicButton(transportWidget);
+    mNextKeyframeButton->setObjectName(QStringLiteral("nextDrawingButton"));
     configureCosmicButton(mNextKeyframeButton);
     mNextKeyframeButton->setIcon(loadSvgIcon(":/Interaction/FrameForward.svg", QSize(18, 18)));
     mNextKeyframeButton->setToolTip(tr("Next keyframe"));

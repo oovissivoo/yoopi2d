@@ -24,6 +24,7 @@ GNU General Public License for more details.
 #include "../CUI/cosmicdropdown.h"
 #include "../CUI/cosmiccontrolcenter.h"
 #include "n2duimetrics.h"
+#include "pencilsettings.h"
 
 // Qt headers
 #include <QtGui>
@@ -76,6 +77,8 @@ namespace {
 // macOS virtual key code for the physical ANSI Z key. Unlike QKeyEvent::key(),
 // this remains stable when the active input source changes to Cyrillic or another layout.
 constexpr quint32 kMacVirtualKeyZ = 6;
+constexpr quint32 kMacVirtualKeyComma = 43;
+constexpr quint32 kMacVirtualKeyPeriod = 47;
 
 bool isMacCommandZ(const QKeyEvent* event)
 {
@@ -83,6 +86,41 @@ bool isMacCommandZ(const QKeyEvent* event)
     const Qt::KeyboardModifiers modifiers = event->modifiers();
     return (modifiers & Qt::ControlModifier) &&
            !(modifiers & (Qt::AltModifier | Qt::MetaModifier));
+}
+
+bool isMacKeyframeNavigationShortcut(const QKeyEvent* event, bool* goNext)
+{
+    if (!event || !goNext) return false;
+
+    const Qt::KeyboardModifiers modifiers = event->modifiers();
+    if (modifiers.testFlag(Qt::ControlModifier) ||
+        modifiers.testFlag(Qt::MetaModifier)) {
+        return false;
+    }
+
+    // Use macOS virtual key codes for the physical comma and period keys so
+    // Qt's translated character does not change the shortcut with the layout.
+    const quint32 virtualKey = event->nativeVirtualKey();
+    const bool next = virtualKey == kMacVirtualKeyPeriod;
+    const bool previous = virtualKey == kMacVirtualKeyComma;
+    if (!next && !previous) return false;
+
+    // The ordinary comma/period bindings used to step through every timeline
+    // position. Both those bindings and the Option aliases now navigate drawings.
+    // Shift is allowed for the printed < and > symbols on the same physical keys.
+    const bool option = modifiers.testFlag(Qt::AltModifier);
+    const QString command = option
+        ? (next ? QStringLiteral("CmdGotoNextKeyFrame") : QStringLiteral("CmdGotoPreviousKeyFrame"))
+        : (next ? QStringLiteral("CmdGotoNextFrame") : QStringLiteral("CmdGotoPreviousFrame"));
+    const QString expected = (option ? QStringLiteral("Alt+") : QString())
+        + (next ? QStringLiteral(".") : QStringLiteral(","));
+    const QString configured = pencilSettings()
+        .value(QStringLiteral("shortcuts/%1").arg(command)).toString()
+        .remove(QLatin1Char('"')).trimmed();
+    if (configured.compare(expected, Qt::CaseInsensitive) != 0) return false;
+
+    *goNext = next;
+    return true;
 }
 }
 #endif
@@ -117,7 +155,6 @@ bool isMacCommandZ(const QKeyEvent* event)
 
 #include "actioncommands.h"
 #include "../core_lib/src/util/fileformat.h"
-#include "pencilsettings.h"
 #include "util.h"
 #include "undoredocommand.h"
 #include "popupcolorwheelwidget.h"
@@ -3429,6 +3466,10 @@ void MainWindow2::setupKeyboardShortcuts()
     ui->actionNext_Frame->setShortcut(cmdKeySeq(CMD_GOTO_NEXT_FRAME));
     ui->actionPrev_KeyFrame->setShortcut(cmdKeySeq(CMD_GOTO_PREV_KEY_FRAME));
     ui->actionNext_KeyFrame->setShortcut(cmdKeySeq(CMD_GOTO_NEXT_KEY_FRAME));
+    qInfo() << "[KeyframeNavigation] Drawing navigation initialized; executable="
+            << QCoreApplication::applicationFilePath()
+            << "previous=" << ui->actionPrevious_Frame->shortcut().toString()
+            << "next=" << ui->actionNext_Frame->shortcut().toString();
     ui->actionAdd_Frame->setShortcut(cmdKeySeq(CMD_ADD_FRAME));
     ui->actionDuplicate_Frame->setShortcut(cmdKeySeq(CMD_DUPLICATE_FRAME));
     ui->actionRemove_Frame->setShortcut(cmdKeySeq(CMD_REMOVE_FRAME));
@@ -4071,7 +4112,7 @@ bool MainWindow2::eventFilter(QObject* obj, QEvent* event)
 #ifdef Q_OS_MACOS
     // Qt's logical key changes with the active input layout (for example Z becomes
     // Cyrillic Я). Route Command+physical-Z directly so Undo/Redo remains layout-independent.
-    if (event && event->type() == QEvent::KeyPress) {
+    if (event && (event->type() == QEvent::KeyPress || event->type() == QEvent::ShortcutOverride)) {
         auto* keyEvent = static_cast<QKeyEvent*>(event);
         QWidget* target = qobject_cast<QWidget*>(obj);
         const bool belongsToThisWindow = target && target->window() == this;
@@ -4079,7 +4120,7 @@ bool MainWindow2::eventFilter(QObject* obj, QEvent* event)
         const bool editingText = qobject_cast<QLineEdit*>(focus) ||
                                  qobject_cast<QPlainTextEdit*>(focus) ||
                                  qobject_cast<QTextEdit*>(focus);
-        if (belongsToThisWindow && !editingText && isMacCommandZ(keyEvent)) {
+        if (event->type() == QEvent::KeyPress && belongsToThisWindow && !editingText && isMacCommandZ(keyEvent)) {
             // Let the canvas retain its in-progress stroke/lasso cancellation behavior.
             if (ui && (!ui->scribbleArea || !ui->scribbleArea->isPointerInUse())) {
                 const bool redo = keyEvent->modifiers().testFlag(Qt::ShiftModifier);
@@ -4097,6 +4138,37 @@ bool MainWindow2::eventFilter(QObject* obj, QEvent* event)
                 keyEvent->accept();
                 return true;
             }
+        }
+
+        bool goNextKeyframe = false;
+        if (belongsToThisWindow && !editingText && ui &&
+            isMacKeyframeNavigationShortcut(keyEvent, &goNextKeyframe)) {
+            // Claim the physical key before Qt can trigger a layout-dependent
+            // QAction shortcut. Dispatch only on KeyPress, exactly once.
+            if (event->type() == QEvent::ShortcutOverride) {
+                keyEvent->accept();
+                return true;
+            }
+            if ((ui->scribbleArea && ui->scribbleArea->isPointerInUse()) ||
+                mEditor->shiftTrace()->activeMoveEntryId() != -1) {
+                qInfo() << "[KeyboardShortcuts] Drawing navigation blocked during an active edit";
+                keyEvent->accept();
+                return true;
+            }
+            QAction* action = goNextKeyframe ? ui->actionNext_KeyFrame : ui->actionPrev_KeyFrame;
+            if (action && action->isEnabled()) {
+                qInfo() << "[KeyboardShortcuts] macOS layout-independent keyframe navigation"
+                        << (goNextKeyframe ? "next" : "previous")
+                        << "triggered; nativeVirtualKey=" << keyEvent->nativeVirtualKey()
+                        << "logicalKey=" << keyEvent->key()
+                        << "modifiers=" << keyEvent->modifiers();
+                action->trigger();
+            } else {
+                qWarning() << "[KeyboardShortcuts] Keyframe navigation shortcut matched, but action is unavailable"
+                           << (goNextKeyframe ? "next" : "previous");
+            }
+            keyEvent->accept();
+            return true;
         }
     }
 #endif

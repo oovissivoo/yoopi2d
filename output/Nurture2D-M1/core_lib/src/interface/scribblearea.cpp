@@ -1197,10 +1197,10 @@ void ScribbleArea::keyEvent(QKeyEvent* event)
     switch (event->key())
     {
     case Qt::Key_Right:
-        mEditor->scrubForward();
+        mEditor->scrubNextKeyFrame();
         break;
     case Qt::Key_Left:
-        mEditor->scrubBackward();
+        mEditor->scrubPreviousKeyFrame();
         break;
     case Qt::Key_Up:
         mEditor->layers()->gotoNextLayer();
