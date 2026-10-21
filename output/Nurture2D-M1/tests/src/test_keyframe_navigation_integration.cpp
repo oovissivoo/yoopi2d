@@ -109,9 +109,24 @@ int main(int argc, char** argv)
     canvas->setFocus();
     editor->scrubTo(1);
     physicalKey(canvas, Qt::Key_Right, 124, Qt::NoModifier, QString());
-    expectFrame(editor, 6, "right arrow skips held frames");
+    expectFrame(editor, 2, "right arrow advances one timeline frame");
+    physicalKey(canvas, Qt::Key_Right, 124, Qt::NoModifier, QString());
+    expectFrame(editor, 3, "right arrow visits an unnumbered position");
+    physicalKey(canvas, Qt::Key_Right, 124, Qt::NoModifier, QString());
+    expectFrame(editor, 4, "right arrow visits a held frame");
     physicalKey(canvas, Qt::Key_Left, 123, Qt::NoModifier, QString());
-    expectFrame(editor, 1, "left arrow skips held frames");
+    expectFrame(editor, 3, "left arrow steps back one frame");
+    physicalKey(canvas, Qt::Key_Left, 123, Qt::NoModifier, QString());
+    expectFrame(editor, 2, "left arrow visits every intermediate frame");
+    physicalKey(canvas, Qt::Key_Left, 123, Qt::NoModifier, QString());
+    expectFrame(editor, 1, "left arrow reaches first frame");
+    physicalKey(canvas, Qt::Key_Left, 123, Qt::NoModifier, QString());
+    expectFrame(editor, 1, "left arrow stops at first frame");
+    editor->scrubTo(9);
+    physicalKey(canvas, Qt::Key_Right, 124, Qt::NoModifier, QString());
+    expectFrame(editor, 10, "right arrow stays sequential between drawings");
+    physicalKey(canvas, Qt::Key_Left, 123, Qt::NoModifier, QString());
+    expectFrame(editor, 9, "left arrow stays sequential between drawings");
 
 #ifdef Q_OS_MACOS
     const struct { int next; int previous; const char* name; } layouts[] = {

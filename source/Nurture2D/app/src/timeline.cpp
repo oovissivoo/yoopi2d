@@ -2934,6 +2934,11 @@ void TimeLine::initUI()
     headerRightLayout->setContentsMargins(6, 0, 6, 0);
     headerRightLayout->setSpacing(6);
     headerRightContainer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+    if (QWidget* range = mTimeControls->rangeWidget()) {
+        range->setParent(headerRightContainer);
+        headerRightLayout->addWidget(range);
+    }
     
     // Add zoom controls to header
     headerRightLayout->addWidget(zoomInButton);

@@ -128,22 +128,56 @@ void TimeControls::initUI()
     }
 
     mLoopStartSpinBox = new QSpinBox(this);
+    mLoopStartSpinBox->setObjectName("playbackRangeStart");
     mLoopStartSpinBox->setFixedHeight(24);
+    mLoopStartSpinBox->setRange(1, 9998);
     mLoopStartSpinBox->setValue(settings.value("loopStart", 1).toInt()); // Default to 1
-    mLoopStartSpinBox->setMinimum(1);
+    mLoopStartSpinBox->setKeyboardTracking(false);
     mLoopStartSpinBox->setEnabled(true); // Enabled by default
     mLoopStartSpinBox->setToolTip(tr("Start of playback loop"));
     mLoopStartSpinBox->setFocusPolicy(Qt::WheelFocus);
-    mLoopStartSpinBox->hide();  // Hidden - moved to settings dialog
 
     mLoopEndSpinBox = new QSpinBox(this);
+    mLoopEndSpinBox->setObjectName("playbackRangeEnd");
     mLoopEndSpinBox->setFixedHeight(24);
+    mLoopEndSpinBox->setRange(mLoopStartSpinBox->value() + 1, 9999);
     mLoopEndSpinBox->setValue(settings.value("loopEnd", 24).toInt()); // Default to 24
-    mLoopEndSpinBox->setMinimum(2);
+    mLoopEndSpinBox->setKeyboardTracking(false);
     mLoopEndSpinBox->setEnabled(true); // Enabled by default
     mLoopEndSpinBox->setToolTip(tr("End of playback loop"));
     mLoopEndSpinBox->setFocusPolicy(Qt::WheelFocus);
-    mLoopEndSpinBox->hide();  // Hidden - moved to settings dialog
+
+    // Reuse the actual range controls so marker dragging, settings and typed
+    // values all follow the same playback range, without a second UI copy.
+    mRangePane = new QWidget(this);
+    mRangePane->setObjectName("playbackRangeControls");
+    mRangePane->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    mRangePane->setStyleSheet(
+        "QWidget#playbackRangeControls { background: #303030; border-radius: 5px; }"
+        "QLabel { color: #b3b3b3; background: transparent; font-size: 12px; }"
+        "QSpinBox { color: #eeeeee; background: #505050; border: none;"
+        " border-radius: 4px; padding: 0 4px; selection-background-color: #7447ff; }"
+        "QSpinBox:disabled { color: #777777; }");
+    auto* rangeLayout = new QHBoxLayout(mRangePane);
+    rangeLayout->setContentsMargins(8, 3, 8, 3);
+    rangeLayout->setSpacing(6);
+    auto* startLabel = new QLabel(tr("Start"), mRangePane);
+    auto* endLabel = new QLabel(tr("End"), mRangePane);
+    startLabel->setBuddy(mLoopStartSpinBox);
+    endLabel->setBuddy(mLoopEndSpinBox);
+    for (auto* field : {mLoopStartSpinBox, mLoopEndSpinBox}) {
+        field->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        field->setAlignment(Qt::AlignCenter);
+        field->setFixedWidth(qMax(54, field->fontMetrics().horizontalAdvance("9999") + 16));
+    }
+    mLoopStartSpinBox->setAccessibleName(tr("Playback start frame"));
+    mLoopEndSpinBox->setAccessibleName(tr("Playback end frame"));
+    mLoopStartSpinBox->setToolTip(tr("First frame to play (inclusive). Type a number and press Enter."));
+    mLoopEndSpinBox->setToolTip(tr("Last frame to play (inclusive). Type a number and press Enter."));
+    rangeLayout->addWidget(startLabel);
+    rangeLayout->addWidget(mLoopStartSpinBox);
+    rangeLayout->addWidget(endLabel);
+    rangeLayout->addWidget(mLoopEndSpinBox);
 
     mPlaybackRangeCheckBox = new QCheckBox(tr("Range"));
     mPlaybackRangeCheckBox->setChecked(true); // Enabled by default
@@ -252,6 +286,8 @@ void TimeControls::updateUI()
     mLoopStartSpinBox->setValue(playback->markInFrame());
 
     QSignalBlocker b2(mLoopEndSpinBox);
+    // A previously opened document may have had a later start frame.
+    mLoopEndSpinBox->setMinimum(mLoopStartSpinBox->value() + 1);
     mLoopEndSpinBox->setValue(playback->markOutFrame());
 
     QSignalBlocker b3(mFpsField);
@@ -393,12 +429,16 @@ void TimeControls::loopStartValueChanged(int i)
     mLoopEndSpinBox->setMinimum(i + 1);
 
     mEditor->playback()->setRangedStartFrame(i);
+    qInfo() << "[PlaybackRange] Start changed:" << i
+            << "end:" << mLoopEndSpinBox->value();
     mTimeline->updateLength();
 }
 
 void TimeControls::loopEndValueChanged(int i)
 {
     mEditor->playback()->setRangedEndFrame(i);
+    qInfo() << "[PlaybackRange] End changed:" << i
+            << "start:" << mLoopStartSpinBox->value();
     mTimeline->updateLength();
 }
 
@@ -487,6 +527,7 @@ void TimeControls::updateTimecodeLabel(int frame)
 
 void TimeControls::updateLength(int frameLength)
 {
-    mLoopStartSpinBox->setMaximum(frameLength - 1);
-    mLoopEndSpinBox->setMaximum(frameLength);
+    // Numeric entry can extend the timeline beyond its currently visible
+    // length; TimeLine::checkTimelineExpansion grows it up to 9999 frames.
+    Q_UNUSED(frameLength);
 }

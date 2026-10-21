@@ -45,6 +45,7 @@ public:
     void setLoop(bool);
     void setRangeState(bool);
     QWidget* trailingWidget() const { return mTrailingPane; }
+    QWidget* rangeWidget() const { return mRangePane; }
 
     void updateLength(int frameLength);
     void updatePlayState();
@@ -104,6 +105,7 @@ private:
     // Timecode label is now placed inside a trailing container, not as a toolbar action
     QAction*     mTimecodeLabelAction = nullptr; // kept for backward-compatibility, unused
     QWidget*     mTrailingPane = nullptr;
+    QWidget*     mRangePane = nullptr;
 
     QIcon mStartIcon;
     QIcon mStopIcon;
