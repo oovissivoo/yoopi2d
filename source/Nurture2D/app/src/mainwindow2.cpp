@@ -1554,8 +1554,46 @@ void MainWindow2::createMenus()
     bindPreferenceSetting(ui->actionGoldenRatio, prefs, SETTING::OVERLAY_GOLDEN);
     bindPreferenceSetting(ui->actionThirds, prefs, SETTING::OVERLAY_THIRDS);
     bindPreferenceSetting(ui->actionCenter, prefs, SETTING::OVERLAY_CENTER);
-    bindPreferenceSetting(ui->actionOnionPrev, prefs, SETTING::PREV_ONION);
-    bindPreferenceSetting(ui->actionOnionNext, prefs, SETTING::NEXT_ONION);
+    // Menu/keyboard controls and the timeline lamp share the same onion skins.
+    // The old preference actions enabled a second, untinted rendering pass.
+    auto bindOnionDirection = [this](QAction* action, bool previous) {
+        auto* manager = mEditor->shiftTrace();
+        auto matches = [previous](const ShiftTraceManager::Entry& entry) {
+            return previous ? entry.exposureOffset < 0 : entry.exposureOffset > 0;
+        };
+        auto refresh = [action, manager, matches]() {
+            bool visible = false;
+            for (const auto& entry : manager->entries()) {
+                if (matches(entry) && entry.visible) { visible = true; break; }
+            }
+            const QSignalBlocker blocker(action);
+            action->setChecked(!manager->hideAll() && visible);
+        };
+        connect(manager, &ShiftTraceManager::needsRedraw, this, refresh);
+        connect(action, &QAction::toggled, this, [manager, matches, previous](bool enabled) {
+            int nearestId = -1;
+            int nearestDistance = ShiftTraceManager::kMaxEntries + 1;
+            bool anyVisible = false;
+            QList<int> visibleIds;
+            for (const auto& entry : manager->entries()) {
+                if (!matches(entry)) continue;
+                if (entry.visible) { anyVisible = true; visibleIds.append(entry.id); }
+                const int distance = qAbs(entry.exposureOffset);
+                if (distance < nearestDistance) { nearestDistance = distance; nearestId = entry.id; }
+            }
+            if (enabled) {
+                if (!anyVisible && nearestId >= 0) manager->setEntryVisible(nearestId, true);
+                manager->setHideAll(false);
+            } else {
+                for (int id : visibleIds) manager->setEntryVisible(id, false);
+            }
+            qInfo() << "[OnionSkin] Direction visibility changed; previous=" << previous
+                    << "enabled=" << enabled;
+        });
+        refresh();
+    };
+    bindOnionDirection(ui->actionOnionPrev, true);
+    bindOnionDirection(ui->actionOnionNext, false);
 
     // Removed UI/features: Grid / Invisible Lines / Outlines Only / Perspective overlays.
     // Hide from menus and ensure nothing re-enables them.

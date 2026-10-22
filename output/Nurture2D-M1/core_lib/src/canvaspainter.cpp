@@ -264,6 +264,11 @@ void CanvasPainter::paintOnionSkinOnLayer(QPainter& painter, const QRect& blitRe
 
 void CanvasPainter::paintOnionSkin(QPainter& painter, const QRect& blitRect)
 {
+    // The slot system owns onion skins in the application. Rendering the legacy
+    // pass as well leaves independent, often untinted ghosts behind the slots.
+    // Keep that pass available for callers without a ShiftTraceManager.
+    if (mShiftTraceManager) { return; }
+
     if (!mOptions.bOnionSkinMultiLayer || mOptions.eLayerVisibility == LayerVisibility::CURRENTONLY) {
         Layer* layer = mObject->getLayer(mCurrentLayerIndex);
         paintOnionSkinOnLayer(painter, blitRect, layer);

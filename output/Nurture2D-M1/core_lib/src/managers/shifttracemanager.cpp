@@ -37,6 +37,7 @@ GNU General Public License for more details.
 #include "graphics/vector/vectorimage.h"
 
 #include <QPainter>
+#include <QDebug>
 
 ShiftTraceManager::ShiftTraceManager(Editor* editor)
     : BaseManager(editor, "ShiftTraceManager")
@@ -893,6 +894,7 @@ void ShiftTraceManager::setHideAll(bool hide)
 {
     if (mHideAll == hide) return;
     mHideAll = hide;
+    qInfo() << "[OnionSkin] Master visibility changed; enabled=" << !hide;
     QSettings settings(PENCIL2D, PENCIL2D);
     settings.setValue(QStringLiteral("ShiftTrace/hideAll"), hide);
     emit hideAllChanged(hide);

@@ -261,11 +261,19 @@ bool ScribbleArea::init()
     if (mEditor && mEditor->shiftTrace()) {
         connect(mEditor->shiftTrace(), &ShiftTraceManager::needsRedraw, this, [this]{
             mCanvasPainter.invalidatePreLayersCache();
+            invalidateFastNavCache();
             int key = mEditor->layers()->lastFrameAtFrame(mEditor->currentFrame());
             if (key < 0) key = mEditor->currentFrame();
             invalidateCacheForFrame(key);
             // Force repaint even if tools are active
             update();
+        });
+        connect(mEditor->shiftTrace(), &ShiftTraceManager::hideAllChanged, this, [this](bool){
+            // Every cached frame includes its onion skins. A master toggle must
+            // invalidate all of them, including frames not currently displayed.
+            for (const auto& key : mPixmapCacheKeys) QPixmapCache::remove(key);
+            mPixmapCacheKeys.clear();
+            mCameraPainter.resetCache();
         });
         connect(mEditor->shiftTrace(), &ShiftTraceManager::activeMoveEntryChanged, 
                 this, &ScribbleArea::onShiftTraceMoveStateChanged);
@@ -2605,8 +2613,8 @@ void ScribbleArea::prepCameraPainter(int frame)
     onionSkinOptions.enabledWhilePlaying = mPrefs->getInt(SETTING::ONION_WHILE_PLAYBACK);
     onionSkinOptions.isPlaying = mEditor->playback()->isPlaying();
     onionSkinOptions.isAbsolute = (mPrefs->getString(SETTING::ONION_TYPE) == "absolute");
-    onionSkinOptions.skinPrevFrames = mPrefs->isOn(SETTING::PREV_ONION);
-    onionSkinOptions.skinNextFrames = mPrefs->isOn(SETTING::NEXT_ONION);
+    onionSkinOptions.skinPrevFrames = !mEditor->shiftTrace() && mPrefs->isOn(SETTING::PREV_ONION);
+    onionSkinOptions.skinNextFrames = !mEditor->shiftTrace() && mPrefs->isOn(SETTING::NEXT_ONION);
     onionSkinOptions.colorizePrevFrames = mPrefs->isOn(SETTING::ONION_RED);
     onionSkinOptions.colorizeNextFrames = mPrefs->isOn(SETTING::ONION_BLUE);
     onionSkinOptions.framesToSkinPrev = mPrefs->getInt(SETTING::ONION_PREV_FRAMES_NUM);
