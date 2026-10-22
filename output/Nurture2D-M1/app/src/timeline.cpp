@@ -2861,14 +2861,17 @@ void TimeLine::initUI()
     mLoopToggle = new CosmicCheckboxToggle(transportWidget);
     configureCosmicToggle(mLoopToggle);
     mLoopToggle->setIcon(loadSvgIcon(":/Interaction/PlaybackLoop.svg", QSize(18, 18)));
-    mLoopToggle->setToolTip(tr("Loop"));
+    mLoopToggle->setObjectName(QStringLiteral("playbackLoopButton"));
+    mLoopToggle->setAccessibleName(tr("Loop playback"));
+    mLoopToggle->setToolTip(tr("Repeat playback continuously between Start and End"));
+    mLoopToggle->setAccentColor(QColor("#7447ff"));
+    mLoopToggle->setFocusPolicy(Qt::NoFocus);
 
     playbackButtonsLayout->addWidget(mFirstFrameButton);
     playbackButtonsLayout->addWidget(mPrevKeyframeButton);
     playbackButtonsLayout->addWidget(mPlayToggle);
     playbackButtonsLayout->addWidget(mNextKeyframeButton);
     playbackButtonsLayout->addWidget(mLastFrameButton);
-    playbackButtonsLayout->addWidget(mLoopToggle);
 
     transportLayout->addWidget(mShiftAndTraceToggleBtn);
     transportLayout->addWidget(mShiftAndTraceSettingsBtn);
@@ -2893,6 +2896,11 @@ void TimeLine::initUI()
         if (!editor() || !editor()->playback()) {
             return;
         }
+
+        qInfo() << "[PlaybackLoop] Repeat changed; enabled=" << checked
+                << "mode=" << mShotPlaylistMode
+                << "start=" << editor()->playback()->startFrame()
+                << "end=" << editor()->playback()->endFrame();
 
         // UI is source-of-truth:
         // - Shot: loop means PlaybackManager looping
@@ -2938,6 +2946,9 @@ void TimeLine::initUI()
     headerRightContainer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
     if (QWidget* range = mTimeControls->rangeWidget()) {
+        // Keep the existing loop control and its playlist behavior beside the
+        // numeric bounds, so every repeat control shares the same state.
+        range->layout()->addWidget(mLoopToggle);
         range->setParent(headerRightContainer);
         headerRightLayout->addWidget(range);
     }
@@ -3611,6 +3622,9 @@ void TimeLine::setRangeUpper(int frame)
 void TimeLine::onObjectLoaded()
 {
     mTimeControls->updateUI();
+    if (!mShotPlaylistActive) {
+        setLoop(editor()->playback()->isLooping());
+    }
     updateLayerNumber(editor()->layers()->count());
 }
 

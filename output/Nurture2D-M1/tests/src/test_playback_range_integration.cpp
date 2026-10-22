@@ -1,5 +1,7 @@
 // Exercise the real timeline fields and playback manager with isolated settings.
 #include <QApplication>
+#include <QAbstractButton>
+#include <QAction>
 #include <QEventLoop>
 #include <QKeyEvent>
 #include <QLineEdit>
@@ -63,6 +65,15 @@ int main(int argc, char** argv)
     require(controls->rangeWidget()->mapToGlobal(QPoint()).x()
             < controls->trailingWidget()->mapToGlobal(QPoint()).x(),
             "range block appears left of FPS");
+    auto* loop = window->findChild<QAbstractButton*>("playbackLoopButton");
+    auto* loopAction = window->findChild<QAction*>("actionLoop");
+    require(loop && loopAction && loop->isVisible(), "repeat button is visible");
+    require(loop->parentWidget() == controls->rangeWidget(),
+            "repeat button belongs to numeric range block");
+    require(loop->mapToGlobal(QPoint()).x() > end->mapToGlobal(QPoint()).x(),
+            "repeat icon appears immediately after End");
+    require(loop->size() == QSize(28, 28) && !loop->icon().isNull(),
+            "compact repeat button has an icon");
     auto* playback = window->mEditor->playback();
     typeFrame(end, "11");
     typeFrame(start, "3");
@@ -82,6 +93,41 @@ int main(int argc, char** argv)
     playing.exec();
     require(!playback->isPlaying() && window->mEditor->currentFrame() == 11,
             "actual timed playback stops on the typed final frame");
+    typeFrame(end, "5");
+    playback->setFps(30);
+    loop->click();
+    require(loop->isChecked() && playback->isLooping() && loopAction->isChecked(),
+            "repeat button enables existing playback and menu state");
+    int wraps = 0;
+    int previousFrame = -1;
+    bool outsideRange = false;
+    QEventLoop repeating;
+    auto scrubConnection = QObject::connect(window->mEditor, &Editor::scrubbed, &repeating,
+        [&](int frame) {
+            if (frame < 3 || frame > 5) outsideRange = true;
+            if (previousFrame == 5 && frame == 3) ++wraps;
+            previousFrame = frame;
+            if (wraps >= 3) repeating.quit();
+        });
+    QTimer::singleShot(2000, &repeating, &QEventLoop::quit);
+    playback->play();
+    repeating.exec();
+    QObject::disconnect(scrubConnection);
+    require(wraps >= 3 && playback->isPlaying() && !outsideRange,
+            "timed playback repeats the inclusive range for at least three cycles");
+    loop->click();
+    require(!loop->isChecked() && !playback->isLooping() && !loopAction->isChecked(),
+            "repeat button disables existing playback and menu state");
+    QEventLoop finishing;
+    QObject::connect(playback, &PlaybackManager::playStateChanged, &finishing,
+                     [&finishing](bool active) { if (!active) finishing.quit(); });
+    QTimer::singleShot(2000, &finishing, &QEventLoop::quit);
+    finishing.exec();
+    require(!playback->isPlaying() && window->mEditor->currentFrame() == 5,
+            "disabling repeat during playback stops at the final frame");
+    loopAction->trigger();
+    require(loop->isChecked() && playback->isLooping(),
+            "existing menu command updates the repeat button");
     timeline->setRangeLower(5);
     timeline->setRangeUpper(18);
     require(start->value() == 5 && end->value() == 18,
@@ -104,21 +150,26 @@ int main(int argc, char** argv)
     std::unique_ptr<Object> restored(files.load(path));
     require(restored != nullptr, "reopen animation file");
     require(playback->load(restored.get()).ok(), "restore playback range from reopened file");
-    controls->updateUI();
+    timeline->onObjectLoaded();
     require(start->value() == 30 && end->value() == 1500,
             "saved range returns to the numeric fields");
+
+    require(loop->isChecked() && playback->isLooping(), "saved repeat state returns to the button");
 
     // Loading another document must reset the previous end-field minimum.
     std::unique_ptr<Object> fresh(new Object);
     require(playback->load(fresh.get()).ok(), "load another document's playback state");
-    controls->updateUI();
+    timeline->onObjectLoaded();
     require(start->value() == playback->markInFrame()
             && end->value() == playback->markOutFrame(),
             "document switch resets values and constraints");
+    require(!loop->isChecked() && !playback->isLooping(),
+            "another document restores its own repeat state");
     timeline->setRangeState(false);
     require(!start->isEnabled() && !end->isEnabled(), "disabled range disables numeric fields");
     timeline->setRangeState(true);
     require(start->isEnabled() && end->isEnabled(), "enabled range enables numeric fields");
+    loop->click();
     window->grab().save("/private/tmp/yoopi2d-playback-range-preview.png");
     std::printf("PASS: %d playback range checks\n", checks);
     std::fflush(stdout);
