@@ -70,6 +70,7 @@ GNU General Public License for more details.
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QTextEdit>
+#include <QScopedValueRollback>
 #include <algorithm>
 
 #ifdef Q_OS_MACOS
@@ -4161,6 +4162,100 @@ QMenu* MainWindow2::createPopupMenu()
 bool MainWindow2::eventFilter(QObject* obj, QEvent* event)
 {
 #ifdef Q_OS_MACOS
+    // Normalize physical macOS keys before Qt dispatches shortcuts. Re-delivery
+    // retains Qt's shortcut contexts, ambiguity handling and custom bindings.
+    static bool deliveringPhysicalKey = false;
+    if (!deliveringPhysicalKey && event &&
+        (event->type() == QEvent::ShortcutOverride || event->type() == QEvent::KeyPress ||
+         event->type() == QEvent::KeyRelease)) {
+        auto* key = static_cast<QKeyEvent*>(event);
+        auto* target = qobject_cast<QWidget*>(obj);
+        QWidget* focus = QApplication::focusWidget();
+        const bool textInput = focus && (focus->testAttribute(Qt::WA_InputMethodEnabled) ||
+            qobject_cast<QLineEdit*>(focus) || qobject_cast<QTextEdit*>(focus) ||
+            qobject_cast<QPlainTextEdit*>(focus));
+        // ANSI hardware positions 0..50. Non-printing positions are left to Qt.
+        static const char positions[] = "ASDFHGZXCV\0BQWERYT123465=97-80]OU[IP\0LJK;'\\,/NM.\0 `";
+        const quint32 code = key->nativeVirtualKey();
+        bool paste = false, next = false;
+        const bool dedicated = isMacCommandZ(key) || isMacClipboardShortcut(key, &paste) ||
+                               isMacKeyframeNavigationShortcut(key, &next);
+        if (!dedicated && target && target->window() == this && !textInput &&
+            !QApplication::activePopupWidget() && !QApplication::activeModalWidget() &&
+            (key->spontaneous() || code != 0) && code < sizeof(positions) - 1 && positions[code]) {
+            int physical = positions[code];
+            if (key->modifiers().testFlag(Qt::ShiftModifier)) {
+                const QByteArray plain("1234567890-=[]\\;',./`");
+                const QByteArray shifted("!@#$%^&*()_+{}|:\"<>?~");
+                const int index = plain.indexOf(char(physical));
+                if (index >= 0) physical = shifted[index];
+            }
+            if (physical != key->key()) {
+                // Prevent the original layout from activating a different command.
+                if (event->type() == QEvent::ShortcutOverride) {
+                    key->accept();
+                    return true;
+                }
+                if (event->type() == QEvent::KeyPress) {
+                    const QKeySequence sequence(physical | int(key->modifiers()));
+                    QList<QAction*> matches;
+                    for (QAction* action : findChildren<QAction*>()) {
+                        if (!action->isEnabled() || !action->isVisible() ||
+                            !action->shortcuts().contains(sequence)) continue;
+                        bool active = action->shortcutContext() == Qt::ApplicationShortcut ||
+                                      action->shortcutContext() == Qt::WindowShortcut;
+                        for (QWidget* widget : action->associatedWidgets()) {
+                            if (!widget->isVisible()) continue;
+                            switch (action->shortcutContext()) {
+                            case Qt::WindowShortcut: active |= widget->window() == this; break;
+                            case Qt::WidgetShortcut: active |= widget == focus; break;
+                            case Qt::WidgetWithChildrenShortcut:
+                                active |= widget == focus || widget->isAncestorOf(focus); break;
+                            default: break;
+                            }
+                        }
+                        if (active) matches.append(action);
+                    }
+                    QList<QShortcut*> shortcuts;
+                    for (QShortcut* shortcut : findChildren<QShortcut*>()) {
+                        if (!shortcut->isEnabled() || shortcut->key() != sequence) continue;
+                        QWidget* owner = qobject_cast<QWidget*>(shortcut->parent());
+                        if (!owner || !owner->isVisible()) continue;
+                        if (shortcut->context() == Qt::ApplicationShortcut ||
+                            (shortcut->context() == Qt::WindowShortcut && owner->window() == this) ||
+                            (shortcut->context() == Qt::WidgetShortcut && owner == focus) ||
+                            (shortcut->context() == Qt::WidgetWithChildrenShortcut &&
+                             (owner == focus || owner->isAncestorOf(focus)))) shortcuts.append(shortcut);
+                    }
+                    if (matches.size() + shortcuts.size() > 1) {
+                        qWarning() << "[KeyboardShortcuts] Ambiguous physical shortcut" << sequence.toString();
+                        key->accept();
+                        return true;
+                    }
+                    if (shortcuts.size() == 1) {
+                        if (!key->isAutoRepeat() || shortcuts.first()->autoRepeat())
+                            QMetaObject::invokeMethod(shortcuts.first(), "activated", Qt::DirectConnection);
+                        key->accept();
+                        return true;
+                    }
+                    if (matches.size() == 1) {
+                        if (!key->isAutoRepeat() || matches.first()->autoRepeat())
+                            matches.first()->trigger();
+                        key->accept();
+                        return true;
+                    }
+                }
+                QScopedValueRollback<bool> guard(deliveringPhysicalKey, true);
+                QKeyEvent translated(event->type(), physical, key->modifiers(),
+                    key->nativeScanCode(), code, key->nativeModifiers(),
+                    QString(QChar(physical)), key->isAutoRepeat(), key->count());
+                translated.setTimestamp(key->timestamp());
+                QApplication::sendEvent(obj, &translated);
+                key->setAccepted(translated.isAccepted());
+                return true;
+            }
+        }
+    }
     // Qt's logical key changes with the active input layout (for example Z becomes
     // Cyrillic Я). Route Command+physical-Z directly so Undo/Redo remains layout-independent.
     if (event && (event->type() == QEvent::KeyPress || event->type() == QEvent::ShortcutOverride)) {
