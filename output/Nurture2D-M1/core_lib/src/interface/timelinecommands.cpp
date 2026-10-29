@@ -99,7 +99,15 @@ void PasteBitmapFramesCommand::undo()
     if (!layer || !layer->cellBank()) { qWarning() << "[TimelineClipboard] Undo layer unavailable"; return; }
     auto* bank = layer->cellBank();
     for (auto it = mInsertedCells.cbegin(); it != mInsertedCells.cend(); ++it) {
-        layer->removeKeyFrame(it.key());
+        // Frames can have moved since insertion. Find this drawing by its
+        // stable cell identity; deleting the original position can delete an
+        // unrelated frame and leave a dangling reference at the new position.
+        QList<int> positions;
+        layer->foreachKeyFrame([&](KeyFrame* key) {
+            auto* bitmap = dynamic_cast<BitmapKeyFrame*>(key);
+            if (bitmap && bitmap->cellId() == it.value()) positions.append(key->pos());
+        });
+        for (int position : positions) layer->removeKeyFrame(position);
         bank->removeCell(it.value());
     }
     bank->setCellOrder(mOriginalOrder);

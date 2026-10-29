@@ -209,7 +209,14 @@ Status LayerBitmap::saveKeyFrameFile(KeyFrame* keyframe, QString path)
     BitmapKeyFrame* bkf = static_cast<BitmapKeyFrame*>(keyframe);
     BitmapImage* bitmapImage = mCellBank->getCell(bkf->cellId());
     
-    if (!bitmapImage) return Status::FAIL;
+    if (!bitmapImage) {
+        DebugDetails details;
+        details << QString("Missing drawing: layer=%1 frame=%2 cellId=%3")
+                       .arg(id()).arg(keyframe->pos()).arg(bkf->cellId());
+        qWarning() << "[ProjectSave] Missing drawing" << "layer" << id()
+                   << "frame" << keyframe->pos() << "cellId" << bkf->cellId();
+        return Status(Status::FAIL, details);
+    }
 
     // determine path based on CELL NAME
     QString cellName = mCellBank->getCellName(bkf->cellId());
