@@ -42,6 +42,7 @@ public:
     BaseTool* getTool(ToolType eToolType) const;
     void setDefaultTool();
     void setCurrentTool(ToolType eToolType);
+    ToolType lastDrawingTool() const { return mLastDrawingTool; }
     void tabletSwitchToEraser();
     void tabletRestorePrevTool();
 
@@ -143,6 +144,7 @@ public slots:
 
 private:
     BaseTool* mCurrentTool = nullptr;
+    ToolType mLastDrawingTool = PENCIL;
     BaseTool* mTabletEraserTool = nullptr;
 
     // New temporary switching state

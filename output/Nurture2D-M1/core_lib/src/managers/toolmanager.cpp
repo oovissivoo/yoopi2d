@@ -203,6 +203,10 @@ void ToolManager::setCurrentTool(ToolType eToolType)
         leavingThisTool();
     }
 
+    if (eToolType == PENCIL || eToolType == PEN || eToolType == POLYLINE ||
+        eToolType == CURVE || eToolType == BSPLINE) {
+        mLastDrawingTool = eToolType;
+    }
     mCurrentTool = getTool(eToolType);
     // Ensure the tool refreshes its in-memory properties from saved settings upon entry,
     // unless an explicit property edit is in progress (prevents flicker/mid-gesture reset)

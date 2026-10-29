@@ -1738,6 +1738,7 @@ void MainWindow2::createMenus()
     }
     if (!mIncreaseSizeAction) {
         mIncreaseSizeAction = new QAction(tr("Increase Size"), this);
+        mIncreaseSizeAction->setObjectName(QStringLiteral("increaseToolSize"));
         mIncreaseSizeAction->setMenuRole(QAction::NoRole);
         addAction(mIncreaseSizeAction);
         connect(mIncreaseSizeAction, &QAction::triggered, this, [this]() {
@@ -1760,11 +1761,13 @@ void MainWindow2::createMenus()
                     tm->endEditingProperties();
                 }
             }
+            qInfo() << "[ToolSize] Increased" << int(tool->type()) << "from" << cur << "to" << tool->properties.width;
             if (mToolOptions) mToolOptions->updateUI();
         });
     }
     if (!mDecreaseSizeAction) {
         mDecreaseSizeAction = new QAction(tr("Decrease Size"), this);
+        mDecreaseSizeAction->setObjectName(QStringLiteral("decreaseToolSize"));
         mDecreaseSizeAction->setMenuRole(QAction::NoRole);
         addAction(mDecreaseSizeAction);
         connect(mDecreaseSizeAction, &QAction::triggered, this, [this]() {
@@ -1787,6 +1790,7 @@ void MainWindow2::createMenus()
                     tm->endEditingProperties();
                 }
             }
+            qInfo() << "[ToolSize] Decreased" << int(tool->type()) << "from" << cur << "to" << tool->properties.width;
             if (mToolOptions) mToolOptions->updateUI();
         });
     }
@@ -3853,11 +3857,19 @@ void MainWindow2::setupKeyboardShortcuts()
         mCCToggleClearFrameAction->setShortcutContext(Qt::WindowShortcut);
     }
     if (mIncreaseSizeAction) {
-        mIncreaseSizeAction->setShortcut(cmdKeySeq(CMD_INCREASE_SIZE));
+        const QKeySequence configured = cmdKeySeq(CMD_INCREASE_SIZE);
+        mIncreaseSizeAction->setShortcuts(configured.isEmpty()
+            ? QList<QKeySequence>{QKeySequence(QStringLiteral("]")),
+                                  QKeySequence(QStringLiteral("Shift+}"))}
+            : QList<QKeySequence>{configured});
         mIncreaseSizeAction->setShortcutContext(Qt::WindowShortcut);
     }
     if (mDecreaseSizeAction) {
-        mDecreaseSizeAction->setShortcut(cmdKeySeq(CMD_DECREASE_SIZE));
+        const QKeySequence configured = cmdKeySeq(CMD_DECREASE_SIZE);
+        mDecreaseSizeAction->setShortcuts(configured.isEmpty()
+            ? QList<QKeySequence>{QKeySequence(QStringLiteral("[")),
+                                  QKeySequence(QStringLiteral("Shift+{"))}
+            : QList<QKeySequence>{configured});
         mDecreaseSizeAction->setShortcutContext(Qt::WindowShortcut);
     }
     if (mIncreaseOpacityAction) {
@@ -5847,6 +5859,19 @@ void MainWindow2::createToolbars()
     mViewToolbar    = nullptr;
     mOverlayToolbar = nullptr;
     mToolsToolbar   = nullptr;
+
+    auto* returnToDrawing = new QAction(tr("Return to last drawing tool"), this);
+    returnToDrawing->setObjectName(QStringLiteral("returnToLastDrawingTool"));
+    returnToDrawing->setShortcut(QKeySequence(Qt::Key_B));
+    returnToDrawing->setShortcutContext(Qt::WindowShortcut);
+    returnToDrawing->setAutoRepeat(false);
+    addAction(returnToDrawing);
+    connect(returnToDrawing, &QAction::triggered, this, [this] {
+        auto* tools = mEditor->tools();
+        const ToolType target = tools->lastDrawingTool();
+        qInfo() << "[DrawingTool] Returning to last drawing tool" << int(target);
+        mToolBox->setActiveTool(target);
+    });
 
     // ── Tool actions ──────────────────────────────────────────────────────────
     if (!mActionPencil)      mActionPencil      = new QAction(QIcon(":/icons/themes/playful/tools/tool-pencil.svg"), tr("Pencil"), this);
