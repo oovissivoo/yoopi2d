@@ -322,6 +322,7 @@ private:
     QShortcut* mPopupColorWheelShortcut = nullptr;
 
     QAction* mToggleGapCheckAction = nullptr;
+    QAction* mExportVideoAction = nullptr;
     QAction* mIncreaseSizeAction = nullptr;
     QAction* mDecreaseSizeAction = nullptr;
     QAction* mIncreaseOpacityAction = nullptr;

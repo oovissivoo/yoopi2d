@@ -99,7 +99,12 @@ Status MovieExporter::run(const Object* obj,
         return Status::ERROR_FFMPEG_NOT_FOUND;
     }
 
-    STATUS_CHECK(checkInputParameters(desc))
+    if (!obj || !checkInputParameters(desc).ok() ||
+        !obj->findLayerByName(desc.strCameraName, Layer::CAMERA)) {
+        qWarning() << "[VideoExport] Invalid parameters or missing camera"
+                   << desc.exportSize << desc.startFrame << desc.endFrame << desc.strCameraName;
+        return Status::INVALID_ARGUMENT;
+    }
     mDesc = desc;
 
     qDebug() << "OutFile: " << mDesc.strFileName;
@@ -245,7 +250,7 @@ Status MovieExporter::assembleAudio(const Object* obj,
     // Output path
     args << tempAudioPath;
 
-    STATUS_CHECK(MovieExporter::executeFFmpeg(ffmpegPath, args, [&progress, this] (int frame) { progress(frame / static_cast<float>(mDesc.endFrame - mDesc.startFrame)); return !mCanceled; }))
+    STATUS_CHECK(MovieExporter::executeFFmpeg(ffmpegPath, args, [&progress, this] (int frame) { progress(frame / static_cast<float>(mDesc.endFrame - mDesc.startFrame + 1)); return !mCanceled; }))
     qDebug() << "audio file: " + tempAudioPath;
 
     return Status::OK;
@@ -317,9 +322,9 @@ Status MovieExporter::generateMovie(
      * means that there is a maximum number of frames that can be waiting
      * to be encoded by ffmpeg at any one time. The limit is set by the
      * frameWindow variable which is designed to take up a maximum of
-     * about 1GB of memory
+     * about 64 MB of memory (at least one output frame)
      */
-    int frameWindow = static_cast<int>(1e9 / (camSize.width() * camSize.height() * 4.0));
+    int frameWindow = qBound(1, static_cast<int>(64e6 / (exportSize.width() * double(exportSize.height()) * 4.0)), 8);
 
     // Build FFmpeg command
 
@@ -346,7 +351,12 @@ Status MovieExporter::generateMovie(
 
     if (strOutputFile.endsWith(".mp4", Qt::CaseInsensitive))
     {
-        args << "-pix_fmt" << "yuv420p";
+        args << "-c:v" << "libx264" << "-preset" << "veryfast" << "-crf" << "23"
+             << "-pix_fmt" << "yuv420p" << "-movflags" << "+faststart";
+        if (QFile::exists(tempAudioPath)) args << "-c:a" << "aac" << "-b:a" << "128k";
+        qInfo() << "[VideoExport] MP4 H.264; preset=veryfast crf=23"
+                << "size=" << exportSize << "fps=" << mDesc.fps
+                << "start=" << frameStart << "end=" << frameEnd;
     }
 
     if (strOutputFile.endsWith(".avi", Qt::CaseInsensitive))
@@ -399,6 +409,8 @@ Status MovieExporter::generateMovie(
 
         return false;
     });
+    if (!status.ok()) qWarning() << "[VideoExport] Encoding failed" << strOutputFile;
+    else qInfo() << "[VideoExport] Encoding finished" << strOutputFile;
     STATUS_CHECK(status);
 
     return Status::OK;
@@ -594,7 +606,7 @@ Status MovieExporter::executeFFmpeg(const QString& cmd, const QStringList& args,
             status = Status::FAIL;
             status.setTitle(tr("Something went wrong"));
             status.setDescription(tr("Looks like our video backend did not exit normally. Your movie may not have exported correctly. Please try again and report this if it persists."));
-            dd << QString("Exit status: ").append(QProcess::NormalExit ? "NormalExit": "CrashExit")
+            dd << QString("Exit status: ").append(ffmpeg.exitStatus() == QProcess::NormalExit ? "NormalExit": "CrashExit")
                << QString("Exit code: %1").arg(ffmpeg.exitCode());
             status.setDetails(dd);
             return status;
@@ -709,12 +721,12 @@ Status MovieExporter::executeFFMpegPipe(const QString& cmd, const QStringList& a
             {
                 framesGenerated++;
 
-                const float percentGenerated = framesGenerated / static_cast<float>(frameEnd - frameStart);
-                const float percentConverted = lastFrameProcessed / static_cast<float>(frameEnd - frameStart);
+                const float percentGenerated = framesGenerated / static_cast<float>(frameEnd - frameStart + 1);
+                const float percentConverted = lastFrameProcessed / static_cast<float>(frameEnd - frameStart + 1);
                 progress((percentGenerated + percentConverted) / 2);
             }
-            const float percentGenerated = framesGenerated / static_cast<float>(frameEnd - frameStart);
-            const float percentConverted = lastFrameProcessed / static_cast<float>(frameEnd - frameStart);
+            const float percentGenerated = framesGenerated / static_cast<float>(frameEnd - frameStart + 1);
+            const float percentConverted = lastFrameProcessed / static_cast<float>(frameEnd - frameStart + 1);
             progress((percentGenerated + percentConverted) / 2);
         }
 
@@ -731,7 +743,7 @@ Status MovieExporter::executeFFMpegPipe(const QString& cmd, const QStringList& a
             status = Status::FAIL;
             status.setTitle(tr("Something went wrong"));
             status.setDescription(tr("Looks like our video backend did not exit normally. Your movie may not have exported correctly. Please try again and report this if it persists."));
-            dd << QString("Exit status: ").append(QProcess::NormalExit ? "NormalExit": "CrashExit")
+            dd << QString("Exit status: ").append(ffmpeg.exitStatus() == QProcess::NormalExit ? "NormalExit": "CrashExit")
                << QString("Exit code: %1").arg(ffmpeg.exitCode());
             status.setDetails(dd);
             return status;
@@ -756,6 +768,9 @@ Status MovieExporter::checkInputParameters(const ExportMovieDesc& desc)
     b &= (desc.startFrame > 0);
     b &= (desc.endFrame >= desc.startFrame);
     b &= (desc.fps > 0);
+    b &= (desc.exportSize.width() > 0 && desc.exportSize.height() > 0);
+    if (desc.strFileName.endsWith(".mp4", Qt::CaseInsensitive))
+        b &= (desc.exportSize.width() % 2 == 0 && desc.exportSize.height() % 2 == 0);
     b &= (!desc.strCameraName.isEmpty());
 
     return b ? Status::OK : Status::INVALID_ARGUMENT;

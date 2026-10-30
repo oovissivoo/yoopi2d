@@ -1448,6 +1448,13 @@ void MainWindow2::createMenus()
     connect(ui->actionExport_Image, &QAction::triggered, mCommands, &ActionCommands::exportImage);
     // Removed: Current Layer Animation (Image Sequence) export action
     connect(ui->actionExport_Animation, &QAction::triggered, mCommands, &ActionCommands::exportAnimation);
+    ui->actionExport_Animation->setText(tr("Image Sequence..."));
+    mExportVideoAction = new QAction(tr("Animation (MP4 / H.264)..."), this);
+    mExportVideoAction->setObjectName(QStringLiteral("exportH264Animation"));
+    ui->menuExport->insertAction(ui->actionExport_Animation, mExportVideoAction);
+    connect(mExportVideoAction, &QAction::triggered, this, [this] {
+        mCommands->exportMovie(false);
+    });
     connect(ui->actionExport_Sprite, &QAction::triggered, mCommands, &ActionCommands::exportSprite);
     connect(ui->actionExport_Gif, &QAction::triggered, mCommands, &ActionCommands::exportGif);
     // Removed: Export Palette action
@@ -5350,6 +5357,7 @@ CosmicMenuWindow* MainWindow2::buildImportSubmenu()
 CosmicMenuWindow* MainWindow2::buildExportSubmenu()
 {
     auto* w = new CosmicMenuWindow(this);
+    w->addAction(mExportVideoAction);
     w->addAction(ui->actionExport_Image);
     w->addAction(ui->actionExport_Animation);
     w->addAction(ui->actionExport_Sprite);

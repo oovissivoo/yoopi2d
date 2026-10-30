@@ -337,18 +337,29 @@ void MakeUniqueDrawingCommand::undo()
     CellBank* bank = bitmapLayer->cellBank();
     if (!bank) return;
 
-    KeyFrame* kf = layer->getKeyFrameAt(mFrameIndex);
-    if (!kf) return;
-    BitmapKeyFrame* bkf = dynamic_cast<BitmapKeyFrame*>(kf);
-    if (!bkf) return;
+    BitmapKeyFrame* bkf = nullptr;
+    layer->foreachKeyFrame([&](KeyFrame* key) {
+        auto* bitmap = dynamic_cast<BitmapKeyFrame*>(key);
+        if (!bkf && bitmap && bitmap->cellId() == mNewCellId) bkf = bitmap;
+    });
+    if (!bkf || !bank->getCellLayerStack(mOldCellId)) {
+        qWarning() << "[TimelineUndo] Unique drawing undo target unavailable" << mNewCellId;
+        return;
+    }
+    mFrameIndex = bkf->pos();
 
     // Restore the original shared cell reference
     bank->removeInstance(mNewCellId, mLayerId, mFrameIndex);
     bkf->setCellId(mOldCellId);
     bank->addInstance(mOldCellId, mLayerId, mFrameIndex);
 
-    // Remove the duplicate cell from the bank
-    bank->removeCell(mNewCellId);
+    bool referenced = false;
+    layer->foreachKeyFrame([&](KeyFrame* key) {
+        auto* bitmap = dynamic_cast<BitmapKeyFrame*>(key);
+        referenced |= bitmap && bitmap->cellId() == mNewCellId;
+    });
+    if (!referenced) bank->removeCell(mNewCellId);
+    qInfo() << "[TimelineUndo] Restored shared drawing at frame" << mFrameIndex;
 
     editor()->layers()->notifyAnimationLengthChanged();
     emit editor()->frameModified(mFrameIndex);

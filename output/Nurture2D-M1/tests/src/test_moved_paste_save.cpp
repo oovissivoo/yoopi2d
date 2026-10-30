@@ -106,6 +106,20 @@ int main(int argc, char** argv) {
     QStringList attached;
     const Status saved = layer->save(temporary.path(), attached, [] {});
     require(saved.ok(), "layer remains saveable after moved paste undo");
+    const int original = cell(layer,1);
+    MakeUniqueDrawingCommand unique(1, layer->id(), editor);
+    unique.redo();
+    require(cell(layer,1) != original, "unique drawing created");
+    require(layer->moveKeyFrame(1,1), "unique drawing moved");
+    require(layer->addNewKeyFrameAt(1), "unrelated drawing at unique old position");
+    const int replacement = cell(layer,1);
+    unique.undo();
+    require(cell(layer,2) == original, "undo uniqueness follows moved cell identity");
+    require(cell(layer,1) == replacement, "undo uniqueness preserves unrelated old-position drawing");
+    unique.redo();
+    require(cell(layer,2) != original, "redo uniqueness follows moved key");
+    attached.clear();
+    require(layer->save(temporary.path(), attached, [] {}).ok(), "save after moved unique undo redo");
     std::printf("PASS: %d moved paste save checks\n", checks);
     std::fflush(stdout); std::_Exit(0);
 }

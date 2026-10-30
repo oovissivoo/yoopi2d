@@ -446,7 +446,12 @@ Status ActionCommands::exportMovie(bool isGif)
     int lengthWithSounds = mEditor->layers()->animationLength(true);
     int length = mEditor->layers()->animationLength(false);
 
-    dialog->setDefaultRange(1, length, lengthWithSounds);
+    if (!isGif && mEditor->playback()->isRangedPlaybackOn()) {
+        dialog->setDefaultRange(mEditor->playback()->startFrame(),
+                                mEditor->playback()->endFrame(), lengthWithSounds);
+    } else {
+        dialog->setDefaultRange(1, length, lengthWithSounds);
+    }
     dialog->exec();
 
     if (dialog->result() == QDialog::Rejected)

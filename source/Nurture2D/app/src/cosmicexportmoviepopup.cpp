@@ -116,7 +116,7 @@ void CosmicExportMoviePopup::buildUI()
     lay->addWidget(mHeader);
 
     // ── title ─────────────────────────────────────────────────────────────────
-    auto* titleLbl = new QLabel(isGif ? tr("Export Animated GIF") : tr("Export Movie"), root);
+    auto* titleLbl = new QLabel(isGif ? tr("Export Animated GIF") : tr("Export Animation — MP4 / H.264"), root);
     titleLbl->setAlignment(Qt::AlignCenter);
     titleLbl->setStyleSheet(QStringLiteral(
         "QLabel{ background: transparent; color: #ffffff; font-weight: 700; font-size: 14px; }"));
@@ -127,7 +127,7 @@ void CosmicExportMoviePopup::buildUI()
     auto* destCard = makeCard(root, destLay);
     lay->addWidget(destCard);
     destLay->addWidget(makeSectionTitle(tr("Destination"), destCard));
-    destLay->addWidget(makeLabel(tr("Choose where to save the exported file."),
+    destLay->addWidget(makeLabel((isGif ? tr("Choose where to save the exported file.") : tr("MP4 / H.264: fast export with a compact file size.")),
                                  destCard, 10, true));
     destLay->addWidget(makeSeparator(destCard));
 
@@ -379,7 +379,7 @@ void CosmicExportMoviePopup::validateResolution()
     const int h = mHeightField ? static_cast<int>(mHeightField->value()) : 0;
     const bool bad = isMp4 && (w % 2 != 0 || h % 2 != 0);
     mResWarning->setVisible(bad);
-    if (mExportBtn) mExportBtn->setEnabled(!bad);
+    if (mExportBtn) mExportBtn->setEnabled(!bad && w > 0 && h > 0 && !filePath().trimmed().isEmpty());
 }
 
 void CosmicExportMoviePopup::updateLoopState()
