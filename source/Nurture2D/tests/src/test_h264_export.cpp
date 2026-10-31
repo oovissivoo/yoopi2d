@@ -11,6 +11,8 @@
 #include "object.h"
 #include "layercamera.h"
 #include "movieexporter.h"
+#include "cosmicexportmoviepopup.h"
+#include "cosmicdropdown.h"
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
     QTemporaryDir settings;
@@ -23,9 +25,22 @@ int main(int argc, char** argv) {
     if (cameras.empty()) return 2;
     ExportMovieDesc desc;
     desc.strFileName = "/private/tmp/yoopi-h264-export-test.mp4";
-    desc.strCameraName = cameras.front()->name();
+    CosmicExportMoviePopup dialog(window, FileType::MOVIE);
+    const QString camera = cameras.front()->name();
+    dialog.setCamerasInfo({{camera, QSize(128,72)}});
+    if (dialog.selectedCameraName() != camera || dialog.exportSize() != QSize(128,72)) return 7;
+    dialog.setCamerasInfo({{camera, QSize(128,72)}, {"Other camera", QSize(256,144)}});
+    auto* drop = dialog.findChild<CosmicDropDown*>();
+    if (!drop) return 8;
+    drop->setCurrentIndex(1);
+    if (dialog.selectedCameraName() != "Other camera" || dialog.exportSize() != QSize(256,144)) return 9;
+    dialog.setCamerasInfo({{camera, QSize(128,72)}});
+    CosmicExportMoviePopup gifDialog(window, FileType::GIF);
+    gifDialog.setCamerasInfo({{camera, QSize(128,72)}});
+    if (gifDialog.selectedCameraName() != camera) return 10;
+    desc.strCameraName = dialog.selectedCameraName();
     desc.startFrame = 1; desc.endFrame = 6; desc.fps = 12;
-    desc.exportSize = QSize(128, 72);
+    desc.exportSize = dialog.exportSize();
     MovieExporter exporter;
     Status status = exporter.run(window->mEditor->object(), desc,
         [](float, float){}, [](float){}, [](QString){});
@@ -47,7 +62,8 @@ int main(int argc, char** argv) {
     desc.exportSize = QSize(128,72);
     desc.strCameraName = "missing camera";
     MovieExporter noCamera;
-    if (noCamera.run(window->mEditor->object(), desc, [](float,float){}, [](float){}, [](QString){}).ok()) return 6;
-    std::puts("PASS: MP4 six frames, single frame finite progress, invalid sizes and missing camera");
+    const Status noCameraResult = noCamera.run(window->mEditor->object(), desc, [](float,float){}, [](float){}, [](QString){});
+    if (noCameraResult.ok() || noCameraResult.description().isEmpty() || noCameraResult.details().str().isEmpty()) return 6;
+    std::puts("PASS: dialog default/switch/reset camera, GIF camera, MP4 6/1 frames, invalid input and nonempty diagnostics");
     std::fflush(stdout); std::_Exit(0);
 }

@@ -323,6 +323,7 @@ void CosmicExportMoviePopup::buildUI()
 
     updateLoopState();
     updateTransparencyState();
+    validateResolution();
 }
 
 // ── public setters ────────────────────────────────────────────────────────────
@@ -331,11 +332,15 @@ void CosmicExportMoviePopup::setCamerasInfo(
     const std::vector<std::pair<QString, QSize>>& cameras)
 {
     mCameraData = cameras;
-    if (!mCameraDrop) return;
+    if (!mCameraDrop) { validateResolution(); return; }
     QStringList names;
     for (const auto& c : cameras) names << c.first;
     mCameraDrop->setOptions(names);
-    if (!cameras.empty()) onCameraChanged(0);
+    if (!cameras.empty()) {
+        mCameraDrop->setCurrentIndex(0);
+        onCameraChanged(0);
+    }
+    validateResolution();
 }
 
 void CosmicExportMoviePopup::setDefaultRange(int startFrame, int endFrame, int endFrameWithSounds)
@@ -379,7 +384,7 @@ void CosmicExportMoviePopup::validateResolution()
     const int h = mHeightField ? static_cast<int>(mHeightField->value()) : 0;
     const bool bad = isMp4 && (w % 2 != 0 || h % 2 != 0);
     mResWarning->setVisible(bad);
-    if (mExportBtn) mExportBtn->setEnabled(!bad && w > 0 && h > 0 && !filePath().trimmed().isEmpty());
+    if (mExportBtn) mExportBtn->setEnabled(!bad && w > 0 && h > 0 && !filePath().trimmed().isEmpty() && !selectedCameraName().isEmpty());
 }
 
 void CosmicExportMoviePopup::updateLoopState()
@@ -437,7 +442,8 @@ QString CosmicExportMoviePopup::filePath() const
 
 QString CosmicExportMoviePopup::selectedCameraName() const
 {
-    return mCameraDrop ? mCameraDrop->currentText() : QString();
+    if (mCameraData.empty()) return QString();
+    return mCameraDrop ? mCameraDrop->currentText() : mCameraData.front().first;
 }
 
 QSize CosmicExportMoviePopup::exportSize() const

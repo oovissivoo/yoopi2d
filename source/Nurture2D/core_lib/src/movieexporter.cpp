@@ -103,7 +103,15 @@ Status MovieExporter::run(const Object* obj,
         !obj->findLayerByName(desc.strCameraName, Layer::CAMERA)) {
         qWarning() << "[VideoExport] Invalid parameters or missing camera"
                    << desc.exportSize << desc.startFrame << desc.endFrame << desc.strCameraName;
-        return Status::INVALID_ARGUMENT;
+        DebugDetails details;
+        details << QString("Camera: %1").arg(desc.strCameraName)
+                << QString("Size: %1 x %2; FPS: %3; Frames: %4–%5")
+                       .arg(desc.exportSize.width()).arg(desc.exportSize.height())
+                       .arg(desc.fps).arg(desc.startFrame).arg(desc.endFrame);
+        Status invalid(Status::INVALID_ARGUMENT, details);
+        invalid.setTitle(tr("Cannot export animation"));
+        invalid.setDescription(tr("Choose a valid camera, output size and frame range. MP4 requires even width and height."));
+        return invalid;
     }
     mDesc = desc;
 
